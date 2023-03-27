@@ -1,0 +1,89 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "install dev dependencies",
+      "command": "poetry install --with=dev",
+      "type": "shell",
+      "presentation": {
+        "reveal": "always"
+      },
+      "group": {
+        "kind": "build",
+        "isDefault": false
+      }
+    },
+    {
+      "label": "install docs dependencies",
+      "command": "poetry install --with=docs",
+      "type": "shell",
+      "presentation": {
+        "reveal": "always"
+      },
+      "group": {
+        "kind": "build",
+        "isDefault": false
+      }
+    },
+    {
+      "label": "run tests",
+      "command": "poetry run pytest --cov",
+      "type": "shell",
+      "presentation": {
+        "reveal": "always"
+      },
+      "group": {
+        "kind": "build",
+        "isDefault": false
+      }
+    },
+    {
+      "label": "generate docs",
+      "command": "poetry run sphinx-build ${workspaceFolder}/docs ${workspaceFolder}/docs/_build",
+      "type": "shell",
+      "presentation": {
+        "reveal": "always"
+      },
+      "group": {
+        "kind": "build",
+        "isDefault": false
+      }
+    },
+    {
+      "label": "open docs index.html",
+      "command": "${workspaceFolder}/docs/_build/index.html",
+      "type": "shell",
+      "presentation": {
+        "reveal": "always"
+      },
+      "group": {
+        "kind": "build",
+        "isDefault": false
+      }
+    },
+    {
+      "label": "run pre-commit checks",
+      "command": "poetry run pre-commit run --all-files",
+      "type": "shell",
+      "presentation": {
+        "reveal": "always"
+      },
+      "group": {
+        "kind": "build",
+        "isDefault": false
+      }
+    },
+    {
+      "label": "bootstrap",
+      "command": "${workspaceFolder}/bootstrap.ps1",
+      "type": "shell",
+      "presentation": {
+        "reveal": "always"
+      },
+      "group": {
+        "kind": "build",
+        "isDefault": false
+      }
+    }
+  ]
+}

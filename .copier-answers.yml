@@ -1,0 +1,19 @@
+# Changes here will be overwritten by Copier
+_commit: 6c05be5
+_src_path: .
+add_me_as_contributor: false
+copyright_year: '2022'
+documentation: true
+email: me@cuinixam.com
+full_name: cuinixam
+github_username: cuinixam
+initial_commit: false
+open_source_license: MIT
+package_name: yanga
+project_name: Yet Another Ninja Generator
+project_short_description: Yet another ninja generator to build C/CPP projects.
+project_slug: yanga
+run_poetry_install: false
+setup_github: false
+setup_pre_commit: false
+

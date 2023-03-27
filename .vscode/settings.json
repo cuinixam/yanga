@@ -1,0 +1,27 @@
+{
+  "python.testing.pytestArgs": ["tests"],
+  "python.testing.unittestEnabled": false,
+  "python.testing.pytestEnabled": true,
+  "workbench.colorCustomizations": {
+    "activityBar.activeBackground": "#fdf4b2",
+    "activityBar.background": "#fdf4b2",
+    "activityBar.foreground": "#15202b",
+    "activityBar.inactiveForeground": "#15202b99",
+    "activityBarBadge.background": "#05baa5",
+    "activityBarBadge.foreground": "#15202b",
+    "commandCenter.border": "#15202b99",
+    "sash.hoverBorder": "#fdf4b2",
+    "statusBar.background": "#fbed81",
+    "statusBar.foreground": "#15202b",
+    "statusBarItem.hoverBackground": "#f9e650",
+    "statusBarItem.remoteBackground": "#fbed81",
+    "statusBarItem.remoteForeground": "#15202b",
+    "titleBar.activeBackground": "#fbed81",
+    "titleBar.activeForeground": "#15202b",
+    "titleBar.inactiveBackground": "#fbed8199",
+    "titleBar.inactiveForeground": "#15202b99"
+  },
+  "peacock.color": "#fbed81",
+  "editor.formatOnSave": true,
+  "esbonio.sphinx.confDir": ""
+}

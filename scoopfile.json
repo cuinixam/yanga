@@ -1,0 +1,22 @@
+{
+  "buckets": [
+    {
+      "Name": "main",
+      "Source": "https://github.com/ScoopInstaller/Main"
+    },
+    {
+      "Name": "versions",
+      "Source": "https://github.com/ScoopInstaller/Versions"
+    }
+  ],
+  "apps": [
+    {
+      "Source": "versions",
+      "Name": "python311"
+    },
+    {
+      "Source": "main",
+      "Name": "poetry"
+    }
+  ]
+}
