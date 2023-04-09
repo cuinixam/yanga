@@ -167,3 +167,59 @@ of related products :cite:`wiki_spl`.
 - Shared attributes found in all or most products within the software product line, often represented by mandatory features
 - Process of choosing and combining core assets based on a specific configuration to develop an individual software product
 - A specific product variant within the product line, characterized by a unique combination of features, resulting from a particular configuration of the feature model.
+
+
+Folder structure
+================
+
+::
+
+   project_root/
+   ├─ containers/
+   │   ├─ container_A/
+   │   │   ├─ components/
+   │   │   │   ├─ component_A1/
+   │   │   │   │   ├─ include/
+   │   │   │   │   └─ src/
+   │   │   │   └─ component_A2/
+   │   │   │       ├─ include/
+   │   │   │       └─ src/
+   │   │   └─ configs/
+   │   │       └─ (configuration files for container_A)
+   │   └─ container_B/
+   │       ├─ components/
+   │       │   ├─ component_B1/
+   │       │   │   ├─ include/
+   │       │   │   └─ src/
+   │       │   └─ component_B2/
+   │       │       ├─ include/
+   │       │       └─ src/
+   │       └─ configs/
+   │           └─ (configuration files for container_B)
+   ├─ variants/
+   │   ├─ variant_1/
+   │   │   └─ (configuration files for variant_1)
+   │   └─ variant_2/
+   │       └─ (configuration files for variant_2)
+   ├─ code_generators/
+   │   └─ (code generator specific folders and files)
+   ├─ third_party/
+   │   └─ (third-party library folders and files)
+   ├─ unit_tests/
+   │   ├─ test_component_A1/
+   │   │   ├─ include/
+   │   │   └─ src/
+   │   └─ test_component_B1/
+   │       ├─ include/
+   │       └─ src/
+   └─ build_system_generator/
+      └─ (build system generator scripts, configuration files, and plugins)
+
+
+
+Diagrams
+========
+
+.. mermaid:: figures/artifacts.mmd
+
+

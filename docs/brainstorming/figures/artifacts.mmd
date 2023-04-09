@@ -1,0 +1,41 @@
+---
+title: Artifacts dependencies
+---
+erDiagram
+    Package ||--|| Binary : contains
+    Package ||--o{ Reports : contains
+    Binary ||--o{ Library : contains
+    Binary ||--o{ Object : contains
+    Object ||--|{ Source : from
+    Library ||--|{ Object : from
+    Source ||--o{ GenSrc : from
+    Source ||--o{ ManSrc : from
+
+    Object ||--|{ Compiler : created by
+    Binary ||--|{ Linker : created by
+    GenSrc ||--|{ CodeGenerator : created by
+
+    Compiler {
+        isTool True
+        hasVersion True
+    }
+
+    Linker {
+        isTool True
+        hasVersion True
+    }
+
+    CodeGenerator {
+        isTool True
+        hasVersion True
+    }
+
+    Variant ||--|| MainContainer : contains
+    Variant ||--|| ListFeatures : contains
+    MainContainer ||--|{ Container : contains
+    Container ||--|{ Component : contains
+    Component ||--|{ File : contains
+    
+    Component {
+        string type 
+    }
