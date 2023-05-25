@@ -25,6 +25,7 @@ packages = [
 [tool.poetry.dependencies]
 python = "^3.8"
 mashumaro = "^3.5"
+loguru = "^0.7.0"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^7.0"
@@ -50,7 +51,7 @@ version_variable = "src/yanga/__init__.py:__version__"
 build_command = "pip install poetry && poetry build"
 
 [tool.pytest.ini_options]
-addopts = "-v -Wdefault --cov=yanga --cov-report=term-missing:skip-covered"
+addopts = "-v -Wdefault --cov=yanga --cov-report=term-missing:skip-covered -s"
 pythonpath = ["src"]
 
 [tool.coverage.run]

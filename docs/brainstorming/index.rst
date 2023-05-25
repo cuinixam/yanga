@@ -221,5 +221,3 @@ Diagrams
 ========
 
 .. mermaid:: figures/artifacts.mmd
-
-

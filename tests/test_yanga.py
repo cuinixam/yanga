@@ -1,5 +1,8 @@
-from yanga.yanga import Yanga
+from yanga.yanga import Yanga, main
 
 
 def test_yanga():
-    assert Yanga()
+    yanga = Yanga()
+    assert yanga
+    print("Call main")
+    main()
