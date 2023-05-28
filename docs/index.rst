@@ -14,6 +14,7 @@ Welcome to Yet Another Ninja Generator documentation
     :maxdepth: 2
 
     brainstorming/index
+    use_cases/index
     design/index
     bibliography
 
