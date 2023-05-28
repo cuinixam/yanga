@@ -72,6 +72,8 @@ instance/
 
 # Sphinx documentation
 docs/_build/
+# Sphinx pie-chart images
+docs/_images
 
 # PyBuilder
 .pybuilder/

@@ -1,9 +1,13 @@
+""" Logging utilities. """
+
 import sys
 import time
 from pathlib import Path
 from typing import Any, Callable, Optional
 
 from loguru import logger
+
+from yanga.docs.traceability_utils import fulfills
 
 ylogger = logger
 
@@ -12,7 +16,10 @@ ylogger.level("START", no=38, color="<yellow>")
 ylogger.level("STOP", no=39, color="<yellow>")
 
 
+@fulfills("REQ-LOGGING_TIME_IT-0.0.1")
 def time_it(message: Optional[str] = None) -> Callable[..., Any]:
+    """Decorator to time a function."""
+
     def _time_it(func: Callable[..., Any]) -> Callable[..., Any]:
         text = message or f"{func.__module__}.{func.__qualname__}"
 
@@ -29,6 +36,7 @@ def time_it(message: Optional[str] = None) -> Callable[..., Any]:
     return _time_it
 
 
+@fulfills("REQ-LOGGING_FILE-0.0.1")
 def setup_logger(log_file: Optional[Path] = None, clear: bool = True) -> None:
     """Setup logger to stdout and optionally to file."""
     ylogger.remove()
