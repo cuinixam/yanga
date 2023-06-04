@@ -1,18 +1,18 @@
-from yanga.docs.traceability_utils import validates
-from yanga.ylog import setup_logger, time_it, ylogger
+from yanga.core.docs_utils import validates
+from yanga.core.logger import logger, setup_logger, time_it
 
 
 @validates("REQ-LOGGING_FILE-0.0.1")
 def test_setup_logger(tmp_path):
     log_file = tmp_path / "test.log"
     setup_logger(log_file, clear=True)
-    ylogger.debug("Test")
+    logger.debug("Test")
     assert log_file.exists()
 
 
 @time_it("My cool function")
 def _some_func() -> None:
-    ylogger.debug("I am some_func")
+    logger.debug("I am some_func")
 
 
 @validates("REQ-LOGGING_TIME_IT-0.0.1")
