@@ -1,6 +1,5 @@
+from yanga.core.docs_utils import validates
 from yanga.spl.variant import VariantConfig
-
-from yanga.docs.traceability_utils import validates
 
 
 @validates(

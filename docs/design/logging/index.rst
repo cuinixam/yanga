@@ -44,14 +44,14 @@ Requirements
 Implementation
 --------------
 
-.. automodule:: yanga.ylog
+.. automodule:: yanga.core.logger
    :members:
    :show-inheritance:
 
 Testing
 -------
 
-.. automodule:: test_ylog
+.. automodule:: test_logger
    :members:
    :show-inheritance:
 
