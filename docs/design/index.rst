@@ -9,3 +9,4 @@ Design
     logging/index
     cmd_line/index
     spl/index
+    commands/index

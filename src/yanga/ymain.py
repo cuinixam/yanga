@@ -1,10 +1,12 @@
+import sys
 from pathlib import Path
 from sys import argv
 
+from yanga.commands.init import InitCommand
 from yanga.core.cmd_line import CommandLineHandlerBuilder
+from yanga.core.exceptions import UserNotificationException
 from yanga.core.logger import logger, setup_logger, time_it
 from yanga.ybuild import BuildCommand
-from yanga.yinit import InitCommand
 
 
 @time_it()
@@ -16,10 +18,15 @@ def do_run() -> None:
     handler.run(argv[1:])
 
 
-def main() -> None:
-    setup_logger(Path(".yanga/logs/yanga.log"), clear=True)
-    do_run()
+def main() -> int:
+    try:
+        setup_logger(Path(".yanga/logs/yanga.log"), clear=True)
+        do_run()
+    except UserNotificationException as e:
+        logger.error(f"{e}")
+        return 1
+    return 0
 
 
 if __name__ == "__main__":
-    main()
+    sys.exit(main())

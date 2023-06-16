@@ -2,8 +2,8 @@ from abc import ABC, abstractmethod
 from argparse import ArgumentError, ArgumentParser, Namespace
 from typing import Dict, List
 
-from yanga.core.docs_utils import fulfills
-from yanga.core.logger import logger
+from .docs_utils import fulfills
+from .logger import logger
 
 
 class Command(ABC):
