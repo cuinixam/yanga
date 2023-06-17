@@ -97,18 +97,18 @@ Function Install-Scoop {
 # python executable name
 $python = "python" + $config.pythonVersion.Replace(".", "")
 
+# Check if scoop is installed
+$scoopPath = (Get-Command scoop -ErrorAction SilentlyContinue).Source
+if ($scoopPath -eq $null) {
+    Write-Output "Scoop not found. Trying to install scoop ..."
+    Install-Scoop
+} else {
+    Write-Output "Found scoop under $scoopPath."
+}
 # Check if python is installed
 $pythonPath = (Get-Command $python -ErrorAction SilentlyContinue).Source
 if ($pythonPath -eq $null) {
     Write-Output "$python not found. Try to install $python via scoop ..."
-    # Make sure scoop is installed
-    $scoopPath = (Get-Command scoop -ErrorAction SilentlyContinue).Source
-    if ($scoopPath -eq $null) {
-        Write-Output "Scoop not found. Trying to install scoop ..."
-        Install-Scoop
-    } else {
-        Write-Output "Found scoop under $scoopPath."
-    }
     # Install python
     Invoke-CommandLine "scoop install $python"
     # Check if python is installed

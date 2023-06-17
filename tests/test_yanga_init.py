@@ -1,3 +1,4 @@
+import runpy
 from argparse import Namespace
 from pathlib import Path
 
@@ -16,3 +17,15 @@ def test_create_project_from_template(tmp_path):
     YangaInit.create_project_from_template(out_dir)
     assert (out_dir / "build.ps1").exists()
     assert (out_dir / "build.py").exists()
+
+
+def test_build_py_script(tmp_path: Path) -> None:
+    project_root_dir = tmp_path / "my_project"
+    YangaInit.create_project_from_template(project_root_dir)
+    build_script_path = project_root_dir / "build.py"
+
+    # Execute the main function in the build.py script using runpy
+    runpy.run_path(build_script_path.as_posix(), run_name="__test_main__")
+
+    assert (project_root_dir / ".venv").exists()
+    assert (project_root_dir / "poetry.lock").exists()
