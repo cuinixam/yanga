@@ -38,7 +38,8 @@ class SubprocessExecutor:
             result.check_returncode()
         except subprocess.CalledProcessError as e:
             raise UserNotificationException(
-                f"Command '{self.command}' failed with error:\n{result.stderr if result else e}"
+                f"Command '{self.command}' failed with error:\n"
+                f"{result.stderr if result else e}"
             )
 
 

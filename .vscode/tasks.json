@@ -38,6 +38,18 @@
       }
     },
     {
+      "label": "run tests in file",
+      "type": "shell",
+      "command": "poetry run pytest --cov ${file}",
+      "presentation": {
+        "reveal": "always"
+      },
+      "group": {
+        "kind": "build",
+        "isDefault": false
+      }
+    },
+    {
       "label": "generate docs",
       "command": "poetry run sphinx-build ${workspaceFolder}/docs ${workspaceFolder}/docs/_build",
       "type": "shell",
