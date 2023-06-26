@@ -121,7 +121,7 @@ if ($pythonPath -eq $null) {
     $Env:Path += ";$pythonDir"
 }
 
-# Call the bootstrap.py if it exists with all provided arguments
+# Call the build.py if it exists with all provided arguments
 $buildScript = Join-Path $PSScriptRoot "build.py"
 if (Test-Path $buildScript) {
     Write-Output "Calling $buildScript ..."

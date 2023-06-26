@@ -1,13 +1,14 @@
 import json
 import logging
 import os
+import re
 import subprocess  # nosec
 import sys
 import venv
 from pathlib import Path
 from typing import List, Optional
 
-logging.basicConfig(level=logging.DEBUG)
+logging.basicConfig(level=logging.DEBUG, filename="build.log")
 logger = logging.getLogger("build")
 
 
@@ -28,10 +29,13 @@ class SubprocessExecutor:
     def execute(self) -> None:
         result = None
         try:
-            logger.info(f"Running command: {self.command}")
+            current_dir = (self.current_working_directory or Path.cwd()).as_posix()
+            logger.info(f"Running command: {self.command} in {current_dir}")
+            # print all virtual environment variables
+            logger.debug(json.dumps(dict(os.environ), indent=4))
             result = subprocess.run(
                 self.command,
-                cwd=str(self.current_working_directory or Path.cwd()),
+                cwd=current_dir,
                 capture_output=True,
                 text=True,  # to get stdout and stderr as strings instead of bytes
             )  # nosec
@@ -43,6 +47,28 @@ class SubprocessExecutor:
             )
 
 
+class WindowsVirtualEnvironment:
+    def __init__(self, venv_dir: Path) -> None:
+        self.venv_dir = venv_dir
+        self.activate_script = self.venv_dir.joinpath("Scripts/activate.bat")
+
+    def create(self) -> None:
+        """Create a virtual environment and install
+        the python package manager with pip"""
+        venv.create(self.venv_dir, with_pip=True)
+
+    def pip(self, *args: str) -> None:
+        """Run pip commands in the virtual environment"""
+        pip_path = self.venv_dir.joinpath("Scripts/pip").as_posix()
+        SubprocessExecutor([pip_path, *args], this_dir).execute()
+
+    def run(self, *args: str) -> None:
+        """Run commands in the virtual environment"""
+        SubprocessExecutor(
+            [f"cmd /c {self.activate_script.as_posix()} && ", *args], this_dir
+        ).execute()
+
+
 class Build:
     """TODO: use a VirtualEnvironment class to handle venv
     for different operating systems"""
@@ -51,26 +77,23 @@ class Build:
     def venv_dir(self) -> Path:
         return this_dir / ".venv"
 
+    @property
+    def package_manager_name(self) -> str:
+        match = re.match(r"^([a-zA-Z0-9_-]+)", package_manager)
+
+        if match:
+            return match.group(1)
+        else:
+            raise UserNotificationException(
+                f"Could not extract the package manager name from {package_manager}"
+            )
+
     def run(self) -> None:
         logger.info("Running project build script")
-        self.create_virtual_environment()
-        self.install_package_manager()
-        self.install_project_dependencies()
-
-    def create_virtual_environment(self) -> None:
-        """Create a virtual environment and install
-        the python package manager with pip"""
-        venv.create(self.venv_dir, with_pip=True)
-
-    def install_package_manager(self) -> None:
-        """Install the python package manager with pip"""
-        pip_path = self.venv_dir.joinpath("Scripts/pip").as_posix()
-        SubprocessExecutor([pip_path, "install", package_manager]).execute()
-
-    def install_project_dependencies(self) -> None:
-        """Install the project dependencies using the python package manager"""
-        poetry_path = self.venv_dir.joinpath("Scripts/poetry").as_posix()
-        SubprocessExecutor([poetry_path, "install"], this_dir).execute()
+        virtual_env = WindowsVirtualEnvironment(self.venv_dir)
+        virtual_env.create()
+        virtual_env.pip("install", package_manager)
+        virtual_env.run(self.package_manager_name, "install")
 
 
 def print_environment_info() -> None:

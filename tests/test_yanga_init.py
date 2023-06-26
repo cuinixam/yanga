@@ -1,6 +1,9 @@
 import runpy
 from argparse import Namespace
 from pathlib import Path
+import sys
+
+import pytest
 
 from yanga.commands.init import YangaInit, YangaInitConfig
 
@@ -19,6 +22,7 @@ def test_create_project_from_template(tmp_path):
     assert (out_dir / "build.py").exists()
 
 
+@pytest.mark.skipif(sys.platform != "win32", reason="Only for Windows")
 def test_build_py_script(tmp_path: Path) -> None:
     project_root_dir = tmp_path / "my_project"
     YangaInit.create_project_from_template(project_root_dir)
