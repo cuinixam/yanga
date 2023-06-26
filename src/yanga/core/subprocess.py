@@ -3,8 +3,8 @@ import subprocess  # nosec
 from pathlib import Path
 from typing import List, Optional
 
-from yanga.core.exceptions import UserNotificationException
-from yanga.core.logger import logger
+from .exceptions import UserNotificationException
+from .logger import logger
 
 
 def get_app_path(app_name: str) -> Optional[Path]:
@@ -24,7 +24,7 @@ class SubprocessExecutor:
             logger.info(f"Running command: {self.command}")
             result = subprocess.run(
                 self.command,
-                cwd=str(self.current_working_directory or Path.cwd()),
+                cwd=(self.current_working_directory or Path.cwd()).as_posix(),
                 capture_output=True,
                 text=True,  # to get stdout and stderr as strings instead of bytes
             )  # nosec

@@ -1,7 +1,7 @@
 from pathlib import Path
 
 from yanga.core.docs_utils import validates
-from yanga.spl.variant import VariantConfig
+from yanga.ybuild.variant import VariantConfig
 
 
 @validates(

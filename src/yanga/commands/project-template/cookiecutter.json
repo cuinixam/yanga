@@ -4,5 +4,6 @@
   "project_dir_name": "{{ cookiecutter.project_slug }}",
   "project_description": "A simple project to say hello to Yanga",
   "python_version": "3.11",
+  "python_package_manager": "poetry>=1.5.1",
   "scoop_installer": "https://raw.githubusercontent.com/ScoopInstaller/Install/master/install.ps1"
 }

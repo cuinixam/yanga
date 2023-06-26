@@ -1,17 +1,17 @@
 import runpy
+import sys
 from argparse import Namespace
 from pathlib import Path
-import sys
 
 import pytest
 
-from yanga.commands.init import YangaInit, YangaInitConfig
+from yanga.commands.init import InitCommandConfig, YangaInit
 
 
 def test_config_from_namespace():
     my_dict = {"project_dir": "my/path"}
     namespace = Namespace(**my_dict)
-    config = YangaInitConfig.from_namespace(namespace)
+    config = InitCommandConfig.from_namespace(namespace)
     assert config.project_dir == Path("my/path")
 
 

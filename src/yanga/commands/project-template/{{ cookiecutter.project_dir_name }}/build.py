@@ -13,8 +13,7 @@ logger = logging.getLogger("build")
 
 
 this_dir = Path(__file__).parent
-# TODO: the python package manager should be configurable, e.g.: "poetry=>1.5.1"
-package_manager = "poetry>=1.5.1"
+package_manager = "{{ cookiecutter.python_package_manager }}"
 
 
 class UserNotificationException(Exception):
@@ -94,6 +93,8 @@ class Build:
         virtual_env.create()
         virtual_env.pip("install", package_manager)
         virtual_env.run(self.package_manager_name, "install")
+        # TODO: call yanga build
+        # virtual_env.run("python -m yanga.ymain", "build")
 
 
 def print_environment_info() -> None:

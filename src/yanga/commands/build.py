@@ -1,31 +1,31 @@
 from argparse import ArgumentParser, Namespace
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
 
 from mashumaro import DataClassDictMixin
 
-from yanga.core.cmd_line import Command
+from yanga.core.cmd_line import Command, register_arguments_for_config_dataclass
 from yanga.core.logger import logger, time_it
+from yanga.ybuild.build_main import YangaBuild
+from yanga.ybuild.environment import BuildEnvironment
 
 
 @dataclass
-class YangaBuildConfig(DataClassDictMixin):
-    project_dir: Path
+class BuildCommandConfig(DataClassDictMixin):
+    variant_name: str = field(metadata={"help": "SPL variant name."})
+    build_config: str = field(metadata={"help": "Build configuration name."})
+    build_target: str = field(metadata={"help": "Build target name."})
+    project_dir: Path = field(
+        default=Path("."),
+        metadata={
+            "help": "Project root directory. "
+            "Defaults to the current directory if not specified."
+        },
+    )
 
     @classmethod
-    def from_namespace(cls, namespace: Namespace) -> "YangaBuildConfig":
+    def from_namespace(cls, namespace: Namespace) -> "BuildCommandConfig":
         return cls.from_dict(vars(namespace))
-
-
-class YangaBuild:
-    def __init__(self, config: YangaBuildConfig) -> None:
-        self.logger = logger.bind()
-        self.config = config
-
-    def run(self) -> None:
-        self.logger.info(
-            f"Run yanga build in '{self.config.project_dir.absolute().as_posix()}'"
-        )
 
 
 class BuildCommand(Command):
@@ -36,10 +36,17 @@ class BuildCommand(Command):
     @time_it()
     def run(self, args: Namespace) -> int:
         self.logger.info(f"Running {self.name} with args {args}")
-        YangaBuild(YangaBuildConfig.from_namespace(args)).run()
+        config = BuildCommandConfig.from_namespace(args)
+        # search variant
+        # create project build artifacts locator
+        environment = BuildEnvironment(
+            config.variant_name,
+            config.build_config,
+            config.build_target,
+            config.project_dir,
+        )
+        YangaBuild(environment).run()
         return 0
 
     def _register_arguments(self, parser: ArgumentParser) -> None:
-        parser.add_argument(
-            "--project-dir", help="Project directory", default=Path("."), type=Path
-        )
+        register_arguments_for_config_dataclass(parser, BuildCommandConfig)

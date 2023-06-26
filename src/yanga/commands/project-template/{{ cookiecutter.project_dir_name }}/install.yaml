@@ -1,0 +1,7 @@
+scoop:
+  buckets:
+    - name: "versions"
+      source: "https://github.com/ScoopInstaller/Versions"
+  apps:
+    - name: "python311"
+      source: "versions"

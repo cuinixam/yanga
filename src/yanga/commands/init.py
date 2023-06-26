@@ -12,16 +12,16 @@ from yanga.core.logger import logger, time_it
 
 
 @dataclass
-class YangaInitConfig(DataClassDictMixin):
+class InitCommandConfig(DataClassDictMixin):
     project_dir: Path
 
     @classmethod
-    def from_namespace(cls, namespace: Namespace) -> "YangaInitConfig":
+    def from_namespace(cls, namespace: Namespace) -> "InitCommandConfig":
         return cls.from_dict(vars(namespace))
 
 
 class YangaInit:
-    def __init__(self, config: YangaInitConfig) -> None:
+    def __init__(self, config: InitCommandConfig) -> None:
         self.logger = logger.bind()
         self.config = config
 
@@ -59,7 +59,7 @@ class InitCommand(Command):
     @time_it()
     def run(self, args: Namespace) -> int:
         self.logger.info(f"Running {self.name} with args {args}")
-        YangaInit(YangaInitConfig.from_namespace(args)).run()
+        YangaInit(InitCommandConfig.from_namespace(args)).run()
         return 0
 
     def _register_arguments(self, parser: ArgumentParser) -> None:

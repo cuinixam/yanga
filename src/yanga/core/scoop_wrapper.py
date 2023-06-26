@@ -3,8 +3,8 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Union
 
-from yanga.core.exceptions import UserNotificationException
-from yanga.core.subprocess import SubprocessExecutor, get_app_path
+from .exceptions import UserNotificationException
+from .subprocess import SubprocessExecutor, get_app_path  # nosec
 
 
 @dataclass
