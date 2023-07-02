@@ -8,7 +8,7 @@ import venv
 from pathlib import Path
 from typing import List, Optional
 
-logging.basicConfig(level=logging.DEBUG)
+logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("build")
 
 

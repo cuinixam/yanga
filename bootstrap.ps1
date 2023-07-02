@@ -110,7 +110,7 @@ $pythonPath = (Get-Command $python -ErrorAction SilentlyContinue).Source
 if ($pythonPath -eq $null) {
     Write-Output "$python not found. Try to install $python via scoop ..."
     # Install python
-    Invoke-CommandLine "scoop install $python"
+    Invoke-CommandLine "scoop install https://raw.githubusercontent.com/ScoopInstaller/Versions/master/bucket/$python.json"
     # Check if python is installed
 } else {
     Write-Output "$python found in $pythonPath"
