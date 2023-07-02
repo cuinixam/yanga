@@ -2,6 +2,21 @@
 
 <!--next-version-placeholder-->
 
+## v0.2.0 (2023-07-02)
+
+### Feature
+
+* Update bootstrap script ([`e06745b`](https://github.com/cuinixam/yanga/commit/e06745bf45a93ce5cad1c18b98c0a9043f5f1b73))
+* Support for python 3.10 ([`ea18623`](https://github.com/cuinixam/yanga/commit/ea18623c50c7fd35fd576dd6577de49a63a79900))
+* Support windows and python >=3.11 ([`1cee197`](https://github.com/cuinixam/yanga/commit/1cee197ce69652c065af99b084e6648125c2d7a5))
+* Collect installed scoop apps ([`f90e73a`](https://github.com/cuinixam/yanga/commit/f90e73ab142ecac9b8ce1aa1a20601cce89bef5f))
+* Build script installs python dependencies ([`fa94d4e`](https://github.com/cuinixam/yanga/commit/fa94d4e4c02892241aedc08ff1fe3b3c75f134ee))
+* Add init command with only build scripts ([`7f4a145`](https://github.com/cuinixam/yanga/commit/7f4a145538376bc44e4b397df480c2f8983cbaad))
+
+### Fix
+
+* Build.py test wrongly installs poetry deps ([`61fe118`](https://github.com/cuinixam/yanga/commit/61fe1180548ff89a751e0fcd493f9505619f27e1))
+
 ## v0.1.0 (2023-06-06)
 ### Feature
 * Add command line parser ([`7a6c1bd`](https://github.com/cuinixam/yanga/commit/7a6c1bd696f03c02ed0686b45ad6000ead827c1a))
