@@ -229,3 +229,26 @@ Ideas Pool
 **.yanga config file**
 Yanga Init shall create a .yanga folder with a config file.
 One could add a ``config`` file to keep track of the yanga configuration (e.g., debug mode enabled).
+
+**yanga rebuild**
+Yanga rebuild shall run the previous build command with the same arguments.
+
+**yanga install**
+Shall only run the YangaInstall stage. In case there is a ``install`` phase defined in the ``yanga.yaml``
+file, it shall run that phase instead.
+
+**default variant**
+If no variant is specified and the project has only variant, that variant is the default variant.
+
+**yanga VS Code extension**
+Yanga shall have a VS Code extension to make it easier to build variants. All the Yanga Commands
+shall be available in the VS Code Command Palette. The extension shall also automatically find
+the existing variants.
+
+**scoop file merger**
+It might be that there are some tools only required to build a special variant. In that case,
+the scoop file merger shall be able to merge the scoop files of the variant and the global one.
+The variant scoop file shall have precedence over the global one.
+
+**west file merger**
+The same like the scoop file merger, but for west files.
