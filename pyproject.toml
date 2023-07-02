@@ -23,7 +23,7 @@ packages = [
 "Changelog" = "https://github.com/cuinixam/yanga/blob/main/CHANGELOG.md"
 
 [tool.poetry.dependencies]
-python = "^3.9"
+python = "^3.11"
 mashumaro = "^3.5"
 loguru = "^0.7.0"
 cookiecutter = "^2.1.1"
