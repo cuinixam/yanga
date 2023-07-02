@@ -3,7 +3,7 @@
   "tasks": [
     {
       "label": "install dev dependencies",
-      "command": "poetry install --with=dev",
+      "command": ".venv/Scripts/poetry install --with=dev",
       "type": "shell",
       "presentation": {
         "reveal": "always"
@@ -15,7 +15,7 @@
     },
     {
       "label": "install docs dependencies",
-      "command": "poetry install --with=docs",
+      "command": ".venv/Scripts/poetry install --with=docs",
       "type": "shell",
       "presentation": {
         "reveal": "always"
@@ -27,7 +27,7 @@
     },
     {
       "label": "run tests",
-      "command": "poetry run pytest --cov",
+      "command": ".venv/Scripts/poetry run pytest --cov",
       "type": "shell",
       "presentation": {
         "reveal": "always"
@@ -40,7 +40,7 @@
     {
       "label": "run tests in file",
       "type": "shell",
-      "command": "poetry run pytest --cov ${file}",
+      "command": ".venv/Scripts/poetry run pytest --cov ${file}",
       "presentation": {
         "reveal": "always"
       },
@@ -51,7 +51,7 @@
     },
     {
       "label": "generate docs",
-      "command": "poetry run sphinx-build ${workspaceFolder}/docs ${workspaceFolder}/docs/_build",
+      "command": ".venv/Scripts/poetry run sphinx-build ${workspaceFolder}/docs ${workspaceFolder}/docs/_build",
       "type": "shell",
       "presentation": {
         "reveal": "always"
@@ -75,7 +75,7 @@
     },
     {
       "label": "run pre-commit checks",
-      "command": "poetry run pre-commit run --all-files",
+      "command": ".venv/Scripts/poetry run pre-commit run --all-files",
       "type": "shell",
       "presentation": {
         "reveal": "always"
