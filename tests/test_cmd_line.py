@@ -1,9 +1,15 @@
-from argparse import Namespace
+from argparse import ArgumentParser, Namespace
+from dataclasses import dataclass, field
+from pathlib import Path
 from typing import List
 
 import pytest
 
-from yanga.core.cmd_line import Command, CommandLineHandlerBuilder
+from yanga.core.cmd_line import (
+    Command,
+    CommandLineHandlerBuilder,
+    register_arguments_for_config_dataclass,
+)
 from yanga.core.docs_utils import validates
 
 
@@ -60,3 +66,16 @@ def test_duplicate_commands():
     builder.add_command(cmd1)
     with pytest.raises(ValueError):
         builder.add_command(cmd1)
+
+
+@dataclass
+class MyConfigDataclass:
+    my_first_arg: Path = field(metadata={"help": "Some help for arg1."})
+    arg: str = field(default="value1", metadata={"help": "Some help for arg1."})
+
+
+def test_register_arguments_for_config_dataclass():
+    parser = ArgumentParser()
+    register_arguments_for_config_dataclass(parser, MyConfigDataclass)
+    args = parser.parse_args(["--my-first-arg", "my/path", "--arg", "value2"])
+    assert vars(args) == {"my_first_arg": Path("my/path"), "arg": "value2"}

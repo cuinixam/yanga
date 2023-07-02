@@ -1,9 +1,10 @@
+import dataclasses
 from abc import ABC, abstractmethod
 from argparse import ArgumentError, ArgumentParser, Namespace
-from typing import Dict, List
+from typing import Dict, List, Type
 
-from yanga.core.docs_utils import fulfills
-from yanga.core.logger import logger
+from .docs_utils import fulfills
+from .logger import logger
 
 
 class Command(ABC):
@@ -81,3 +82,32 @@ class CommandLineHandlerBuilder:
         self.commands[command.name] = command
         command.register_parser(self.subparsers)
         return self
+
+
+def register_arguments_for_config_dataclass(
+    parser: ArgumentParser, config_dataclass: Type  # type: ignore
+) -> None:
+    """Helper function to register arguments for a dataclass.
+    This avoid having to manually register arguments for each field of the dataclass."""
+    if not dataclasses.is_dataclass(config_dataclass):
+        raise TypeError(f"{config_dataclass.__name__} is not a dataclass.")
+
+    for field_name, field in config_dataclass.__dataclass_fields__.items():
+        parameter_default = (
+            field.default if not field.default == dataclasses.MISSING else None
+        )
+        parameter_help = field.metadata.get(
+            "help", f"Value for {field_name}. Default: {parameter_default}"
+        )
+        parameter_name = field_name.replace("_", "-")
+
+        # TODO: this should be false if the type is Optional
+        parameter_required = False if parameter_default else True
+
+        parser.add_argument(
+            f"--{parameter_name}",
+            required=parameter_required,
+            type=field.type,
+            default=parameter_default,
+            help=parameter_help,
+        )

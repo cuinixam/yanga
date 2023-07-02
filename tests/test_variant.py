@@ -1,5 +1,7 @@
+from pathlib import Path
+
 from yanga.core.docs_utils import validates
-from yanga.spl.variant import VariantConfig
+from yanga.ybuild.variant import VariantConfig
 
 
 @validates(
@@ -8,7 +10,7 @@ from yanga.spl.variant import VariantConfig
     "REQ-VARIANT_DESCRIPTION-0.0.1",
     "REQ-VARIANT_TAGS-0.0.1",
 )
-def test_variant_config_from_yaml(tmp_path):
+def test_variant_config_from_yaml(tmp_path: Path) -> None:
     variant_config_file = tmp_path / "variant.yaml"
     variant_config_file.write_text(
         """

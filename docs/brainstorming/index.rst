@@ -221,3 +221,11 @@ Diagrams
 ========
 
 .. mermaid:: figures/artifacts.mmd
+
+
+Ideas Pool
+==========
+
+**.yanga config file**
+Yanga Init shall create a .yanga folder with a config file.
+One could add a ``config`` file to keep track of the yanga configuration (e.g., debug mode enabled).

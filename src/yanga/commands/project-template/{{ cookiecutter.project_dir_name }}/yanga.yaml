@@ -1,0 +1,5 @@
+pipeline:
+  install:
+    - stage: YangaInstall
+      description: Install dependencies
+      timeout_sec: 120
