@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## v0.2.1 (2023-07-02)
+
+### Fix
+
+* Python fails because of missing bucket ([`924dcb1`](https://github.com/cuinixam/yanga/commit/924dcb11e53e354501832a3bc809a1fe2fcc8a52))
+
 ## v0.2.0 (2023-07-02)
 
 ### Feature
