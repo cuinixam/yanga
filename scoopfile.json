@@ -12,7 +12,7 @@
   "apps": [
     {
       "Source": "versions",
-      "Name": "python311"
+      "Name": "python310"
     },
     {
       "Source": "main",

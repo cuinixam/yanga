@@ -18,12 +18,15 @@ packages = [
     { include = "yanga", from = "src" },
 ]
 
+[tool.poetry.scripts]
+yanga = "yanga.ymain:main"
+
 [tool.poetry.urls]
 "Bug Tracker" = "https://github.com/cuinixam/yanga/issues"
 "Changelog" = "https://github.com/cuinixam/yanga/blob/main/CHANGELOG.md"
 
 [tool.poetry.dependencies]
-python = "^3.11"
+python = "^3.10"
 mashumaro = "^3.5"
 loguru = "^0.7.0"
 cookiecutter = "^2.1.1"
