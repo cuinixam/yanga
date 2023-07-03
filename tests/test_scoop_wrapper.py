@@ -1,11 +1,11 @@
 import json
 from pathlib import Path
-from unittest.mock import patch
+from unittest.mock import Mock, patch
 
 import pytest
 
 from yanga.core.exceptions import UserNotificationException
-from yanga.core.scoop_wrapper import ScoopWrapper
+from yanga.core.scoop_wrapper import ScoopInstallConfigFile, ScoopWrapper
 
 
 def test_scoop_installed():
@@ -59,7 +59,7 @@ def test_get_installed_tools(scoop_dir: Path) -> None:
         scoop_wrapper = ScoopWrapper()
 
     # Get the installed tools
-    installed_tools = scoop_wrapper.get_installed_tools()
+    installed_tools = scoop_wrapper.get_installed_apps()
 
     # Additional assertions based on your requirements or expectations
     assert len(installed_tools) == 3
@@ -86,3 +86,85 @@ def test_get_installed_tools(scoop_dir: Path) -> None:
     assert tool3.path == apps_dir.joinpath("app2/3.1.1")
     assert tool3.manifest_file == tool3.path / "manifest.json"
     assert tool3.bin_dirs == []
+
+
+def test_install(scoop_dir: Path, tmp_path: Path) -> None:
+    # Patch get_app_path to return the scoop directory
+    with patch("yanga.core.scoop_wrapper.get_app_path", return_value=scoop_dir):
+        scoop_wrapper = ScoopWrapper()
+
+    scoop_file = tmp_path / "scoopfile.json"
+    scoop_file.write_text(
+        """{
+        "buckets": [],
+        "apps": [
+            {
+                "Source": "versions",
+                "Name": "app1"
+            },
+            {
+                "Source": "main",
+                "Name": "app3"
+            }
+        ]
+    }"""
+    )
+    with patch("subprocess.run", Mock()):
+        assert len(scoop_wrapper.install(scoop_file)) == 1
+
+
+def test_nothing_to_install(scoop_dir: Path, tmp_path: Path) -> None:
+    # Patch get_app_path to return the scoop directory
+    with patch("yanga.core.scoop_wrapper.get_app_path", return_value=scoop_dir):
+        scoop_wrapper = ScoopWrapper()
+
+    scoop_file = tmp_path / "scoopfile.json"
+    scoop_file.write_text(
+        """{
+        "buckets": [],
+        "apps": [
+            {
+                "Source": "versions",
+                "Name": "app1"
+            },
+            {
+                "Source": "main",
+                "Name": "app2"
+            }
+        ]
+    }"""
+    )
+    assert scoop_wrapper.install(scoop_file) == []
+
+
+def test_scoop_file(tmp_path: Path) -> None:
+    scoop_file = tmp_path / "scoopfile.json"
+    scoop_file.write_text(
+        """
+    {
+        "buckets": [
+            {
+                "Name": "main",
+                "Source": "https://github.com/ScoopInstaller/main"
+            },
+            {
+                "Name": "versions",
+                "Source": "https://github.com/ScoopInstaller/Versions"
+            }
+        ],
+        "apps": [
+            {
+                "Source": "versions",
+                "Name": "python311"
+            },
+            {
+                "Source": "main",
+                "Name": "python"
+            }
+        ]
+    }
+    """
+    )
+    scoop_deps = ScoopInstallConfigFile.from_file(scoop_file)
+    assert scoop_deps.bucket_names == ["main", "versions"]
+    assert scoop_deps.app_names == ["python311", "python"]

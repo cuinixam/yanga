@@ -1,5 +1,5 @@
 from yanga.core.docs_utils import validates
-from yanga.core.logger import logger, setup_logger, time_it
+from yanga.core.logging import logger, setup_logger, time_it
 
 
 @validates("REQ-LOGGING_FILE-0.0.1")

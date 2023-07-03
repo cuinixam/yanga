@@ -1,4 +1,4 @@
-from yanga.core.logger import logger
+from yanga.core.logging import logger
 from yanga.ybuild.config import YangaConfig
 from yanga.ybuild.environment import BuildEnvironment
 from yanga.ybuild.pipeline import PipelineLoader, StageRunner

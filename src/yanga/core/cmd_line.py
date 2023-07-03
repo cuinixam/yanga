@@ -4,7 +4,7 @@ from argparse import ArgumentError, ArgumentParser, Namespace
 from typing import Dict, List, Type
 
 from .docs_utils import fulfills
-from .logger import logger
+from .logging import logger
 
 
 class Command(ABC):

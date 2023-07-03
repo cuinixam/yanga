@@ -5,7 +5,7 @@ from yanga.commands.build import BuildCommand
 from yanga.commands.init import InitCommand
 from yanga.core.cmd_line import CommandLineHandlerBuilder
 from yanga.core.exceptions import UserNotificationException
-from yanga.core.logger import logger, setup_logger, time_it
+from yanga.core.logging import logger, setup_logger, time_it
 
 
 @time_it()

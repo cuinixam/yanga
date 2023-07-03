@@ -5,7 +5,7 @@ from pathlib import Path
 from mashumaro import DataClassDictMixin
 
 from yanga.core.cmd_line import Command, register_arguments_for_config_dataclass
-from yanga.core.logger import logger, time_it
+from yanga.core.logging import logger, time_it
 from yanga.ybuild.build_main import YangaBuild
 from yanga.ybuild.environment import BuildEnvironment
 

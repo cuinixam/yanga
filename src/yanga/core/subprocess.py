@@ -4,7 +4,7 @@ from pathlib import Path
 from typing import List, Optional
 
 from .exceptions import UserNotificationException
-from .logger import logger
+from .logging import logger
 
 
 def get_app_path(app_name: str) -> Optional[Path]:

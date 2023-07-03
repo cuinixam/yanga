@@ -9,7 +9,7 @@ from mashumaro import DataClassDictMixin
 
 from yanga.core.cmd_line import Command
 from yanga.core.exceptions import UserNotificationException
-from yanga.core.logger import logger, time_it
+from yanga.core.logging import logger, time_it
 
 
 @dataclass
