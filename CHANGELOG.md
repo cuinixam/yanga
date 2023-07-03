@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## v0.3.0 (2023-07-03)
+
+### Feature
+
+* Scoop apps installer wrapper ([`2221c36`](https://github.com/cuinixam/yanga/commit/2221c360dd129102678173e108befedb0bfde9fc))
+
 ## v0.2.3 (2023-07-03)
 
 ### Fix
