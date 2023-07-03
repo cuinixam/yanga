@@ -1,5 +1,4 @@
 import sys
-from pathlib import Path
 from sys import argv
 
 from yanga.commands.build import BuildCommand
@@ -20,7 +19,7 @@ def do_run() -> None:
 
 def main() -> int:
     try:
-        setup_logger(Path(".yanga/logs/yanga.log"), clear=True)
+        setup_logger()
         do_run()
     except UserNotificationException as e:
         logger.error(f"{e}")
