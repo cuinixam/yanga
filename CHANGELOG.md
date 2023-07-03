@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## v0.2.3 (2023-07-03)
+
+### Fix
+
+* Init command fails because dir exists ([`93ddefb`](https://github.com/cuinixam/yanga/commit/93ddefb398a4d4cef6b83c6ac68ac923e2d5f221))
+
 ## v0.2.2 (2023-07-03)
 
 ### Fix
