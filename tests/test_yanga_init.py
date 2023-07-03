@@ -6,6 +6,7 @@ from pathlib import Path
 import pytest
 
 from yanga.commands.init import InitCommandConfig, YangaInit
+from yanga.core.exceptions import UserNotificationException
 
 
 def test_config_from_namespace():
@@ -20,6 +21,12 @@ def test_create_project_from_template(tmp_path):
     YangaInit.create_project_from_template(out_dir)
     assert (out_dir / "build.ps1").exists()
     assert (out_dir / "build.py").exists()
+
+
+def test_create_project_fails_if_out_is_not_empty(tmp_path: Path) -> None:
+    tmp_path.joinpath("some_file.txt").write_text("some content")
+    with pytest.raises(UserNotificationException):
+        YangaInit.create_project_from_template(tmp_path)
 
 
 @pytest.mark.skipif(sys.platform != "win32", reason="Only for Windows")

@@ -1,8 +1,9 @@
+import shutil
 from argparse import ArgumentParser, Namespace
 from dataclasses import dataclass
 from pathlib import Path
+from tempfile import TemporaryDirectory
 
-from cookiecutter.exceptions import OutputDirExistsException
 from cookiecutter.main import cookiecutter
 from mashumaro import DataClassDictMixin
 
@@ -33,21 +34,24 @@ class YangaInit:
 
     @staticmethod
     def create_project_from_template(output_dir: Path) -> None:
-        # Create project from the cookiecutter project template
-        this_dir = Path(__file__).parent
-        project_dir_name = output_dir.name
-        project_dir_parent = output_dir.parent
-        try:
+        if output_dir.is_dir() and any(output_dir.iterdir()):
+            raise UserNotificationException(
+                f"Project directory '{output_dir}' is not empty."
+                " The target directory shall either be empty or not exist."
+            )
+        with TemporaryDirectory() as tmp_dir:
+            this_dir = Path(__file__).parent
+            tmp_dir_path = Path(tmp_dir)
+            project_dir_name = output_dir.name
             cookiecutter(
                 this_dir.joinpath("project-template").as_posix(),
                 no_input=True,
-                output_dir=project_dir_parent.as_posix(),
+                output_dir=tmp_dir_path.as_posix(),
                 extra_context={"project_dir_name": project_dir_name},
             )
-        except OutputDirExistsException:
-            raise UserNotificationException(
-                f"Project directory '{output_dir}' is not empty. "
-                "Remove it or use another name."
+            # Copy the temporary directory to the output directory
+            shutil.copytree(
+                tmp_dir_path / project_dir_name, output_dir, dirs_exist_ok=True
             )
 
 
