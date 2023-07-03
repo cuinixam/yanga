@@ -2,6 +2,16 @@
 
 <!--next-version-placeholder-->
 
+## v0.2.2 (2023-07-03)
+
+### Fix
+
+* Init command fails because dir is not empty ([`fb57839`](https://github.com/cuinixam/yanga/commit/fb57839d5a2c60e4a87305f408012aaba1d6b3ae))
+
+### Documentation
+
+* Collect some ideas to implement next ([`be266b0`](https://github.com/cuinixam/yanga/commit/be266b07e309a12e9a0da1dce13f4856310e8aa3))
+
 ## v0.2.1 (2023-07-02)
 
 ### Fix
