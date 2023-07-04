@@ -74,6 +74,11 @@ class CommandLineHandlerBuilder:
     def create(self) -> CommandLineHandler:
         return CommandLineHandler(self.commands, self.parser)
 
+    def add_commands(self, commands: List[Command]) -> "CommandLineHandlerBuilder":
+        for command in commands:
+            self.add_command(command)
+        return self
+
     @fulfills("REQ-CMDLINE_REGISTER_COMMANDS-0.0.1", "REQ-CMDLINE_DUPLICATION-0.0.1")
     def add_command(self, command: Command) -> "CommandLineHandlerBuilder":
         """Add a command to the command line handler."""

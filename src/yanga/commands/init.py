@@ -60,7 +60,7 @@ class InitCommand(Command):
         super().__init__("init", "Init a yanga project")
         self.logger = logger.bind()
 
-    @time_it()
+    @time_it("Init")
     def run(self, args: Namespace) -> int:
         self.logger.info(f"Running {self.name} with args {args}")
         YangaInit(InitCommandConfig.from_namespace(args)).run()

@@ -1,5 +1,6 @@
 import json
 from pathlib import Path
+from typing import Optional
 from unittest.mock import Mock, patch
 
 import pytest
@@ -8,30 +9,31 @@ from yanga.core.exceptions import UserNotificationException
 from yanga.core.scoop_wrapper import ScoopInstallConfigFile, ScoopWrapper
 
 
-def test_scoop_installed():
-    """Patch the get_app_path function to return a valid path to scoop.exe.
-    Then test that ScoopWrapper.get_scoop_path returns the same path.
-    """
+def create_scoop_wrapper(scoop_executable: Optional[Path]) -> ScoopWrapper:
+    """Patch the 'which' function to return a valid path to the scoop executable."""
     with patch(
-        "yanga.core.scoop_wrapper.get_app_path", return_value=Path("c:/scoop/scoop.exe")
+        "yanga.core.scoop_wrapper.which",
+        return_value=scoop_executable,
     ):
         scoop_wrapper = ScoopWrapper()
-        assert scoop_wrapper.get_scoop_path() == Path("c:/scoop/scoop.exe")
+    return scoop_wrapper
+
+
+def test_scoop_installed():
+    scoop_wrapper = create_scoop_wrapper(Path("c:/scoop/scoop.exe"))
+    assert scoop_wrapper.scoop_executable == Path("c:/scoop/scoop.exe")
 
 
 def test_scoop_is_not_installed():
-    """Patch the get_app_path function to return None.
-    Then test that ScoopWrapper.get_scoop_path raises a UserNotificationException.
-    """
-    with patch("yanga.core.scoop_wrapper.get_app_path", return_value=None):
-        with pytest.raises(UserNotificationException):
-            ScoopWrapper()
+    with pytest.raises(UserNotificationException):
+        create_scoop_wrapper(None)
 
 
 @pytest.fixture
 def scoop_dir(tmp_path: Path) -> Path:
+    scoop_dir = tmp_path / "scoop"
     # Create a temporary directory structure for testing
-    apps_dir = tmp_path / "apps"
+    apps_dir = scoop_dir / "apps"
     # Create fake apps and manifest files
     manifest = apps_dir / "app1" / "1.0" / "manifest.json"
     manifest.parent.mkdir(parents=True)
@@ -50,13 +52,11 @@ def scoop_dir(tmp_path: Path) -> Path:
     manifest.parent.mkdir(parents=True)
     manifest.write_text(json.dumps({"version": "3.1.1", "bin": "program5.exe"}))
 
-    return tmp_path
+    return scoop_dir
 
 
 def test_get_installed_tools(scoop_dir: Path) -> None:
-    # Patch get_app_path to return the scoop directory
-    with patch("yanga.core.scoop_wrapper.get_app_path", return_value=scoop_dir):
-        scoop_wrapper = ScoopWrapper()
+    scoop_wrapper = create_scoop_wrapper(scoop_dir / "scoop.exe")
 
     # Get the installed tools
     installed_tools = scoop_wrapper.get_installed_apps()
@@ -89,9 +89,7 @@ def test_get_installed_tools(scoop_dir: Path) -> None:
 
 
 def test_install(scoop_dir: Path, tmp_path: Path) -> None:
-    # Patch get_app_path to return the scoop directory
-    with patch("yanga.core.scoop_wrapper.get_app_path", return_value=scoop_dir):
-        scoop_wrapper = ScoopWrapper()
+    scoop_wrapper = create_scoop_wrapper(scoop_dir / "scoop.exe")
 
     scoop_file = tmp_path / "scoopfile.json"
     scoop_file.write_text(
@@ -114,9 +112,7 @@ def test_install(scoop_dir: Path, tmp_path: Path) -> None:
 
 
 def test_nothing_to_install(scoop_dir: Path, tmp_path: Path) -> None:
-    # Patch get_app_path to return the scoop directory
-    with patch("yanga.core.scoop_wrapper.get_app_path", return_value=scoop_dir):
-        scoop_wrapper = ScoopWrapper()
+    scoop_wrapper = create_scoop_wrapper(scoop_dir / "scoop.exe")
 
     scoop_file = tmp_path / "scoopfile.json"
     scoop_file.write_text(

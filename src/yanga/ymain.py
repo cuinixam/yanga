@@ -3,16 +3,16 @@ from sys import argv
 
 from yanga.commands.build import BuildCommand
 from yanga.commands.init import InitCommand
+from yanga.commands.install import InstallCommand
 from yanga.core.cmd_line import CommandLineHandlerBuilder
 from yanga.core.exceptions import UserNotificationException
 from yanga.core.logging import logger, setup_logger, time_it
 
 
-@time_it()
+@time_it("Yanga")
 def do_run() -> None:
-    logger.debug("Starting yanga")
     builder = CommandLineHandlerBuilder()
-    builder.add_command(BuildCommand()).add_command(InitCommand())
+    builder.add_commands([BuildCommand(), InitCommand(), InstallCommand()])
     handler = builder.create()
     handler.run(argv[1:])
 

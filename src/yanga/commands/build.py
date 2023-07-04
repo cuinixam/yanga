@@ -33,7 +33,7 @@ class BuildCommand(Command):
         super().__init__("build", "Build a yanga project")
         self.logger = logger.bind()
 
-    @time_it()
+    @time_it("Build")
     def run(self, args: Namespace) -> int:
         self.logger.info(f"Running {self.name} with args {args}")
         config = BuildCommandConfig.from_namespace(args)

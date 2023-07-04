@@ -7,7 +7,7 @@ from .exceptions import UserNotificationException
 from .logging import logger
 
 
-def get_app_path(app_name: str) -> Optional[Path]:
+def which(app_name: str) -> Optional[Path]:
     """Return the path to the app if it is in the PATH, otherwise return None."""
     app_path = shutil.which(app_name)
     return Path(app_path) if app_path else None

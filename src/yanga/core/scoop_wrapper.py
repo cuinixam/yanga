@@ -1,4 +1,5 @@
 import json
+import re
 from dataclasses import dataclass, field
 from pathlib import Path
 from tempfile import TemporaryDirectory
@@ -9,7 +10,7 @@ from mashumaro.mixins.json import DataClassJSONMixin
 
 from .exceptions import UserNotificationException
 from .logging import logger
-from .subprocess import SubprocessExecutor, get_app_path  # nosec
+from .subprocess import SubprocessExecutor, which  # nosec
 
 
 @dataclass
@@ -58,29 +59,37 @@ class InstalledScoopApp:
 
 class ScoopWrapper:
     def __init__(self) -> None:
-        self.scoop_path = self.get_scoop_path()
+        self.scoop_executable = self._find_scoop_executable()
+        self.scoop_root_dir = self._find_scoop_root_dir(self.scoop_executable)
         self.logger = logger.bind()
 
     @property
-    def scoop_executable(self) -> Path:
-        return self.scoop_path.joinpath("scoop")
-
-    @property
     def apps_directory(self) -> Path:
-        return self.scoop_path.joinpath("apps")
+        return self.scoop_root_dir.joinpath("apps")
 
     def install(self, scoop_file: Path) -> List[ScoopFileElement]:
         return self.do_install(
             ScoopInstallConfigFile.from_file(scoop_file), self.get_installed_apps()
         )
 
-    def get_scoop_path(self) -> Path:
-        scoop_path = get_app_path("scoop")
+    def _find_scoop_executable(self) -> Path:
+        scoop_path = which("scoop")
         if not scoop_path:
             raise UserNotificationException(
                 "Scoop not found in PATH. Please run the build script again."
             )
         return scoop_path
+
+    def _find_scoop_root_dir(self, scoop_executable_path: Path) -> Path:
+        pattern = r"^(.*?/scoop/)"
+        match = re.match(pattern, scoop_executable_path.absolute().as_posix())
+
+        if match:
+            return Path(match.group(1))
+        else:
+            raise UserNotificationException(
+                f"Could not determine scoop directory for {scoop_executable_path}."
+            )
 
     def parse_bin_dirs(
         self, bin_data: Union[str, List[Union[str, List[str]]]]
@@ -105,6 +114,7 @@ class ScoopWrapper:
 
     def get_installed_apps(self) -> List[InstalledScoopApp]:
         installed_tools: List[InstalledScoopApp] = []
+        self.logger.info(f"Looking for installed apps in {self.apps_directory}")
         for manifest_file in self.apps_directory.glob("**/manifest.json"):
             app_directory: Path = manifest_file.parent
             # There is a directory level for the version of the tool
@@ -127,18 +137,18 @@ class ScoopWrapper:
     def do_install(
         self,
         scoop_install_config: ScoopInstallConfigFile,
-        installed_tools: List[InstalledScoopApp],
+        installed_apps: List[InstalledScoopApp],
     ) -> List[ScoopFileElement]:
         """Check which apps are installed and install the missing ones."""
         apps_to_install = self.get_tools_to_be_installed(
-            scoop_install_config, installed_tools
+            scoop_install_config, installed_apps
         )
         if not apps_to_install:
             self.logger.info("All Scoop apps already installed. Skip installation.")
             return []
-        installed_apps = set(scoop_install_config.apps) - set(apps_to_install)
+        already_installed_apps = set(scoop_install_config.apps) - set(apps_to_install)
         self.logger.info(
-            f"Scoop apps already installed: {','.join(str(app) for app in installed_apps)}"
+            f"Scoop apps already installed: {','.join(str(app) for app in already_installed_apps)}"
         )
         self.logger.info(
             f"Scoop apps to install: {','.join(str(app) for app in apps_to_install)}"
@@ -151,7 +161,7 @@ class ScoopWrapper:
                 scoop_install_config.buckets, apps_to_install
             ).to_file(tmp_scoop_file)
             SubprocessExecutor(
-                [self.scoop_executable, "install", tmp_scoop_file]
+                [self.scoop_executable, "import", tmp_scoop_file]
             ).execute()
         return apps_to_install
 

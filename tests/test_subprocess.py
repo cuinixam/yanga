@@ -1,11 +1,11 @@
 from pathlib import Path
 from unittest.mock import Mock, patch
 
-from yanga.core.subprocess import SubprocessExecutor, get_app_path
+from yanga.core.subprocess import SubprocessExecutor, which
 
 
 def test_get_app_path():
-    assert get_app_path("python")
+    assert which("python")
 
 
 def test_subprocess_executor():
