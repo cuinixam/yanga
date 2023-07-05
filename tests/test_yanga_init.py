@@ -19,7 +19,7 @@ def test_config_from_namespace():
 def test_create_project_from_template(tmp_path):
     out_dir = tmp_path / "out"
     YangaInit.create_project_from_template(out_dir)
-    assert (out_dir / "build.ps1").exists()
+    assert (out_dir / "bootstrap.ps1").exists()
     assert (out_dir / "build.py").exists()
 
 
