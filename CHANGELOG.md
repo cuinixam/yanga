@@ -2,6 +2,13 @@
 
 <!--next-version-placeholder-->
 
+## v0.4.0 (2023-07-05)
+
+### Feature
+
+* Add --version option ([`4b1eeee`](https://github.com/cuinixam/yanga/commit/4b1eeee37168b47037c08aa48a2b24e45da2f5d6))
+* Add install command for scoop ([`045b767`](https://github.com/cuinixam/yanga/commit/045b767e7c4e258e8bf21947510f05841bb4dcc3))
+
 ## v0.3.0 (2023-07-03)
 
 ### Feature
