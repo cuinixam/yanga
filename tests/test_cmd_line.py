@@ -35,7 +35,7 @@ class MockCommand(Command):
     "REQ-CMDLINE_COMMAND_EXEC-0.0.1",
 )
 def test_register_commands():
-    builder = CommandLineHandlerBuilder()
+    builder = CommandLineHandlerBuilder(ArgumentParser())
     cmd1 = MockCommand("cmd1", "Command 1", ["--arg1", "--arg2"])
     builder.add_command(cmd1)
     cmd2 = MockCommand("cmd2", "Command 2", ["--arg3", "--arg4"])
@@ -52,7 +52,7 @@ def test_register_commands():
 
 @validates("REQ-CMDLINE_UNKNOWN_COMMAND-0.0.1")
 def test_unknown_commands():
-    builder = CommandLineHandlerBuilder()
+    builder = CommandLineHandlerBuilder(ArgumentParser(exit_on_error=False))
     cmd1 = MockCommand("cmd1", "Command 1", ["--arg1", "--arg2"])
     builder.add_command(cmd1)
     handler = builder.create()
@@ -61,7 +61,7 @@ def test_unknown_commands():
 
 @validates("REQ-CMDLINE_DUPLICATION-0.0.1")
 def test_duplicate_commands():
-    builder = CommandLineHandlerBuilder()
+    builder = CommandLineHandlerBuilder(ArgumentParser())
     cmd1 = MockCommand("cmd1", "Command 1", ["--arg1", "--arg2"])
     builder.add_command(cmd1)
     with pytest.raises(ValueError):

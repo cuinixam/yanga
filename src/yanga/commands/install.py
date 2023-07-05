@@ -1,13 +1,11 @@
 from argparse import ArgumentParser, Namespace
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
-from dataclasses import field
 
 from mashumaro import DataClassDictMixin
 
 from yanga.core.cmd_line import Command, register_arguments_for_config_dataclass
 from yanga.core.logging import logger, time_it
-
 from yanga.core.scoop_wrapper import ScoopWrapper
 
 

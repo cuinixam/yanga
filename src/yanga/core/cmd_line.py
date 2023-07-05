@@ -64,11 +64,9 @@ class CommandLineHandler:
 class CommandLineHandlerBuilder:
     """Builds a command line handler."""
 
-    def __init__(self) -> None:
+    def __init__(self, parser: ArgumentParser) -> None:
         self.commands: Dict[str, Command] = {}
-        self.parser = ArgumentParser(
-            prog="yanga", description="Yanga CLI", exit_on_error=False
-        )
+        self.parser = parser
         self.subparsers = self.parser.add_subparsers(title="Commands", dest="command")
 
     def create(self) -> CommandLineHandler:

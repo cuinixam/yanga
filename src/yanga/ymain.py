@@ -1,6 +1,8 @@
 import sys
+from argparse import ArgumentParser
 from sys import argv
 
+from yanga import __version__
 from yanga.commands.build import BuildCommand
 from yanga.commands.init import InitCommand
 from yanga.commands.install import InstallCommand
@@ -11,7 +13,11 @@ from yanga.core.logging import logger, setup_logger, time_it
 
 @time_it("Yanga")
 def do_run() -> None:
-    builder = CommandLineHandlerBuilder()
+    parser = ArgumentParser(prog="yanga", description="Yanga CLI", exit_on_error=False)
+    parser.add_argument(
+        "-v", "--version", action="version", version=f"%(prog)s {__version__}"
+    )
+    builder = CommandLineHandlerBuilder(parser)
     builder.add_commands([BuildCommand(), InitCommand(), InstallCommand()])
     handler = builder.create()
     handler.run(argv[1:])
