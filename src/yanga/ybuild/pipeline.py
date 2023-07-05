@@ -4,6 +4,7 @@ from importlib import import_module
 from pathlib import Path
 from typing import List, Type
 
+from yanga.core.exceptions import UserNotificationException
 from yanga.ybuild.config import PipelineConfig, StageConfig
 from yanga.ybuild.environment import BuildEnvironment
 
@@ -61,7 +62,13 @@ class PipelineLoader:
     @staticmethod
     def _load_builtin_stage(stage_class_name: str) -> Type[Stage]:
         stage_module = import_module("yanga.ybuild.stages")
-        stage_class = getattr(stage_module, stage_class_name)
+        try:
+            stage_class = getattr(stage_module, stage_class_name)
+        except AttributeError:
+            raise UserNotificationException(
+                f"Stage '{stage_class_name}' is not a Yanga built-in stage."
+                " Please check your pipeline configuration."
+            )
         return stage_class
 
 

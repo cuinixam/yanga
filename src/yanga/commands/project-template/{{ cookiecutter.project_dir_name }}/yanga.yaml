@@ -1,5 +1,5 @@
 pipeline:
   install:
-    - stage: YangaInstall
+    - stage: YangaScoopInstall
       description: Install dependencies
       timeout_sec: 120

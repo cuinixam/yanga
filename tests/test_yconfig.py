@@ -11,7 +11,7 @@ def test_from_file(tmp_path: Path) -> None:
             """\
     pipeline:
         install:
-            - stage: YangaInstall
+            - stage: YangaScoopInstall
             - stage: MyInstall
               file: user/install.py
               class: CustomInstall
@@ -29,5 +29,5 @@ def test_from_file(tmp_path: Path) -> None:
         )
     )
     config = YangaConfig.from_file(config_file)
-    assert config.pipeline["install"][0].stage == "YangaInstall"
+    assert config.pipeline["install"][0].stage == "YangaScoopInstall"
     assert config.pipeline["install"][1].stage == "MyInstall"

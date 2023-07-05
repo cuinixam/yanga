@@ -8,10 +8,9 @@ from yanga.commands.init import InitCommand
 from yanga.commands.install import InstallCommand
 from yanga.core.cmd_line import CommandLineHandlerBuilder
 from yanga.core.exceptions import UserNotificationException
-from yanga.core.logging import logger, setup_logger, time_it
+from yanga.core.logging import logger, setup_logger
 
 
-@time_it("Yanga")
 def do_run() -> None:
     parser = ArgumentParser(prog="yanga", description="Yanga CLI", exit_on_error=False)
     parser.add_argument(

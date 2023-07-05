@@ -3,7 +3,7 @@ from pathlib import Path
 from unittest.mock import Mock, patch
 
 from yanga.ybuild.build_main import YangaBuild
-from yanga.ybuild.stages import YangaInstall
+from yanga.ybuild.stages import YangaScoopInstall
 
 
 def test_build(tmp_path: Path) -> None:
@@ -14,7 +14,7 @@ def test_build(tmp_path: Path) -> None:
             """\
     pipeline:
         install:
-            - stage: YangaInstall
+            - stage: YangaScoopInstall
     """
         )
     )
@@ -25,10 +25,10 @@ def test_build(tmp_path: Path) -> None:
     artifacts_locator.project_root_dir = tmp_path
     # Run the build
     with patch(
-        YangaInstall.__module__ + "." + YangaInstall.__name__, autospec=True
+        YangaScoopInstall.__module__ + "." + YangaScoopInstall.__name__, autospec=True
     ) as mock_yanga_install:
         mock_instance = mock_yanga_install.return_value
         # Run the build
         YangaBuild(environment).run()
-        # Check that the YangaInstall run method was called
+        # Check that the YangaScoopInstall run method was called
         mock_instance.run.assert_called_once()
