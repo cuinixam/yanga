@@ -14,6 +14,8 @@ class YangaBuild:
         project_dir = self.artifacts_locator.project_root_dir.absolute().as_posix()
         self.logger.info(f"Run yanga build in '{project_dir}'")
         project_config = YangaConfig.from_file(self.artifacts_locator.config_file)
-        stages = PipelineLoader(project_config.pipeline).load_stages()
+        stages = PipelineLoader(
+            project_config.pipeline, self.artifacts_locator.project_root_dir
+        ).load_stages()
         for stage in stages:
             StageRunner(self.environment, stage).run()

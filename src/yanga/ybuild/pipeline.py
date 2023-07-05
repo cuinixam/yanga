@@ -1,6 +1,7 @@
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from importlib import import_module
+from importlib.util import module_from_spec, spec_from_file_location
 from pathlib import Path
 from typing import List, Type
 
@@ -34,18 +35,21 @@ class BuildStage:
 
 
 class PipelineLoader:
-    def __init__(self, pipeline_config: PipelineConfig) -> None:
+    def __init__(self, pipeline_config: PipelineConfig, project_root_dir: Path) -> None:
         self.pipeline_config = pipeline_config
+        self.project_root_dir = project_root_dir
 
     def load_stages(self) -> List[BuildStage]:
         result = []
         for group_name, stages_config in self.pipeline_config.items():
-            result.extend(self._load_stages(group_name, stages_config))
+            result.extend(
+                self._load_stages(group_name, stages_config, self.project_root_dir)
+            )
         return result
 
     @staticmethod
     def _load_stages(
-        group_name: str, stages_config: List[StageConfig]
+        group_name: str, stages_config: List[StageConfig], project_root_dir: Path
     ) -> List[BuildStage]:
         result = []
         for stage_config in stages_config:
@@ -53,10 +57,11 @@ class PipelineLoader:
             if not stage_config.file:
                 # no file means that the stage is a built-in stage
                 stage_class = PipelineLoader._load_builtin_stage(stage_class_name)
-                result.append(BuildStage(group_name, stage_class))
             else:
-                # TODO: load stage from file
-                raise NotImplementedError("User defined stages are not supported yet")
+                stage_class = PipelineLoader._load_user_stage(
+                    project_root_dir.joinpath(stage_config.file), stage_class_name
+                )
+            result.append(BuildStage(group_name, stage_class))
         return result
 
     @staticmethod
@@ -70,6 +75,27 @@ class PipelineLoader:
                 " Please check your pipeline configuration."
             )
         return stage_class
+
+    @staticmethod
+    def _load_user_stage(python_file: Path, stage_class_name: str) -> Type[Stage]:
+        # Create a module specification from the file path
+        spec = spec_from_file_location(f"user__{stage_class_name}", python_file)
+        if spec and spec.loader:
+            stage_module = module_from_spec(spec)
+            # Import the module
+            spec.loader.exec_module(stage_module)
+            try:
+                stage_class = getattr(stage_module, stage_class_name)
+            except AttributeError:
+                raise UserNotificationException(
+                    f"Could not load class '{stage_class_name}' from file '{python_file}'."
+                    " Please check your pipeline configuration."
+                )
+            return stage_class
+        raise UserNotificationException(
+            f"Could not load file '{python_file}'."
+            " Please check the file for any errors."
+        )
 
 
 class StageRunner:
