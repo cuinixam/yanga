@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## v0.5.0 (2023-07-05)
+
+### Feature
+
+* Support user pipeline stages ([`4cd2d2c`](https://github.com/cuinixam/yanga/commit/4cd2d2c61e992252befc523508efe6a2c0e4b3cd))
+
 ## v0.4.0 (2023-07-05)
 
 ### Feature
