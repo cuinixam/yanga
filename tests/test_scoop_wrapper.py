@@ -66,21 +66,25 @@ def test_get_installed_tools(scoop_dir: Path) -> None:
     apps_dir = scoop_dir.joinpath("apps")
 
     # Check the details of individual tools
-    tool1 = installed_tools[0]
+    tool1 = next(
+        filter(lambda t: t.name == "app1" and t.version == "1.0", installed_tools)
+    )
     assert tool1.name == "app1"
     assert tool1.version == "1.0"
     assert tool1.path == apps_dir.joinpath("app1/1.0")
     assert tool1.manifest_file == tool1.path / "manifest.json"
     assert tool1.bin_dirs == [Path("bin")]
 
-    tool2 = installed_tools[1]
+    tool2 = next(
+        filter(lambda t: t.name == "app1" and t.version == "2.0", installed_tools)
+    )
     assert tool2.name == "app1"
     assert tool2.version == "2.0"
     assert tool2.path == apps_dir.joinpath("app1/2.0")
     assert tool2.manifest_file == tool2.path / "manifest.json"
     assert tool2.bin_dirs == [Path("app")]
 
-    tool3 = installed_tools[2]
+    tool3 = next(filter(lambda t: t.name == "app2", installed_tools))
     assert tool3.name == "app2"
     assert tool3.version == "3.1.1"
     assert tool3.path == apps_dir.joinpath("app2/3.1.1")

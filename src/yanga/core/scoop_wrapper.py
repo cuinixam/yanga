@@ -1,5 +1,6 @@
 import json
 import re
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from dataclasses import dataclass, field
 from pathlib import Path
 from tempfile import TemporaryDirectory
@@ -112,26 +113,34 @@ class ScoopWrapper:
             ]
         return []
 
+    def parse_manifest_file(self, manifest_file: Path) -> InstalledScoopApp:
+        app_directory: Path = manifest_file.parent
+        tool_name: str = app_directory.parent.name
+        with open(manifest_file) as f:
+            manifest_data: Dict[str, Any] = json.load(f)
+            tool_version: str = manifest_data.get("version", None)
+            bin_dirs: List[Path] = self.parse_bin_dirs(manifest_data.get("bin", []))
+            return InstalledScoopApp(
+                name=tool_name,
+                version=tool_version,
+                path=app_directory,
+                manifest_file=manifest_file,
+                bin_dirs=bin_dirs,
+            )
+
     def get_installed_apps(self) -> List[InstalledScoopApp]:
         installed_tools: List[InstalledScoopApp] = []
         self.logger.info(f"Looking for installed apps in {self.apps_directory}")
-        for manifest_file in self.apps_directory.glob("**/manifest.json"):
-            app_directory: Path = manifest_file.parent
-            # There is a directory level for the version of the tool
-            tool_name: str = app_directory.parent.name
-            with open(manifest_file) as f:
-                manifest_data: Dict[str, Any] = json.load(f)
-                tool_version: str = manifest_data.get("version", None)
-                bin_dirs: List[Path] = self.parse_bin_dirs(manifest_data.get("bin", []))
-                installed_tools.append(
-                    InstalledScoopApp(
-                        name=tool_name,
-                        version=tool_version,
-                        path=app_directory,
-                        manifest_file=manifest_file,
-                        bin_dirs=bin_dirs,
-                    )
-                )
+        manifest_files = list(self.apps_directory.glob("**/manifest.json"))
+
+        with ThreadPoolExecutor() as executor:
+            future_to_file = {
+                executor.submit(self.parse_manifest_file, manifest_file): manifest_file
+                for manifest_file in manifest_files
+            }
+            for future in as_completed(future_to_file):
+                installed_tools.append(future.result())
+
         return installed_tools
 
     def do_install(
