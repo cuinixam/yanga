@@ -6,7 +6,12 @@ from unittest.mock import Mock, patch
 import pytest
 
 from yanga.core.exceptions import UserNotificationException
-from yanga.core.scoop_wrapper import ScoopInstallConfigFile, ScoopWrapper
+from yanga.core.scoop_wrapper import (
+    InstalledScoopApp,
+    ScoopFileElement,
+    ScoopInstallConfigFile,
+    ScoopWrapper,
+)
 
 
 def create_scoop_wrapper(scoop_executable: Optional[Path]) -> ScoopWrapper:
@@ -38,7 +43,12 @@ def scoop_dir(tmp_path: Path) -> Path:
     manifest = apps_dir / "app1" / "1.0" / "manifest.json"
     manifest.parent.mkdir(parents=True)
     manifest.write_text(
-        json.dumps({"version": "1.0", "bin": ["bin/program1.exe", "program2.exe"]})
+        json.dumps(
+            {
+                "version": "1.0",
+                "bin": ["bin/program1.exe", "bin/program2.exe", "program3.exe"],
+            }
+        )
     )
     manifest = apps_dir / "app1" / "2.0" / "manifest.json"
     manifest.parent.mkdir(parents=True)
@@ -51,6 +61,11 @@ def scoop_dir(tmp_path: Path) -> Path:
     manifest = apps_dir / "app2" / "3.1.1" / "manifest.json"
     manifest.parent.mkdir(parents=True)
     manifest.write_text(json.dumps({"version": "3.1.1", "bin": "program5.exe"}))
+
+    # some dummy manifest file somewhere in the app2 directory. This should not be picked up
+    manifest = apps_dir / "app2" / "3.1.1" / "some_dir" / "manifest.json"
+    manifest.parent.mkdir(parents=True)
+    manifest.write_text("dummy manifest file")
 
     return scoop_dir
 
@@ -106,38 +121,15 @@ def test_install(scoop_dir: Path, tmp_path: Path) -> None:
             },
             {
                 "Source": "main",
-                "Name": "app3"
-            }
-        ]
-    }"""
-    )
-    with patch("subprocess.run", Mock()):
-        assert len(scoop_wrapper.install(scoop_file)) == 1
-
-
-def test_nothing_to_install(scoop_dir: Path, tmp_path: Path) -> None:
-    scoop_wrapper = create_scoop_wrapper(scoop_dir / "scoop.exe")
-
-    scoop_file = tmp_path / "scoopfile.json"
-    scoop_file.write_text(
-        """{
-        "buckets": [],
-        "apps": [
-            {
-                "Source": "versions",
-                "Name": "app1"
-            },
-            {
-                "Source": "main",
                 "Name": "app2"
             }
         ]
     }"""
     )
-    assert scoop_wrapper.install(scoop_file) == []
+    assert len(scoop_wrapper.install(scoop_file)) == 2
 
 
-def test_scoop_file(tmp_path: Path) -> None:
+def test_scoop_file_parsing(tmp_path: Path) -> None:
     scoop_file = tmp_path / "scoopfile.json"
     scoop_file.write_text(
         """
@@ -168,3 +160,76 @@ def test_scoop_file(tmp_path: Path) -> None:
     scoop_deps = ScoopInstallConfigFile.from_file(scoop_file)
     assert scoop_deps.bucket_names == ["main", "versions"]
     assert scoop_deps.app_names == ["python311", "python"]
+
+
+def test_map_required_apps_to_installed_apps():
+    # Define installed apps
+    installed_apps = [
+        InstalledScoopApp(
+            "app1",
+            "1.0",
+            Path("/path/to/app1"),
+            [],
+            Path("/path/to/app1/manifest.json"),
+        ),
+        InstalledScoopApp(
+            "app2",
+            "1.0",
+            Path("/path/to/app2"),
+            [],
+            Path("/path/to/app2/manifest.json"),
+        ),
+    ]
+
+    # Test Case 1: All required apps are installed
+    app_names = ["app1", "app2"]
+    assert (
+        ScoopWrapper.map_required_apps_to_installed_apps(app_names, installed_apps)
+        == installed_apps
+    )
+
+    # Test Case 2: Some required apps are not installed
+    app_names = ["app1", "app3"]
+    with pytest.raises(UserNotificationException) as e:
+        ScoopWrapper.map_required_apps_to_installed_apps(app_names, installed_apps)
+    assert (
+        str(e.value)
+        == "Could not find 'app3' in the installed apps. Something went wrong during the scoop installation."
+    )
+
+    # Test Case 3: No required apps are installed
+    app_names = ["app3", "app4"]
+    with pytest.raises(UserNotificationException):
+        ScoopWrapper.map_required_apps_to_installed_apps(app_names, installed_apps)
+
+
+def test_do_install_missing(scoop_dir: Path) -> None:
+    # Create a mock for scoop_install_config
+    scoop_install_config = ScoopInstallConfigFile(
+        buckets=[ScoopFileElement(name="bucket1", source="source1")],
+        apps=[
+            ScoopFileElement(name="app1", source="source1"),
+            ScoopFileElement(name="app2", source="source2"),
+        ],
+    )
+
+    app1, app2, app3 = (
+        InstalledScoopApp(
+            name=app_name,
+            version="1.0",
+            path=Path(f"/path/to/{app_name}"),
+            manifest_file=Path(f"/path/to/{app_name}/manifest.json"),
+            bin_dirs=[],
+        )
+        for app_name in ["app1", "app2", "app3"]
+    )
+
+    scoop_wrapper = create_scoop_wrapper(scoop_dir / "scoop.exe")
+
+    with patch("subprocess.run", Mock()):
+        assert (
+            len(scoop_wrapper.do_install_missing(scoop_install_config, [app1, app2]))
+            == 0
+        )
+        assert len(scoop_wrapper.do_install_missing(scoop_install_config, [app1])) == 1
+        assert len(scoop_wrapper.do_install_missing(scoop_install_config, [app3])) == 2
