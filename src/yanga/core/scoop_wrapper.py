@@ -50,12 +50,21 @@ class ScoopInstallConfigFile(DataClassJSONMixin):
 
 
 @dataclass
-class InstalledScoopApp:
+class InstalledApp:
+    #: App name
     name: str
+    #: App version
     version: str
+    #: App root directory
     path: Path
-    manifest_file: Path
+    #: List of bin directories relative to the app path
     bin_dirs: List[Path]
+
+
+@dataclass
+class InstalledScoopApp(InstalledApp):
+    #: App scoop manifest file
+    manifest_file: Path
 
 
 class ScoopWrapper:
@@ -68,7 +77,9 @@ class ScoopWrapper:
     def apps_directory(self) -> Path:
         return self.scoop_root_dir.joinpath("apps")
 
-    def install(self, scoop_file: Path) -> List[ScoopFileElement]:
+    def install(self, scoop_file: Path) -> List[InstalledScoopApp]:
+        """Install scoop apps from a scoop file.
+        It returns a list with all apps required to be installed as installed apps."""
         return self.do_install(
             ScoopInstallConfigFile.from_file(scoop_file), self.get_installed_apps()
         )
@@ -103,15 +114,16 @@ class ScoopWrapper:
             )
             return bin_path.parent if len(bin_path.parts) > 1 else None
 
+        result = []
         if isinstance(bin_data, str):
-            return [parent for parent in [get_parent_dir(bin_data)] if parent]
+            result = [parent for parent in [get_parent_dir(bin_data)] if parent]
         elif isinstance(bin_data, list):
-            return [
+            result = [
                 parent
                 for parent in [get_parent_dir(bin_entry) for bin_entry in bin_data]
                 if parent
             ]
-        return []
+        return list(set(result))
 
     def parse_manifest_file(self, manifest_file: Path) -> InstalledScoopApp:
         app_directory: Path = manifest_file.parent
@@ -131,7 +143,7 @@ class ScoopWrapper:
     def get_installed_apps(self) -> List[InstalledScoopApp]:
         installed_tools: List[InstalledScoopApp] = []
         self.logger.info(f"Looking for installed apps in {self.apps_directory}")
-        manifest_files = list(self.apps_directory.glob("**/manifest.json"))
+        manifest_files = list(self.apps_directory.glob("*/*/manifest.json"))
 
         with ThreadPoolExecutor() as executor:
             future_to_file = {
@@ -147,6 +159,29 @@ class ScoopWrapper:
         self,
         scoop_install_config: ScoopInstallConfigFile,
         installed_apps: List[InstalledScoopApp],
+    ) -> List[InstalledScoopApp]:
+        """Install scoop apps from a scoop file."""
+
+        newly_installed_apps = self.do_install_missing(
+            scoop_install_config, installed_apps
+        )
+        # If some apps where just installed we need to update the list of installed apps
+        if newly_installed_apps:
+            self.logger.info(
+                "New apps were installed, update the list of installed apps."
+            )
+            updated_installed_apps = self.get_installed_apps()
+        else:
+            updated_installed_apps = installed_apps
+        apps = self.map_required_apps_to_installed_apps(
+            scoop_install_config.app_names, updated_installed_apps
+        )
+        return apps
+
+    def do_install_missing(
+        self,
+        scoop_install_config: ScoopInstallConfigFile,
+        installed_apps: List[InstalledScoopApp],
     ) -> List[ScoopFileElement]:
         """Check which apps are installed and install the missing ones."""
         apps_to_install = self.get_tools_to_be_installed(
@@ -156,11 +191,12 @@ class ScoopWrapper:
             self.logger.info("All Scoop apps already installed. Skip installation.")
             return []
         already_installed_apps = set(scoop_install_config.apps) - set(apps_to_install)
+        if already_installed_apps:
+            self.logger.info(
+                f"Scoop apps already installed: {','.join(str(app) for app in already_installed_apps)}"
+            )
         self.logger.info(
-            f"Scoop apps already installed: {','.join(str(app) for app in already_installed_apps)}"
-        )
-        self.logger.info(
-            f"Scoop apps to install: {','.join(str(app) for app in apps_to_install)}"
+            f"Start installing missing apps: {','.join(str(app) for app in apps_to_install)}"
         )
 
         # Create a temporary scoopfile with the remaining apps to install and install them
@@ -173,6 +209,22 @@ class ScoopWrapper:
                 [self.scoop_executable, "import", tmp_scoop_file]
             ).execute()
         return apps_to_install
+
+    @staticmethod
+    def map_required_apps_to_installed_apps(
+        app_names: List[str],
+        installed_apps: List[InstalledScoopApp],
+    ) -> List[InstalledScoopApp]:
+        """Map the required apps to the installed apps."""
+        # convert the list of installed apps into a dictionary for faster lookup
+        installed_apps_dict = {app.name: app for app in installed_apps}
+        try:
+            apps = [installed_apps_dict[app_name] for app_name in app_names]
+        except KeyError as e:
+            raise UserNotificationException(
+                f"Could not find {e} in the installed apps. Something went wrong during the scoop installation."
+            )
+        return apps
 
     @staticmethod
     def get_tools_to_be_installed(
