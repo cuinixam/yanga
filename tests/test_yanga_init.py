@@ -1,5 +1,4 @@
 import runpy
-import sys
 from argparse import Namespace
 from pathlib import Path
 
@@ -29,7 +28,6 @@ def test_create_project_fails_if_out_is_not_empty(tmp_path: Path) -> None:
         YangaInit.create_project_from_template(tmp_path)
 
 
-@pytest.mark.skipif(sys.platform != "win32", reason="Only for Windows")
 def test_build_py_script(tmp_path: Path) -> None:
     project_root_dir = tmp_path / "my_project"
     YangaInit.create_project_from_template(project_root_dir)

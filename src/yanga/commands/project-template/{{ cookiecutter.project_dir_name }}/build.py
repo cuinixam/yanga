@@ -6,7 +6,7 @@ import subprocess  # nosec
 import sys
 import venv
 from pathlib import Path
-from typing import List, Optional
+from typing import List, Optional, Protocol
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("build")
@@ -46,26 +46,67 @@ class SubprocessExecutor:
             )
 
 
-class WindowsVirtualEnvironment:
+class VirtualEnvironment(Protocol):
+    def create(self) -> None:
+        """
+        Create a new virtual environment. This should configure the virtual environment such that
+        subsequent calls to `pip` and `run` operate within this environment.
+        """
+
+    def pip(self, *args: str) -> None:
+        """
+        Execute a pip command within the virtual environment. This method should behave as if the
+        user had activated the virtual environment and run `pip` from the command line.
+
+        Args:
+            *args: Command-line arguments to pip. For example, `pip('install', 'requests')` should
+                   behave similarly to `pip install requests` at the command line.
+        """
+
+    def run(self, *args: str) -> None:
+        """
+        Run an arbitrary command within the virtual environment. This method should behave as if the
+        user had activated the virtual environment and run the given command from the command line.
+
+        Args:
+            *args: Command-line arguments. For example, `run('python', 'setup.py', 'install')`
+                   should behave similarly to `python setup.py install` at the command line.
+        """
+
+
+class WindowsVirtualEnvironment(VirtualEnvironment):
     def __init__(self, venv_dir: Path) -> None:
         self.venv_dir = venv_dir
         self.activate_script = self.venv_dir.joinpath("Scripts/activate.bat")
 
     def create(self) -> None:
-        """Create a virtual environment and install
-        the python package manager with pip"""
         venv.create(self.venv_dir, with_pip=True)
 
     def pip(self, *args: str) -> None:
-        """Run pip commands in the virtual environment"""
         pip_path = self.venv_dir.joinpath("Scripts/pip").as_posix()
         SubprocessExecutor([pip_path, *args], this_dir).execute()
 
     def run(self, *args: str) -> None:
-        """Run commands in the virtual environment"""
         SubprocessExecutor(
             [f"cmd /c {self.activate_script.as_posix()} && ", *args], this_dir
         ).execute()
+
+
+class UnixVirtualEnvironment(VirtualEnvironment):
+    def __init__(self, venv_dir: Path) -> None:
+        self.venv_dir = venv_dir
+        self.activate_script = self.venv_dir.joinpath("bin/activate")
+
+    def create(self) -> None:
+        venv.create(self.venv_dir, with_pip=True)
+
+    def pip(self, *args: str) -> None:
+        pip_path = self.venv_dir.joinpath("bin/pip").as_posix()
+        SubprocessExecutor([pip_path, *args]).execute()
+
+    def run(self, *args: str) -> None:
+        command = f". {self.activate_script.as_posix()} && {' '.join(args)}"
+        SubprocessExecutor(["/bin/bash", "-c", command]).execute()
 
 
 class Build:
@@ -89,12 +130,22 @@ class Build:
 
     def run(self) -> None:
         logger.info("Running project build script")
-        virtual_env = WindowsVirtualEnvironment(self.venv_dir)
+        virtual_env = self.instantiate_os_specific_venv()
         virtual_env.create()
         virtual_env.pip("install", package_manager)
         virtual_env.run(self.package_manager_name, "install")
         # TODO: call yanga build
         # virtual_env.run("python -m yanga.ymain", "build")
+
+    def instantiate_os_specific_venv(self) -> VirtualEnvironment:
+        if sys.platform.startswith("win32"):
+            return WindowsVirtualEnvironment(self.venv_dir)
+        elif sys.platform.startswith("linux") or sys.platform.startswith("darwin"):
+            return UnixVirtualEnvironment(self.venv_dir)
+        else:
+            raise UserNotificationException(
+                f"Unsupported operating system: {sys.platform}"
+            )
 
 
 def print_environment_info() -> None:
