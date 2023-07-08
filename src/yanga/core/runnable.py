@@ -1,23 +1,28 @@
 # create a Runnable protocol and make Executor accept it
 import hashlib
 import json
+from abc import ABC, abstractmethod
 from enum import Enum
 from pathlib import Path
-from typing import List, Protocol
+from typing import List
 
 
-class Runnable(Protocol):
-    def get_name(self) -> str:
-        ...
-
+class Runnable(ABC):
+    @abstractmethod
     def run(self) -> int:
-        ...
+        """Run stage"""
 
+    @abstractmethod
+    def get_name(self) -> str:
+        """Get stage name"""
+
+    @abstractmethod
     def get_inputs(self) -> List[Path]:
-        ...
+        """Get stage dependencies"""
 
+    @abstractmethod
     def get_outputs(self) -> List[Path]:
-        ...
+        """Get stage outputs"""
 
 
 class RunInfoStatus(Enum):
@@ -63,7 +68,8 @@ class Executor:
         run_info_path = self.get_runnable_run_info_file(runnable)
 
         with run_info_path.open("w") as f:
-            json.dump(file_info, f)
+            # pretty print the json file
+            json.dump(file_info, f, indent=4)
 
     def get_runnable_run_info_file(self, runnable: Runnable) -> Path:
         return self.cache_dir / f"{runnable.get_name()}{self.RUN_INFO_FILE_EXTENSION}"

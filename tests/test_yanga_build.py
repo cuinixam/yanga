@@ -28,6 +28,8 @@ def test_build(tmp_path: Path) -> None:
         YangaScoopInstall.__module__ + "." + YangaScoopInstall.__name__, autospec=True
     ) as mock_yanga_install:
         mock_instance = mock_yanga_install.return_value
+        mock_instance.output_dir = tmp_path
+        mock_instance.get_name = lambda: "my_stage"
         # Run the build
         YangaBuild(environment).run()
         # Check that the YangaScoopInstall run method was called

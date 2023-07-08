@@ -12,17 +12,21 @@ class YangaScoopInstall(Stage):
         super().__init__(environment, group_name)
         self.logger = logger.bind()
 
+    def get_name(self) -> str:
+        return "yanga_scoop_install"
+
     @property
     def scoop_file(self) -> Path:
         return self.environment.project_root_dir.joinpath("scoopfile.json")
 
-    def run(self) -> None:
+    def run(self) -> int:
         self.logger.info(
             f"Run {self.__class__.__name__} stage. Output dir: {self.output_dir}"
         )
         ScoopWrapper().install(self.scoop_file)
+        return 0
 
-    def get_dependencies(self) -> List[Path]:
+    def get_inputs(self) -> List[Path]:
         return [self.scoop_file]
 
     def get_outputs(self) -> List[Path]:
