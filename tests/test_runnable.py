@@ -4,10 +4,10 @@ from typing import List
 
 import pytest
 
-from yanga.core.runnable import Executor, RunInfoStatus
+from yanga.core.runnable import Executor, RunInfoStatus, Runnable
 
 
-class TestRunnable:
+class TestRunnable(Runnable):
     def __init__(self, name: str, inputs: List[Path] = [], outputs: List[Path] = []):
         self._name = name
         self._inputs = inputs

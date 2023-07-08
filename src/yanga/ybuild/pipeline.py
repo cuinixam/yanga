@@ -1,4 +1,4 @@
-from abc import ABC, abstractmethod
+from abc import ABC
 from dataclasses import dataclass
 from importlib import import_module
 from importlib.util import module_from_spec, spec_from_file_location
@@ -6,26 +6,15 @@ from pathlib import Path
 from typing import List, Type
 
 from yanga.core.exceptions import UserNotificationException
+from yanga.core.runnable import Executor, Runnable
 from yanga.ybuild.config import PipelineConfig, StageConfig
 from yanga.ybuild.environment import BuildEnvironment
 
 
-class Stage(ABC):
+class Stage(Runnable, ABC):
     def __init__(self, environment: BuildEnvironment, group_name: str) -> None:
         self.environment = environment
         self.output_dir = self.environment.artifacts_locator.build_dir / group_name
-
-    @abstractmethod
-    def run(self) -> None:
-        """Run stage"""
-
-    @abstractmethod
-    def get_dependencies(self) -> List[Path]:
-        """Get stage dependencies"""
-
-    @abstractmethod
-    def get_outputs(self) -> List[Path]:
-        """Get stage outputs"""
 
 
 @dataclass
@@ -111,11 +100,4 @@ class StageRunner:
 
     def run(self) -> None:
         stage = self.stage._class(self.environment, self.stage.group_name)
-        if self._must_run(stage):
-            stage.run()
-
-    def _must_run(self, stage: Stage) -> bool:
-        """A stage shall run if any of the dependencies changed or one of the outputs is missing.
-        All dependencies and outputs relevant information is stored in the stage output directory
-        in a <stage>.deps file."""
-        return True
+        Executor(stage.output_dir).execute(stage)
