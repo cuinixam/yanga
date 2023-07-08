@@ -110,9 +110,6 @@ class UnixVirtualEnvironment(VirtualEnvironment):
 
 
 class Build:
-    """TODO: use a VirtualEnvironment class to handle venv
-    for different operating systems"""
-
     @property
     def venv_dir(self) -> Path:
         return this_dir / ".venv"
