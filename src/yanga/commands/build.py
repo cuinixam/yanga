@@ -16,7 +16,7 @@ class BuildCommandConfig(DataClassDictMixin):
     build_config: str = field(metadata={"help": "Build configuration name."})
     build_target: str = field(metadata={"help": "Build target name."})
     project_dir: Path = field(
-        default=Path("."),
+        default=Path(".").absolute(),
         metadata={
             "help": "Project root directory. "
             "Defaults to the current directory if not specified."

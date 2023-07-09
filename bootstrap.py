@@ -18,6 +18,7 @@ logger = logging.getLogger("build")
 
 
 this_dir = Path(__file__).parent
+this_file = Path(__file__).name
 package_manager = "poetry>=1.5.1"
 
 
@@ -80,7 +81,7 @@ class Executor:
         }
 
         run_info_path = self.get_runnable_run_info_file(runnable)
-
+        run_info_path.parent.mkdir(parents=True, exist_ok=True)
         with run_info_path.open("w") as f:
             # pretty print the json file
             json.dump(file_info, f, indent=4)
@@ -126,9 +127,15 @@ class UserNotificationException(Exception):
 
 
 class SubprocessExecutor:
-    def __init__(self, command: List[str | Path], cwd: Optional[Path] = None):
+    def __init__(
+        self,
+        command: List[str | Path],
+        cwd: Optional[Path] = None,
+        capture_output: bool = True,
+    ):
         self.command = " ".join([str(cmd) for cmd in command])
         self.current_working_directory = cwd
+        self.capture_output = capture_output
 
     def execute(self) -> None:
         result = None
@@ -140,7 +147,7 @@ class SubprocessExecutor:
             result = subprocess.run(
                 self.command.split(),
                 cwd=current_dir,
-                capture_output=True,
+                capture_output=self.capture_output,
                 text=True,  # to get stdout and stderr as strings instead of bytes
             )  # nosec
             result.check_returncode()
@@ -176,7 +183,7 @@ class VirtualEnvironment(ABC):
                 f"Error: {e}"
             )
 
-    def pip(self, *args: str) -> None:
+    def pip(self, args: List[str]) -> None:
         """
         Execute a pip command within the virtual environment. This method should behave as if the
         user had activated the virtual environment and run `pip` from the command line.
@@ -186,7 +193,7 @@ class VirtualEnvironment(ABC):
                    behave similarly to `pip install requests` at the command line.
         """
 
-    def run(self, *args: str) -> None:
+    def run(self, args: List[str], capture_output: bool = True) -> None:
         """
         Run an arbitrary command within the virtual environment. This method should behave as if the
         user had activated the virtual environment and run the given command from the command line.
@@ -202,13 +209,15 @@ class WindowsVirtualEnvironment(VirtualEnvironment):
         super().__init__(venv_dir)
         self.activate_script = self.venv_dir.joinpath("Scripts/activate")
 
-    def pip(self, *args: str) -> None:
+    def pip(self, args: List[str]) -> None:
         pip_path = self.venv_dir.joinpath("Scripts/pip").as_posix()
         SubprocessExecutor([pip_path, *args], this_dir).execute()
 
-    def run(self, *args: str) -> None:
+    def run(self, args: List[str], capture_output: bool = True) -> None:
         SubprocessExecutor(
-            [f"cmd /c {self.activate_script.as_posix()} && ", *args], this_dir
+            [f"cmd /c {self.activate_script.as_posix()} && ", *args],
+            this_dir,
+            capture_output,
         ).execute()
 
 
@@ -217,11 +226,11 @@ class UnixVirtualEnvironment(VirtualEnvironment):
         super().__init__(venv_dir)
         self.activate_script = self.venv_dir.joinpath("bin/activate")
 
-    def pip(self, *args: str) -> None:
+    def pip(self, args: List[str]) -> None:
         pip_path = self.venv_dir.joinpath("bin/pip").as_posix()
         SubprocessExecutor([pip_path, *args]).execute()
 
-    def run(self, *args: str) -> None:
+    def run(self, args: List[str], capture_output: bool = True) -> None:
         # Create a temporary shell script
         with tempfile.NamedTemporaryFile("w", delete=False, suffix=".sh") as f:
             f.write("#!/bin/bash\n")  # Add a shebang line
@@ -234,20 +243,20 @@ class UnixVirtualEnvironment(VirtualEnvironment):
         # Make the temporary script executable
         SubprocessExecutor(["chmod", "+x", temp_script_path]).execute()
         # Run the temporary script
-        SubprocessExecutor([f"{Path(temp_script_path).as_posix()}"], this_dir).execute()
+        SubprocessExecutor(
+            [f"{Path(temp_script_path).as_posix()}"], this_dir, capture_output
+        ).execute()
         # Delete the temporary script
         os.remove(temp_script_path)
 
 
-class BuildVirtualEnvironment(Runnable):
+class CreateVirtualEnvironment(Runnable):
     def __init__(
         self,
     ) -> None:
         self.root_dir = this_dir
-
-    @property
-    def venv_dir(self) -> Path:
-        return self.root_dir / ".venv"
+        self.venv_dir = self.root_dir / ".venv"
+        self.virtual_env = self.instantiate_os_specific_venv()
 
     @property
     def package_manager_name(self) -> str:
@@ -262,10 +271,9 @@ class BuildVirtualEnvironment(Runnable):
 
     def run(self) -> int:
         logger.info("Running project build script")
-        virtual_env = self.instantiate_os_specific_venv()
-        virtual_env.create(clear=self.venv_dir.exists())
-        virtual_env.pip("install", package_manager)
-        virtual_env.run(self.package_manager_name, "install")
+        self.virtual_env.create(clear=self.venv_dir.exists())
+        self.virtual_env.pip(["install", package_manager])
+        self.virtual_env.run([self.package_manager_name, "install"])
         return 0
 
     def instantiate_os_specific_venv(self) -> VirtualEnvironment:
@@ -279,12 +287,12 @@ class BuildVirtualEnvironment(Runnable):
             )
 
     def get_name(self) -> str:
-        return "bootstrap"
+        return "create-virtual-environment"
 
     def get_inputs(self) -> List[Path]:
         return [
             self.root_dir / file
-            for file in ["poetry.lock", "poetry.toml", "pyproject.toml", "bootstrap.py"]
+            for file in ["poetry.lock", "poetry.toml", "pyproject.toml", this_file]
         ]
 
     def get_outputs(self) -> List[Path]:
@@ -303,8 +311,13 @@ def print_environment_info() -> None:
 def main() -> int:
     try:
         # print_environment_info()
-        build = BuildVirtualEnvironment()
+        build = CreateVirtualEnvironment()
         Executor(build.venv_dir).execute(build)
+        # In case there is a yanga.yml file and the script was called with arguments,
+        # run 'yanga build' with all input arguments
+        args = sys.argv[1:]
+        if this_dir.joinpath("yanga.yaml").exists() and len(args) > 0:
+            build.virtual_env.run(["yanga", "build"] + args, False)
     except UserNotificationException as e:
         logger.error(e)
         return 1
