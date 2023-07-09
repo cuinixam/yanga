@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## v0.7.0 (2023-07-09)
+
+### Feature
+
+* Automatically build yanga projects ([`3101666`](https://github.com/cuinixam/yanga/commit/31016662f543a00198184818e700fb70261d1739))
+
 ## v0.6.0 (2023-07-09)
 
 ### Feature
