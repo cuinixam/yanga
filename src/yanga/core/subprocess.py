@@ -23,7 +23,7 @@ class SubprocessExecutor:
         try:
             logger.info(f"Running command: {self.command}")
             result = subprocess.run(
-                self.command,
+                self.command.split(),
                 cwd=(self.current_working_directory or Path.cwd()).as_posix(),
                 capture_output=True,
                 text=True,  # to get stdout and stderr as strings instead of bytes

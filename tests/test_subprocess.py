@@ -10,7 +10,7 @@ def test_get_app_path():
 
 def test_subprocess_executor():
     def mock_run(*args, **kwargs):
-        assert args[0] == "python -V"
+        assert args[0] == ["python", "-V"]
         assert kwargs["cwd"] == "my/path"
         return Mock()
 

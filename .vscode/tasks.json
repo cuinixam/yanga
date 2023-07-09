@@ -2,20 +2,11 @@
   "version": "2.0.0",
   "tasks": [
     {
-      "label": "install dev dependencies",
-      "command": ".venv/Scripts/poetry install --with=dev",
-      "type": "shell",
-      "presentation": {
-        "reveal": "always"
+      "label": "install dependencies",
+      "command": ".venv/bin/poetry install --with=dev --with=docs",
+      "windows": {
+        "command": ".venv/Scripts/poetry install --with=dev --with=docs"
       },
-      "group": {
-        "kind": "build",
-        "isDefault": false
-      }
-    },
-    {
-      "label": "install docs dependencies",
-      "command": ".venv/Scripts/poetry install --with=docs",
       "type": "shell",
       "presentation": {
         "reveal": "always"
@@ -27,7 +18,10 @@
     },
     {
       "label": "run tests",
-      "command": ".venv/Scripts/poetry run pytest --cov",
+      "command": ".venv/bin/poetry run pytest --cov",
+      "windows": {
+        "command": ".venv/Scripts/poetry run pytest --cov"
+      },
       "type": "shell",
       "presentation": {
         "reveal": "always"
@@ -40,7 +34,10 @@
     {
       "label": "run tests in file",
       "type": "shell",
-      "command": ".venv/Scripts/poetry run pytest --cov ${file}",
+      "command": ".venv/bin/poetry run pytest --cov ${file}",
+      "windows": {
+        "command": ".venv/Scripts/poetry run pytest --cov ${file}"
+      },
       "presentation": {
         "reveal": "always"
       },
@@ -51,7 +48,10 @@
     },
     {
       "label": "generate docs",
-      "command": ".venv/Scripts/poetry run sphinx-build ${workspaceFolder}/docs ${workspaceFolder}/docs/_build",
+      "command": ".venv/bin/poetry run sphinx-build ${workspaceFolder}/docs ${workspaceFolder}/docs/_build",
+      "windows": {
+        "command": ".venv/Scripts/poetry run sphinx-build ${workspaceFolder}/docs ${workspaceFolder}/docs/_build"
+      },
       "type": "shell",
       "presentation": {
         "reveal": "always"
@@ -75,7 +75,10 @@
     },
     {
       "label": "run pre-commit checks",
-      "command": ".venv/Scripts/poetry run pre-commit run --all-files",
+      "command": ".venv/bin/poetry run pre-commit run --all-files",
+      "windows": {
+        "command": ".venv/Scripts/poetry run pre-commit run --all-files"
+      },
       "type": "shell",
       "presentation": {
         "reveal": "always"
@@ -87,7 +90,10 @@
     },
     {
       "label": "bootstrap",
-      "command": "${workspaceFolder}/bootstrap.ps1",
+      "command": "${workspaceFolder}/bootstrap.py",
+      "windows": {
+        "command": "${workspaceFolder}/bootstrap.ps1"
+      },
       "type": "shell",
       "presentation": {
         "reveal": "always"
