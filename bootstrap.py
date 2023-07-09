@@ -6,6 +6,7 @@ import os
 import re
 import subprocess  # nosec
 import sys
+import tempfile
 import venv
 from abc import ABC, abstractmethod
 from enum import Enum
@@ -137,7 +138,7 @@ class SubprocessExecutor:
             # print all virtual environment variables
             logger.debug(json.dumps(dict(os.environ), indent=4))
             result = subprocess.run(
-                self.command,
+                self.command.split(),
                 cwd=current_dir,
                 capture_output=True,
                 text=True,  # to get stdout and stderr as strings instead of bytes
@@ -221,8 +222,21 @@ class UnixVirtualEnvironment(VirtualEnvironment):
         SubprocessExecutor([pip_path, *args]).execute()
 
     def run(self, *args: str) -> None:
-        command = f". {self.activate_script.as_posix()} && {' '.join(args)}"
-        SubprocessExecutor(["/bin/bash", "-c", command]).execute()
+        # Create a temporary shell script
+        with tempfile.NamedTemporaryFile("w", delete=False, suffix=".sh") as f:
+            f.write("#!/bin/bash\n")  # Add a shebang line
+            f.write(
+                f"source {self.activate_script.as_posix()}\n"
+            )  # Write the activate command
+            f.write(" ".join(args))  # Write the provided command
+            temp_script_path = f.name  # Get the path of the temporary script
+
+        # Make the temporary script executable
+        SubprocessExecutor(["chmod", "+x", temp_script_path]).execute()
+        # Run the temporary script
+        SubprocessExecutor([f"{Path(temp_script_path).as_posix()}"], this_dir).execute()
+        # Delete the temporary script
+        os.remove(temp_script_path)
 
 
 class BuildVirtualEnvironment(Runnable):
