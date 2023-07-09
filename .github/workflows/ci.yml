@@ -68,6 +68,9 @@ jobs:
       - lint
       - commitlint
 
+    permissions:
+      contents: write # to be able to publish a GitHub release
+
     steps:
       - uses: actions/checkout@v3
         with:
