@@ -68,5 +68,8 @@ class InitCommand(Command):
 
     def _register_arguments(self, parser: ArgumentParser) -> None:
         parser.add_argument(
-            "--project-dir", help="Project directory", default=Path("."), type=Path
+            "--project-dir",
+            help="Project directory",
+            default=Path(".").absolute(),
+            type=Path,
         )

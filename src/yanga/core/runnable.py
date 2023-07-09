@@ -6,6 +6,8 @@ from enum import Enum
 from pathlib import Path
 from typing import List
 
+from .logging import logger
+
 
 class Runnable(ABC):
     @abstractmethod
@@ -26,10 +28,10 @@ class Runnable(ABC):
 
 
 class RunInfoStatus(Enum):
-    MATCH = (False, "Previous execution info matches")
-    NO_INFO = (True, "No previous execution info found")
-    FILE_NOT_FOUND = (True, "File not found")
-    FILE_CHANGED = (True, "File has changed")
+    MATCH = (False, "Nothing changed. Previous execution info matches.")
+    NO_INFO = (True, "No previous execution info found.")
+    FILE_NOT_FOUND = (True, "File not found.")
+    FILE_CHANGED = (True, "File has changed.")
 
     def __init__(self, should_run: bool, message: str) -> None:
         self.should_run = should_run
@@ -66,7 +68,7 @@ class Executor:
         }
 
         run_info_path = self.get_runnable_run_info_file(runnable)
-
+        run_info_path.parent.mkdir(parents=True, exist_ok=True)
         with run_info_path.open("w") as f:
             # pretty print the json file
             json.dump(file_info, f, indent=4)
@@ -93,9 +95,15 @@ class Executor:
 
     def execute(self, runnable: Runnable) -> int:
         run_info_status = self.previous_run_info_matches(runnable)
-        print(run_info_status.message)
         if run_info_status.should_run:
+            logger.info(
+                f"Runnable '{runnable.get_name()}' must run. {run_info_status.message}"
+            )
             exit_code = runnable.run()
             self.store_run_info(runnable)
             return exit_code
+        logger.info(
+            f"Runnable '{runnable.get_name()}' execution skipped. {run_info_status.message}"
+        )
+
         return 0
