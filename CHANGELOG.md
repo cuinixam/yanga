@@ -2,6 +2,19 @@
 
 <!--next-version-placeholder-->
 
+## v0.6.0 (2023-07-09)
+
+### Feature
+
+* Update bootstrap to only run if required ([`55f1c8f`](https://github.com/cuinixam/yanga/commit/55f1c8fe60933be86c053ea7370d9ae2074a84fd))
+* Update pipeline to use the executor ([`eb3f676`](https://github.com/cuinixam/yanga/commit/eb3f676ac83d7a2ec0f8e8d6be78127ae4fef6c7))
+* Implement runnable executor ([`7462d63`](https://github.com/cuinixam/yanga/commit/7462d63e15f016c1d8967c9c42f311247945e3a7))
+* Support build.py for linux ([`26b0542`](https://github.com/cuinixam/yanga/commit/26b05428e870b6d0504933f4877ed0e854542f18))
+
+### Fix
+
+* Bootstrap for Unix fails running commands ([`8085a05`](https://github.com/cuinixam/yanga/commit/8085a05d8d57cf1de538105f5b31a7dd565c2c73))
+
 ## v0.5.0 (2023-07-05)
 
 ### Feature
