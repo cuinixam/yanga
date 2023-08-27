@@ -1,0 +1,5 @@
+components:
+  - name: main
+    type: component
+    sources:
+      - main.c

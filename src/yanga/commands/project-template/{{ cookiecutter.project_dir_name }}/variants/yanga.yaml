@@ -1,0 +1,7 @@
+variants:
+  # This is a variant meant to be used as basis for other variants.
+  # Because one does not need to build this, no platform is specified.
+  - name: Basic
+    components:
+      - sensor
+      - low_pass_filter

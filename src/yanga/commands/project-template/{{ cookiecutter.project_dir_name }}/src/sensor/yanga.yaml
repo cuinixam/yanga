@@ -1,0 +1,5 @@
+components:
+  - name: sensor
+    type: component
+    sources:
+      - src/sensor.c

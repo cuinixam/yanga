@@ -1,0 +1,12 @@
+variants:
+  # This variant has a basis the 'Basic' variant, but adds a new component.
+  # Because this variant is meant to be built, a platform is specified.
+  - name: MyVar2
+    bom:
+      inherit: Basic
+      components:
+        - state_machine
+      sources:
+        - src/state_machine.c
+    platforms:
+      - WindowsApp
