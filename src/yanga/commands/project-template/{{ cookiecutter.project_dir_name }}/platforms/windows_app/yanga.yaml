@@ -1,0 +1,9 @@
+platforms:
+  - name: WindowsApp
+    compiler: clang
+    c_standard: 99
+    compile_options:
+      - -Wall
+      - -Wextra
+    link_options:
+      - -lm

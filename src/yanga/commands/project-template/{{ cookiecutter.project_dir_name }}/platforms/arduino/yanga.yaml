@@ -1,0 +1,15 @@
+platforms:
+  - name: Arduino
+    board: uno
+    compiler: avr-gcc
+    c_standard: 11
+    compile_options:
+      - -Os
+      - -Wall
+    headers:
+      - Arduino.h
+    link_options:
+      - -mmcu=atmega328p
+    libraries:
+      - core
+      - wire

@@ -1,0 +1,20 @@
+components:
+  - name: low_pass_filter
+    type: component
+    sources:
+      - src/low_pass_filter.c
+    test_sources:
+      - test/test_low_pass_filter.c
+    include_directories:
+      - ${CMAKE_CURRENT_SOURCE_DIR}
+    variants:
+      - name: average
+        sources:
+          - src/low_pass_filter_avg.c
+  # This is the same as variant above, but as separate component.
+  - name: low_pass_filter_avg
+    type: component
+    sources:
+      - src/low_pass_filter_avg.c
+    include_directories:
+      - ${CMAKE_CURRENT_SOURCE_DIR}

@@ -18,8 +18,7 @@ class ProjectBuildArtifactsLocator(ProjectArtifactsLocator):
         self,
         project_root_dir: Path,
         variant_name: str,
-        build_config: str,
     ) -> None:
         super().__init__(project_root_dir)
-        self.build_dir = project_root_dir / "build" / variant_name / build_config
+        self.build_dir = project_root_dir / "build" / variant_name
         self.variant_dir = self.variants_dir / variant_name

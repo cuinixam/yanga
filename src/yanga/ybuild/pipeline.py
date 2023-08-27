@@ -19,6 +19,8 @@ class Stage(Runnable, ABC):
 
 @dataclass
 class BuildStage:
+    """TODO: what is the difference between this class and Stage? The name is very strange"""
+
     group_name: str
     _class: Type[Stage]
 

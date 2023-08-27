@@ -1,0 +1,7 @@
+components:
+  - name: state_machine
+    type: component
+    sources:
+      - src/state_machine.c
+    test_sources:
+      - src/test_state_machine.c

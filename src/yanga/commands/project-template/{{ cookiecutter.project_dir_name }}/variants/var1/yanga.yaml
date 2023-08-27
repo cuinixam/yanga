@@ -1,0 +1,11 @@
+variants:
+  - name: var1
+    description: Trivial variant which defines all required components to build the application.
+    bom:
+      components:
+        - sensor
+        - low_pass_filter
+        - state_machine
+        - main
+    platforms:
+      - WindowsApp

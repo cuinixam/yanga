@@ -1,10 +1,10 @@
 import textwrap
 from pathlib import Path
 
-from yanga.ybuild.config import YangaConfig
+from yanga.ybuild.config import YangaUserConfig
 
 
-def test_from_file(tmp_path: Path) -> None:
+def test_load_pipeline_from_file(tmp_path: Path) -> None:
     config_file = tmp_path / "config.yaml"
     config_file.write_text(
         textwrap.dedent(
@@ -28,6 +28,10 @@ def test_from_file(tmp_path: Path) -> None:
     """
         )
     )
-    config = YangaConfig.from_file(config_file)
+    config = YangaUserConfig.from_file(config_file)
+    assert config.pipeline
     assert config.pipeline["install"][0].stage == "YangaScoopInstall"
     assert config.pipeline["install"][1].stage == "MyInstall"
+    assert (
+        config.file == config_file
+    ), "file name should be automatically added to config"
