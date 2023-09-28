@@ -6,13 +6,13 @@ from typing import Dict, List, TypeAlias
 from mashumaro import DataClassDictMixin
 
 from yanga.core.cmd_line import Command, register_arguments_for_config_dataclass
+from yanga.core.exceptions import UserNotificationException
 from yanga.core.logging import logger, time_it
-from yanga.ybuild.build_main import YangaBuild
 from yanga.ybuild.components import BuildComponent, BuildComponentType
 from yanga.ybuild.config import ComponentConfig, PipelineConfig, YangaUserConfig
 from yanga.ybuild.config_slurper import YangaConfigSlurper
 from yanga.ybuild.environment import BuildEnvironment
-from yanga.ybuild.pipeline import BuildStage, PipelineLoader
+from yanga.ybuild.pipeline import BuildStage, PipelineLoader, StageRunner
 
 ComponentsConfigsPool: TypeAlias = Dict[str, ComponentConfig]
 
@@ -45,10 +45,11 @@ class BuildCommand(Command):
         user_configs = YangaConfigSlurper(config.project_dir).slurp()
         components = self._collect_build_components(user_configs)
         stages = self._collect_stages(user_configs, config.project_dir)
-        build_environemt = BuildEnvironment(
+        build_environment = BuildEnvironment(
             config.variant_name, config.project_dir, components
         )
-        YangaBuild(build_environemt, stages).run()
+        for stage in stages:
+            StageRunner(build_environment, stage).run()
         return 0
 
     def _register_arguments(self, parser: ArgumentParser) -> None:
@@ -107,7 +108,7 @@ class BuildCommand(Command):
                     if not subcomponent:
                         # TODO: throw the UserNotificationException and mention the file
                         # where the subcomponent was defined
-                        raise ValueError(
+                        raise UserNotificationException(
                             f"Component '{subcomponent_name}' not found in the configuration."
                         )
                     component.components.append(subcomponent)
@@ -129,9 +130,9 @@ class BuildCommand(Command):
             user_config.pipeline for user_config in user_configs if user_config.pipeline
         ]
         if not configs:
-            raise ValueError("No pipeline configuration found.")
+            raise UserNotificationException("No pipeline configuration found.")
         elif len(configs) > 1:
-            raise ValueError(
+            raise UserNotificationException(
                 "Multiple pipeline configurations found. "
                 "Only one pipeline configuration is allowed."
             )
