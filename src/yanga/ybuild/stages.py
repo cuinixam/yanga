@@ -31,3 +31,24 @@ class YangaScoopInstall(Stage):
 
     def get_outputs(self) -> List[Path]:
         return []
+
+
+class YangaBuild(Stage):
+    def __init__(self, environment: BuildEnvironment, group_name: str) -> None:
+        super().__init__(environment, group_name)
+        self.logger = logger.bind()
+
+    def get_name(self) -> str:
+        return "yanga_build"
+
+    def run(self) -> int:
+        self.logger.info(
+            f"Run {self.__class__.__name__} stage. Output dir: {self.output_dir}"
+        )
+        return 0
+
+    def get_inputs(self) -> List[Path]:
+        return []
+
+    def get_outputs(self) -> List[Path]:
+        return []
