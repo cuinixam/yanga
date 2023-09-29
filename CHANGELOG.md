@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## v0.8.0 (2023-09-29)
+
+### Feature
+
+* Add dummy yanga build stage ([`e65a7cb`](https://github.com/cuinixam/yanga/commit/e65a7cb4d7ed67a3c6fd9e145b022b81c2afe59d))
+
 ## v0.7.0 (2023-07-09)
 
 ### Feature
