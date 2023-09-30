@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## v0.8.1 (2023-09-30)
+
+### Fix
+
+* Scoop install not run if tool is uninstalled ([`5547b88`](https://github.com/cuinixam/yanga/commit/5547b88519b300073eb33720aede0d4c128adcf1))
+
 ## v0.8.0 (2023-09-29)
 
 ### Feature
