@@ -8,7 +8,7 @@ from typing import List, Type
 from py_app_dev.core.exceptions import UserNotificationException
 from py_app_dev.core.runnable import Executor, Runnable
 
-from yanga.ybuild.config import PipelineConfig, StageConfig
+from yanga.project.config import PipelineConfig, StageConfig
 from yanga.ybuild.environment import BuildEnvironment
 
 

@@ -1,7 +1,7 @@
 import textwrap
 from pathlib import Path
 
-from yanga.ybuild.config import YangaUserConfig
+from yanga.project.config import YangaUserConfig
 
 
 def test_load_pipeline_from_file(tmp_path: Path) -> None:

@@ -394,6 +394,20 @@ tomli = {version = "*", optional = true, markers = "python_full_version <= \"3.1
 toml = ["tomli"]
 
 [[package]]
+name = "customtkinter"
+version = "5.2.0"
+description = "Create modern looking GUIs with Python"
+optional = false
+python-versions = ">=3.7"
+files = [
+    {file = "customtkinter-5.2.0-py3-none-any.whl", hash = "sha256:f8b2db189959033539884d7faff99ebbb654c18097d761ed844180e32f0b5929"},
+    {file = "customtkinter-5.2.0.tar.gz", hash = "sha256:e93448a8d22121e20ec16e95960a8306e17cf7e0079766f5804b2e855e614937"},
+]
+
+[package.dependencies]
+darkdetect = "*"
+
+[[package]]
 name = "cycler"
 version = "0.11.0"
 description = "Composable style cycles"
@@ -403,6 +417,20 @@ files = [
     {file = "cycler-0.11.0-py3-none-any.whl", hash = "sha256:3a27e95f763a428a739d2add979fa7494c912a32c17c4c38c4d5f082cad165a3"},
     {file = "cycler-0.11.0.tar.gz", hash = "sha256:9c87405839a19696e837b3b818fed3f5f69f16f1eec1a1ad77e043dcea9c772f"},
 ]
+
+[[package]]
+name = "darkdetect"
+version = "0.8.0"
+description = "Detect OS Dark Mode from Python"
+optional = false
+python-versions = ">=3.6"
+files = [
+    {file = "darkdetect-0.8.0-py3-none-any.whl", hash = "sha256:a7509ccf517eaad92b31c214f593dbcf138ea8a43b2935406bbd565e15527a85"},
+    {file = "darkdetect-0.8.0.tar.gz", hash = "sha256:b5428e1170263eb5dea44c25dc3895edd75e6f52300986353cd63533fe7df8b1"},
+]
+
+[package.extras]
+macos-listener = ["pyobjc-framework-Cocoa"]
 
 [[package]]
 name = "distlib"
@@ -1699,4 +1727,4 @@ dev = ["black (>=19.3b0)", "pytest (>=4.6.2)"]
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.10"
-content-hash = "ed07f4d1a0d1c9d997fd3ca8923103835ee177b04ca2c0bb05a95b39f2a87e28"
+content-hash = "cd7974cdbe4d73e84cc1643573a30e05964c644b0875fb9568cf78377edb7923"

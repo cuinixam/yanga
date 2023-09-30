@@ -8,6 +8,7 @@ from py_app_dev.core.logging import logger, setup_logger
 
 from yanga import __version__
 from yanga.commands.build import BuildCommand
+from yanga.commands.gui import GuiCommand
 from yanga.commands.init import InitCommand
 from yanga.commands.install import InstallCommand
 
@@ -18,7 +19,9 @@ def do_run() -> None:
         "-v", "--version", action="version", version=f"%(prog)s {__version__}"
     )
     builder = CommandLineHandlerBuilder(parser)
-    builder.add_commands([BuildCommand(), InitCommand(), InstallCommand()])
+    builder.add_commands(
+        [BuildCommand(), InitCommand(), InstallCommand(), GuiCommand()]
+    )
     handler = builder.create()
     handler.run(argv[1:])
 

@@ -4,7 +4,7 @@ from pathlib import Path
 import pytest
 from py_app_dev.core.exceptions import UserNotificationException
 
-from yanga.ybuild.config import StageConfig
+from yanga.project.config import StageConfig
 from yanga.ybuild.pipeline import PipelineLoader
 from yanga.ybuild.stages import YangaScoopInstall
 
