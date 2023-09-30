@@ -6,10 +6,9 @@ from tempfile import TemporaryDirectory
 
 from cookiecutter.main import cookiecutter
 from mashumaro import DataClassDictMixin
-
-from yanga.core.cmd_line import Command
-from yanga.core.exceptions import UserNotificationException
-from yanga.core.logging import logger, time_it
+from py_app_dev.core.cmd_line import Command
+from py_app_dev.core.exceptions import UserNotificationException
+from py_app_dev.core.logging import logger, time_it
 
 
 @dataclass

@@ -3,9 +3,9 @@ from argparse import Namespace
 from pathlib import Path
 
 import pytest
+from py_app_dev.core.exceptions import UserNotificationException
 
 from yanga.commands.init import InitCommandConfig, YangaInit
-from yanga.core.exceptions import UserNotificationException
 
 
 def test_config_from_namespace():

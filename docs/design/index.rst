@@ -6,7 +6,5 @@ Design
     :maxdepth: 2
 
     configuration/index
-    logging/index
-    cmd_line/index
     spl/index
     commands/index

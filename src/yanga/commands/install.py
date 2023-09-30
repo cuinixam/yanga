@@ -3,10 +3,9 @@ from dataclasses import dataclass, field
 from pathlib import Path
 
 from mashumaro import DataClassDictMixin
-
-from yanga.core.cmd_line import Command, register_arguments_for_config_dataclass
-from yanga.core.logging import logger, time_it
-from yanga.core.scoop_wrapper import ScoopWrapper
+from py_app_dev.core.cmd_line import Command, register_arguments_for_config_dataclass
+from py_app_dev.core.logging import logger, time_it
+from py_app_dev.core.scoop_wrapper import ScoopWrapper
 
 
 @dataclass

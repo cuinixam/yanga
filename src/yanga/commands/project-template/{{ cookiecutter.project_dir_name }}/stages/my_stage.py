@@ -1,7 +1,8 @@
 from pathlib import Path
 from typing import List
 
-from yanga.core.logging import logger
+from py_app_dev.core.logging import logger
+
 from yanga.ybuild.pipeline import Stage
 
 
