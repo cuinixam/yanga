@@ -1191,13 +1191,13 @@ virtualenv = ">=20.10.0"
 
 [[package]]
 name = "py-app-dev"
-version = "1.1.0"
+version = "1.2.0"
 description = "My application development modules."
 optional = false
 python-versions = ">=3.10,<4.0"
 files = [
-    {file = "py_app_dev-1.1.0-py3-none-any.whl", hash = "sha256:026d5ad7cff9ba1a6300be2dedc40c275101387a1730dec1224e789c8a80bb08"},
-    {file = "py_app_dev-1.1.0.tar.gz", hash = "sha256:653ddc6a31b843ec7e9a97ecad083e7b16ac1fe4963dc12bbb44c95183ec39e3"},
+    {file = "py_app_dev-1.2.0-py3-none-any.whl", hash = "sha256:93a58589f46ee436a60dabc8c68aa1b9aee7621e01c09132b36accc5187e70c4"},
+    {file = "py_app_dev-1.2.0.tar.gz", hash = "sha256:bc068f2d7421f7e268c26ccd19ecfb56880fcfe3cf296c5010a160ec20ffc0eb"},
 ]
 
 [package.dependencies]

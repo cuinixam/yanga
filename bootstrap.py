@@ -14,7 +14,7 @@ from pathlib import Path
 from typing import List, Optional
 
 logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger("build")
+logger = logging.getLogger("bootstrap")
 
 
 this_dir = Path(__file__).parent
@@ -183,6 +183,7 @@ class VirtualEnvironment(ABC):
                 f"Error: {e}"
             )
 
+    @abstractmethod
     def pip(self, args: List[str]) -> None:
         """
         Execute a pip command within the virtual environment. This method should behave as if the
@@ -193,6 +194,7 @@ class VirtualEnvironment(ABC):
                    behave similarly to `pip install requests` at the command line.
         """
 
+    @abstractmethod
     def run(self, args: List[str], capture_output: bool = True) -> None:
         """
         Run an arbitrary command within the virtual environment. This method should behave as if the
@@ -313,11 +315,6 @@ def main() -> int:
         # print_environment_info()
         build = CreateVirtualEnvironment()
         Executor(build.venv_dir).execute(build)
-        # In case there is a yanga.yml file and the script was called with arguments,
-        # run 'yanga build' with all input arguments
-        args = sys.argv[1:]
-        if this_dir.joinpath("yanga.yaml").exists() and len(args) > 0:
-            build.virtual_env.run(["yanga", "build"] + args, False)
     except UserNotificationException as e:
         logger.error(e)
         return 1

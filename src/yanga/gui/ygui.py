@@ -3,12 +3,14 @@ from pathlib import Path
 from typing import List
 
 import customtkinter
-from py_app_dev.core.logging import logger
+from py_app_dev.core.logging import logger, time_it
 from py_app_dev.mvp.event_manager import EventID, EventManager
 from py_app_dev.mvp.presenter import Presenter
 from py_app_dev.mvp.view import View
 
 from yanga.project.project import YangaProject
+from yanga.ybuild.environment import BuildEnvironment
+from yanga.ybuild.pipeline import StageRunner
 
 
 class YangaEvent(EventID):
@@ -73,6 +75,7 @@ class YangaPresenter(Presenter):
         self.project = YangaProject(self.project_dir)
         self.event_manager.subscribe(YangaEvent.BUILD_TRIGGER, self._build_trigger)
         self.logger = logger.bind()
+        self.build_running_flag = False
 
     def run(self) -> None:
         self.view.init_gui()
@@ -80,7 +83,21 @@ class YangaPresenter(Presenter):
         self.view.mainloop()
 
     def _build_trigger(self, variant_name: str) -> None:
+        if self.build_running_flag:
+            self.logger.warning("Build already running")
+            return
+        self.run_build(variant_name)
+
+    @time_it()
+    def run_build(self, variant_name: str) -> None:
         self.logger.info(f"Build trigger for variant {variant_name}")
+        self.build_running_flag = True
+        build_environment = BuildEnvironment(
+            variant_name, self.project_dir, self.project.components
+        )
+        for stage in self.project.stages:
+            StageRunner(build_environment, stage).run()
+        self.build_running_flag = False
 
 
 class YangaGui:

@@ -29,7 +29,7 @@ class GuiCommand(Command):
         super().__init__("gui", "Start the GUI for SPL configuration.")
         self.logger = logger.bind()
 
-    @time_it("Build")
+    @time_it()
     def run(self, args: Namespace) -> int:
         self.logger.info(f"Running {self.name} with args {args}")
         config = GuiCommandConfig.from_namespace(args)
