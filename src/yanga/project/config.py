@@ -1,9 +1,12 @@
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import List, Optional, OrderedDict, TypeAlias
+from typing import Any, Dict, List, Optional, OrderedDict, TypeAlias
 
 import yaml
 from mashumaro import DataClassDictMixin
+from py_app_dev.core.exceptions import UserNotificationException
+from yaml.parser import ParserError
+from yaml.scanner import ScannerError
 
 
 @dataclass
@@ -87,8 +90,22 @@ class YangaUserConfig(DataClassDictMixin):
 
     @classmethod
     def from_file(cls, config_file: Path) -> "YangaUserConfig":
-        with open(config_file) as fs:
-            config_dict = yaml.safe_load(fs)
-            # Add file name to config to keep track of where configuration was loaded from
-            config_dict["file"] = config_file
+        config_dict = cls.parse_to_dict(config_file)
         return cls.from_dict(config_dict)
+
+    @staticmethod
+    def parse_to_dict(config_file: Path) -> Dict[str, Any]:
+        try:
+            with open(config_file) as fs:
+                config_dict = yaml.safe_load(fs)
+                # Add file name to config to keep track of where configuration was loaded from
+                config_dict["file"] = config_file
+            return config_dict
+        except ScannerError as e:
+            raise UserNotificationException(
+                f"Failed scanning configuration file '{config_file}'. \nError: {e}"
+            )
+        except ParserError as e:
+            raise UserNotificationException(
+                f"Failed parsing configuration file '{config_file}'. \nError: {e}"
+            )

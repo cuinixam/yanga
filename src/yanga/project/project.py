@@ -20,7 +20,6 @@ class YangaProject:
         self.user_configs: List[YangaUserConfig] = YangaConfigSlurper(
             self.project_dir
         ).slurp()
-        self.logger.debug(f"Found {len(self.user_configs)} configuration files.")
         self.components: List[BuildComponent] = self._collect_build_components(
             self.user_configs
         )
@@ -28,6 +27,16 @@ class YangaProject:
             self.user_configs, self.project_dir
         )
         self.variants: List[VariantConfig] = self._collect_variants(self.user_configs)
+        self.print_project_info()
+
+    def print_project_info(self) -> None:
+        self.logger.info("-" * 80)
+        self.logger.info(f"Project directory: {self.project_dir}")
+        self.logger.info(f"Parsed {len(self.user_configs)} configuration files.")
+        self.logger.info(f"Found {len(self.components)} components.")
+        self.logger.info(f"Found {len(self.stages)} stages.")
+        self.logger.info(f"Found {len(self.variants)} variants.")
+        self.logger.info("-" * 80)
 
     def _collect_build_components(
         self, user_configs: List[YangaUserConfig]
