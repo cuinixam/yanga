@@ -12,7 +12,7 @@ $ErrorActionPreference = "Stop"
 ###################################################################################################
 $config = @{
     # Required Python version - major.minor (e.g. 3.11)
-    pythonVersion = "3.10"
+    pythonVersion = "3.11"
     # Scoop install script
     scoopInstaller = "https://raw.githubusercontent.com/ScoopInstaller/Install/master/install.ps1"
 }
