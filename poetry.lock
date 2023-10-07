@@ -1653,6 +1653,20 @@ lint = ["docutils-stubs", "flake8 (>=3.5.0)", "flake8-simplify", "isort", "mypy 
 test = ["cython", "filelock", "html5lib", "pytest (>=4.6)"]
 
 [[package]]
+name = "sphinx-rtd-dark-mode"
+version = "1.3.0"
+description = "Dark mode for the Sphinx Read the Docs theme."
+optional = false
+python-versions = ">=3.4"
+files = [
+    {file = "sphinx_rtd_dark_mode-1.3.0-py3-none-any.whl", hash = "sha256:478da69c72a2a2ed7665c1f633cc612039f5801df416fd5f7c4820c2fe08c9c5"},
+    {file = "sphinx_rtd_dark_mode-1.3.0.tar.gz", hash = "sha256:0272bf3d9ef620921adc67e5634a66969419e744da84ea18830adacfdb160ea8"},
+]
+
+[package.dependencies]
+sphinx-rtd-theme = "*"
+
+[[package]]
 name = "sphinx-rtd-theme"
 version = "1.3.0"
 description = "Read the Docs theme for Sphinx"
@@ -1915,4 +1929,4 @@ dev = ["black (>=19.3b0)", "pytest (>=4.6.2)"]
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.10"
-content-hash = "cd7974cdbe4d73e84cc1643573a30e05964c644b0875fb9568cf78377edb7923"
+content-hash = "4cddc54840b21a1e68c12b5e430f2067d5445ae6339a583cb476097715180f5a"
