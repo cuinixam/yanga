@@ -15,7 +15,7 @@ class YangaConfigSlurper:
 
     def slurp(self) -> List[YangaUserConfig]:
         user_configs = []
-        config_files = list(self.project_dir.glob(f"**/*/{self.CONFIG_FILE}"))
+        config_files = list(self.project_dir.glob(f"**/{self.CONFIG_FILE}"))
         with ThreadPoolExecutor() as executor:
             future_to_file = {
                 executor.submit(self.parse_config_file, config_file): config_file
