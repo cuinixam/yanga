@@ -2,6 +2,17 @@
 
 <!--next-version-placeholder-->
 
+## v0.8.2 (2023-10-21)
+
+### Fix
+
+* Project root user config not found ([`a088190`](https://github.com/cuinixam/yanga/commit/a088190f915d956b34d15f52c20566a49805771b))
+
+### Documentation
+
+* Clean up ([`6a82bab`](https://github.com/cuinixam/yanga/commit/6a82babe51d8036f1d06900d31cf3b5e90bfda58))
+* Use dark mode ([`8386089`](https://github.com/cuinixam/yanga/commit/8386089f3cb788753d0759d7a503e6550227b6b2))
+
 ## v0.8.1 (2023-09-30)
 
 ### Fix
