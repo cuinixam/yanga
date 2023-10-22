@@ -1,7 +1,9 @@
 from dataclasses import dataclass, field
 from pathlib import Path
+from subprocess import CompletedProcess
 from typing import List
-
+from py_app_dev.core.logging import logger
+from py_app_dev.core.subprocess import SubprocessExecutor
 from yanga.ybuild.components import BuildComponent
 
 from .builder import Builder
@@ -104,3 +106,29 @@ class CMakeListsBuilder(Builder):
         self.cmake_lists.source_files = collector.collect_sources()
         self.cmake_lists.include_directories = collector.collect_include_directories()
         return self.cmake_lists
+
+
+class CMakeRunner:
+    executable = "cmake"
+
+    def __init__(self):
+        self.logger = logger.bind()
+
+    def run(self, build_dir: Path, target: str = "all"):
+        self.configure(build_dir)
+        self.build(build_dir, target)
+
+    def configure(self, build_dir: Path) -> None:
+        build_dir_str = build_dir.absolute().as_posix()
+        arguments = f" -S{build_dir_str}" f" -B{build_dir_str}" f" -G Ninja "
+        self.run_cmake(arguments)
+
+    def build(self, build_dir: Path, target: str = "all") -> None:
+        build_dir_str = build_dir.absolute().as_posix()
+        arguments = f" --build {build_dir_str}" f" --target {target} -- "
+        self.run_cmake(arguments)
+
+    def run_cmake(self, arguments: str) -> None:
+        command = self.executable + " " + arguments
+        print(f"Running {command}")
+        SubprocessExecutor([command]).execute()

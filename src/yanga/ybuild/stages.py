@@ -4,7 +4,7 @@ from typing import List
 from py_app_dev.core.logging import logger
 from py_app_dev.core.scoop_wrapper import InstalledScoopApp, ScoopWrapper
 
-from .backends.cmake import CMakeListsBuilder
+from .backends.cmake import CMakeListsBuilder, CMakeRunner
 from .backends.generated_file import GeneratedFile
 from .environment import BuildEnvironment
 from .pipeline import Stage
@@ -82,10 +82,11 @@ class YangaBuildRun(Stage):
         self.logger.info(
             f"Run {self.__class__.__name__} stage. Output dir: {self.output_dir}"
         )
+        CMakeRunner().run(self.output_dir)
         return 0
 
     def get_inputs(self) -> List[Path]:
-        return []
+        return [self.output_dir.joinpath("CMakeLists.txt")]
 
     def get_outputs(self) -> List[Path]:
         return []
