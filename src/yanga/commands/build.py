@@ -6,7 +6,7 @@ from mashumaro import DataClassDictMixin
 from py_app_dev.core.cmd_line import Command, register_arguments_for_config_dataclass
 from py_app_dev.core.logging import logger, time_it
 
-from yanga.project.project import YangaProject
+from yanga.project.project_slurper import YangaProjectSlurper
 from yanga.ybuild.environment import BuildEnvironment
 from yanga.ybuild.pipeline import StageRunner
 
@@ -36,9 +36,12 @@ class BuildCommand(Command):
     def run(self, args: Namespace) -> int:
         self.logger.info(f"Running {self.name} with args {args}")
         config = BuildCommandConfig.from_namespace(args)
-        project = YangaProject(config.project_dir)
+        project = YangaProjectSlurper(config.project_dir)
         build_environment = BuildEnvironment(
-            config.variant_name, config.project_dir, project.components
+            config.variant_name,
+            config.project_dir,
+            project.components,
+            project.user_config_files,
         )
         for stage in project.stages:
             StageRunner(build_environment, stage).run()

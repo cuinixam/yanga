@@ -1,5 +1,6 @@
+from dataclasses import dataclass
 from pathlib import Path
-from typing import Dict, List, TypeAlias
+from typing import Dict, List, Optional, TypeAlias
 
 from py_app_dev.core.exceptions import UserNotificationException
 from py_app_dev.core.logging import logger
@@ -10,10 +11,18 @@ from yanga.ybuild.pipeline import BuildStage, PipelineLoader
 from .config import ComponentConfig, PipelineConfig, VariantConfig, YangaUserConfig
 from .config_slurper import YangaConfigSlurper
 
-ComponentsConfigsPool: TypeAlias = Dict[str, ComponentConfig]
+
+@dataclass
+class ComponentConfigWithLocation:
+    config: ComponentConfig
+    #: Path to the file where the component is defined
+    file: Optional[Path] = None
 
 
-class YangaProject:
+ComponentsConfigsPool: TypeAlias = Dict[str, ComponentConfigWithLocation]
+
+
+class YangaProjectSlurper:
     def __init__(self, project_dir: Path) -> None:
         self.logger = logger.bind()
         self.project_dir = project_dir
@@ -28,6 +37,12 @@ class YangaProject:
         )
         self.variants: List[VariantConfig] = self._collect_variants(self.user_configs)
         self.print_project_info()
+
+    @property
+    def user_config_files(self) -> List[Path]:
+        return [
+            user_config.file for user_config in self.user_configs if user_config.file
+        ]
 
     def print_project_info(self) -> None:
         self.logger.info("-" * 80)
@@ -47,19 +62,29 @@ class YangaProject:
         components_configs_pool = self._collect_components_configs(user_configs)
         components = []
         for component_config in components_configs_pool.values():
-            # TODO: determine component type based on if it has sources, subcomponents
-            component_type = BuildComponentType.COMPONENT
-            components.append(
-                BuildComponent(
-                    component_config.name,
-                    component_type,
-                )
-            )
+            components.append(self._create_build_component(component_config))
         # After all components are created, resolve subcomponents
         # TODO: this shall not be done here. We only need to resolve components and subcomponents
         #       for the current variant. The rest of the components shall be ignored.
         # self._resolve_subcomponents(components, components_configs_pool)
         return components
+
+    def _create_build_component(
+        self, component_config: ComponentConfigWithLocation
+    ) -> BuildComponent:
+        # TODO: determine component type based on if it has sources, subcomponents
+        component_type = BuildComponentType.COMPONENT
+        component_path = (
+            component_config.file.parent if component_config.file else self.project_dir
+        )
+        build_component = BuildComponent(
+            component_config.config.name,
+            component_type,
+            component_path,
+        )
+        if component_config.config.sources:
+            build_component.sources = component_config.config.sources
+        return build_component
 
     def _collect_components_configs(
         self, user_configs: List[YangaUserConfig]
@@ -71,9 +96,11 @@ class YangaProject:
                     # TODO: throw the UserNotificationException and mention the two files
                     #  where the components are defined
                     raise ValueError(
-                        f"Component '{component_config}' already exists in the configuration."
+                        f"Component '{component_config.name}' already exists in the configuration."
                     )
-                components_config[component_config.name] = component_config
+                components_config[component_config.name] = ComponentConfigWithLocation(
+                    component_config, user_config.file
+                )
         return components_config
 
     def _resolve_subcomponents(
@@ -87,8 +114,8 @@ class YangaProject:
             # It can not be that there is no configuration for the component,
             # otherwise it would not be in the list
             component_config = components_configs_pool.get(component.name)
-            if component_config and component_config.components:
-                for subcomponent_name in component_config.components:
+            if component_config and component_config.config.components:
+                for subcomponent_name in component_config.config.components:
                     subcomponent = components_pool.get(subcomponent_name, None)
                     if not subcomponent:
                         # TODO: throw the UserNotificationException and mention the file

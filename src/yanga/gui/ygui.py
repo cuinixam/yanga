@@ -9,7 +9,7 @@ from py_app_dev.mvp.event_manager import EventID, EventManager
 from py_app_dev.mvp.presenter import Presenter
 from py_app_dev.mvp.view import View
 
-from yanga.project.project import YangaProject
+from yanga.project.project_slurper import YangaProjectSlurper
 from yanga.ybuild.environment import BuildEnvironment
 from yanga.ybuild.pipeline import StageRunner
 
@@ -120,15 +120,18 @@ class YangaPresenter(Presenter):
         self.logger.info(f"Build trigger for variant {variant_name}")
         self.build_running_flag = True
         build_environment = BuildEnvironment(
-            variant_name, self.project_dir, self.project.components
+            variant_name,
+            self.project_dir,
+            self.project.components,
+            self.project.user_config_files,
         )
         for stage in self.project.stages:
             StageRunner(build_environment, stage).run()
         self.build_running_flag = False
 
-    def _create_project(self) -> Optional[YangaProject]:
+    def _create_project(self) -> Optional[YangaProjectSlurper]:
         try:
-            return YangaProject(self.project_dir)
+            return YangaProjectSlurper(self.project_dir)
         except UserNotificationException as e:
             self.logger.error(e)
             return None

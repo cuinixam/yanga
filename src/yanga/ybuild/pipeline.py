@@ -9,7 +9,8 @@ from py_app_dev.core.exceptions import UserNotificationException
 from py_app_dev.core.runnable import Executor, Runnable
 
 from yanga.project.config import PipelineConfig, StageConfig
-from yanga.ybuild.environment import BuildEnvironment
+
+from .environment import BuildEnvironment
 
 
 class Stage(Runnable, ABC):

@@ -6,3 +6,5 @@ pipeline:
   build:
     - stage: MyStage
       file: stages/my_stage.py
+    - stage: YangaBuildConfigure
+    - stage: YangaBuildRun
