@@ -29,8 +29,8 @@ class YangaProjectSlurper:
         self.user_configs: List[YangaUserConfig] = YangaConfigSlurper(
             self.project_dir
         ).slurp()
-        self.components: List[BuildComponent] = self._collect_build_components(
-            self.user_configs
+        self.components_configs_pool: ComponentsConfigsPool = (
+            self._collect_components_configs(self.user_configs)
         )
         self.stages: List[BuildStage] = self._collect_stages(
             self.user_configs, self.project_dir
@@ -48,25 +48,39 @@ class YangaProjectSlurper:
         self.logger.info("-" * 80)
         self.logger.info(f"Project directory: {self.project_dir}")
         self.logger.info(f"Parsed {len(self.user_configs)} configuration files.")
-        self.logger.info(f"Found {len(self.components)} components.")
+        self.logger.info(
+            f"Found {len(self.components_configs_pool.values())} components."
+        )
         self.logger.info(f"Found {len(self.stages)} stages.")
         self.logger.info(f"Found {len(self.variants)} variants.")
         self.logger.info("-" * 80)
 
-    def _collect_build_components(
-        self, user_configs: List[YangaUserConfig]
+    def get_variant_components(self, variant_name: str) -> List[BuildComponent]:
+        variant = next((v for v in self.variants if v.name == variant_name), None)
+        if not variant:
+            raise UserNotificationException(
+                f"Variant '{variant_name}' not found in the configuration."
+            )
+        return self._collect_variant_components(variant)
+
+    def _collect_variant_components(
+        self, variant: VariantConfig
     ) -> List[BuildComponent]:
-        """Create a set with all components found in the configuration files.
-        In case the component already exists, throw an exception.
-        """
-        components_configs_pool = self._collect_components_configs(user_configs)
+        """ "Collect all components for the given variant.
+        Look for components in the component pool and add them to the list."""
         components = []
-        for component_config in components_configs_pool.values():
+        if not variant.bom:
+            raise UserNotificationException(
+                f"Variant '{variant.name}' is empty (no 'bom' found)."
+            )
+        for component_name in variant.bom.components:
+            component_config = self.components_configs_pool.get(component_name, None)
+            if not component_config:
+                raise UserNotificationException(
+                    f"Component '{component_name}' not found in the configuration."
+                )
             components.append(self._create_build_component(component_config))
-        # After all components are created, resolve subcomponents
-        # TODO: this shall not be done here. We only need to resolve components and subcomponents
-        #       for the current variant. The rest of the components shall be ignored.
-        # self._resolve_subcomponents(components, components_configs_pool)
+        self._resolve_subcomponents(components, self.components_configs_pool)
         return components
 
     def _create_build_component(

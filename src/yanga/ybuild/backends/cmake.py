@@ -1,9 +1,10 @@
 from dataclasses import dataclass, field
 from pathlib import Path
-from subprocess import CompletedProcess
 from typing import List
+
 from py_app_dev.core.logging import logger
 from py_app_dev.core.subprocess import SubprocessExecutor
+
 from yanga.ybuild.components import BuildComponent
 
 from .builder import Builder
@@ -111,10 +112,10 @@ class CMakeListsBuilder(Builder):
 class CMakeRunner:
     executable = "cmake"
 
-    def __init__(self):
+    def __init__(self) -> None:
         self.logger = logger.bind()
 
-    def run(self, build_dir: Path, target: str = "all"):
+    def run(self, build_dir: Path, target: str = "all") -> None:
         self.configure(build_dir)
         self.build(build_dir, target)
 

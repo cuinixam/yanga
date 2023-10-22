@@ -122,7 +122,7 @@ class YangaPresenter(Presenter):
         build_environment = BuildEnvironment(
             variant_name,
             self.project_dir,
-            self.project.components,
+            self.project.get_variant_components(variant_name),
             self.project.user_config_files,
         )
         for stage in self.project.stages:

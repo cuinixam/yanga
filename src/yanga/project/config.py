@@ -47,15 +47,23 @@ class PlatformConfig(DataClassDictMixin):
 
 
 @dataclass
+class VariantBom(DataClassDictMixin):
+    #: Base variant name
+    inherit: Optional[str] = None
+    #: Components
+    components: List[str] = field(default_factory=list)
+    #: Component sources
+    sources: List[str] = field(default_factory=list)
+
+
+@dataclass
 class VariantConfig(DataClassDictMixin):
     #: Variant name
     name: str
     #: Description
     description: Optional[str] = None
     #: Bill of materials
-    bom: Optional[str] = None
-    #: Components
-    components: List[str] = field(default_factory=list)
+    bom: Optional[VariantBom] = None
     #: Platforms
     platforms: List[str] = field(default_factory=list)
 

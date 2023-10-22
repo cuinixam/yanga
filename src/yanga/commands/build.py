@@ -40,7 +40,7 @@ class BuildCommand(Command):
         build_environment = BuildEnvironment(
             config.variant_name,
             config.project_dir,
-            project.components,
+            project.get_variant_components(config.variant_name),
             project.user_config_files,
         )
         for stage in project.stages:
