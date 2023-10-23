@@ -1,0 +1,21 @@
+components:
+  - name: main
+    type: component
+    sources:
+      - main.c
+
+variants:
+  - name: MyVar
+    description: My variant.
+    bom:
+      components:
+        - main
+
+pipeline:
+  install:
+    - stage: YangaScoopInstall
+      description: Install dependencies
+      timeout_sec: 120
+  build:
+    - stage: YangaBuildConfigure
+    - stage: YangaBuildRun
