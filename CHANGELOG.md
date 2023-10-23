@@ -2,6 +2,20 @@
 
 <!--next-version-placeholder-->
 
+## v0.9.0 (2023-10-23)
+
+### Feature
+
+* Create template for minimal yanga project ([`84b3ff6`](https://github.com/cuinixam/yanga/commit/84b3ff61264fbd49f1250514fe806479f81c6530))
+* Add cmake build stage ([`0615305`](https://github.com/cuinixam/yanga/commit/06153051c6e0905efb63ea84ff48b5447553360d))
+* Add build configure stage ([`9463a2c`](https://github.com/cuinixam/yanga/commit/9463a2cf69fb956bb511908cfe013d95e2d22fda))
+
+### Fix
+
+* Integration tests for python 3.10 ([`8cbe239`](https://github.com/cuinixam/yanga/commit/8cbe2397c827f3971a4173bbf987f073c0ef8826))
+* Build stage fails while writing file ([`344a4ad`](https://github.com/cuinixam/yanga/commit/344a4adc37372106b9b035d65a36659091c5a6b3))
+* Variant bom components are ignored ([`2c38f52`](https://github.com/cuinixam/yanga/commit/2c38f52a9068f5818b956f16312b8d96a40a9a58))
+
 ## v0.8.2 (2023-10-21)
 
 ### Fix
