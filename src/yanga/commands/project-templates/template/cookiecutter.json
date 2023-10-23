@@ -2,8 +2,8 @@
   "project_name": "Hello Yanga",
   "project_slug": "{{ cookiecutter.project_name.lower().replace(' ', '_') }}",
   "project_dir_name": "{{ cookiecutter.project_slug }}",
-  "project_description": "A simple project to say hello to Yanga",
-  "python_version": "3.10",
-  "python_package_manager": "poetry>=1.5.1",
+  "project_description": "A simple generated Yanga project to get you started",
+  "python_version": "3.11",
+  "python_package_manager": "poetry>=1.6.1",
   "scoop_installer": "https://raw.githubusercontent.com/ScoopInstaller/Install/master/install.ps1"
 }

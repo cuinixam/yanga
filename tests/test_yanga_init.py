@@ -5,7 +5,7 @@ from pathlib import Path
 import pytest
 from py_app_dev.core.exceptions import UserNotificationException
 
-from yanga.commands.init import InitCommandConfig, YangaInit
+from yanga.commands.init import InitCommandConfig, ProjectBuilder, YangaInit
 
 
 def test_config_from_namespace():
@@ -17,20 +17,21 @@ def test_config_from_namespace():
 
 def test_create_project_from_template(tmp_path):
     out_dir = tmp_path / "out"
-    YangaInit.create_project_from_template(out_dir)
-    assert (out_dir / "build.ps1").exists()
-    assert (out_dir / "build.py").exists()
+    YangaInit(InitCommandConfig(project_dir=out_dir, mini=True)).run()
+    files = ["build.ps1", "build.py", "main.c", "yanga.yaml"]
+    for file in files:
+        assert (out_dir / file).exists()
 
 
 def test_create_project_fails_if_out_is_not_empty(tmp_path: Path) -> None:
     tmp_path.joinpath("some_file.txt").write_text("some content")
     with pytest.raises(UserNotificationException):
-        YangaInit.create_project_from_template(tmp_path)
+        ProjectBuilder(tmp_path).build()
 
 
 def test_build_py_script(tmp_path: Path) -> None:
     project_root_dir = tmp_path / "my_project"
-    YangaInit.create_project_from_template(project_root_dir)
+    YangaInit(InitCommandConfig(project_dir=project_root_dir)).run()
     build_script_path = project_root_dir / "build.py"
 
     # Execute the main function in the build.py script using runpy

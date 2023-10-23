@@ -3,13 +3,73 @@ from argparse import ArgumentParser, Namespace
 from dataclasses import dataclass, field
 from pathlib import Path
 from tempfile import TemporaryDirectory
-from typing import Optional
+from typing import List, Optional, Union
 
 from cookiecutter.main import cookiecutter
 from mashumaro import DataClassDictMixin
 from py_app_dev.core.cmd_line import Command, register_arguments_for_config_dataclass
 from py_app_dev.core.exceptions import UserNotificationException
 from py_app_dev.core.logging import logger, time_it
+
+
+class ProjectBuilder:
+    def __init__(self, project_dir: Path, input_dir: Optional[Path] = None) -> None:
+        self.project_dir = project_dir
+        self.this_dir = (
+            input_dir
+            if input_dir
+            else Path(__file__).parent.joinpath("project-templates")
+        )
+
+        self.dirs: List[Path] = []
+        self.cookiecutter_dir: Optional[Path] = None
+
+    def with_dir(self, dir: Union[Path, str]) -> "ProjectBuilder":
+        self.dirs.append(self.resolve_file_path(dir))
+        return self
+
+    def with_cookiecutter_dir(
+        self, cookiecutter_dir: Union[Path, str]
+    ) -> "ProjectBuilder":
+        self.cookiecutter_dir = self.resolve_file_path(cookiecutter_dir)
+        return self
+
+    def resolve_file_paths(self, files: List[Path | str]) -> List[Path]:
+        return [self.resolve_file_path(file) for file in files]
+
+    def resolve_file_path(self, file: Union[Path, str]) -> Path:
+        return self.this_dir.joinpath(file) if isinstance(file, str) else file
+
+    @staticmethod
+    def _create_project_from_template(input_dir: Path, output_dir: Path) -> None:
+        with TemporaryDirectory() as tmp_dir:
+            tmp_dir_path = Path(tmp_dir)
+            project_dir_name = output_dir.name
+            cookiecutter(
+                input_dir.as_posix(),
+                no_input=True,
+                output_dir=tmp_dir_path.as_posix(),
+                extra_context={"project_dir_name": project_dir_name},
+            )
+            # Copy the temporary directory to the output directory
+            shutil.copytree(
+                tmp_dir_path / project_dir_name, output_dir, dirs_exist_ok=True
+            )
+
+    @staticmethod
+    def _check_target_directory(project_dir: Path) -> None:
+        if project_dir.is_dir() and any(project_dir.iterdir()):
+            raise UserNotificationException(
+                f"Project directory '{project_dir}' is not empty."
+                " The target directory shall either be empty or not exist."
+            )
+
+    def build(self) -> None:
+        self._check_target_directory(self.project_dir)
+        if self.cookiecutter_dir:
+            self._create_project_from_template(self.cookiecutter_dir, self.project_dir)
+        for dir in self.dirs:
+            shutil.copytree(dir, self.project_dir, dirs_exist_ok=True)
 
 
 @dataclass
@@ -43,43 +103,14 @@ class YangaInit:
         self.logger.info(
             f"Run yanga init in '{self.config.project_dir.absolute().as_posix()}'"
         )
+        project_builder = ProjectBuilder(self.config.project_dir)
+        project_builder.with_dir("common").with_cookiecutter_dir("template")
+
         if self.config.mini:
-            self.create_mini_project(self.config.project_dir)
+            project_builder.with_dir("mini")
         else:
-            self.create_project_from_template(self.config.project_dir)
-
-    @staticmethod
-    def create_project_from_template(output_dir: Path) -> None:
-        YangaInit._check_target_directory(output_dir)
-        with TemporaryDirectory() as tmp_dir:
-            this_dir = Path(__file__).parent
-            tmp_dir_path = Path(tmp_dir)
-            project_dir_name = output_dir.name
-            cookiecutter(
-                this_dir.joinpath("project-template").as_posix(),
-                no_input=True,
-                output_dir=tmp_dir_path.as_posix(),
-                extra_context={"project_dir_name": project_dir_name},
-            )
-            # Copy the temporary directory to the output directory
-            shutil.copytree(
-                tmp_dir_path / project_dir_name, output_dir, dirs_exist_ok=True
-            )
-
-    @staticmethod
-    def create_mini_project(output_dir: Path) -> None:
-        YangaInit._check_target_directory(output_dir)
-        # Copy the mini-project directory to the output directory
-        mini_project_dir = Path(__file__).parent.joinpath("project-mini")
-        shutil.copytree(mini_project_dir, output_dir, dirs_exist_ok=True)
-
-    @staticmethod
-    def _check_target_directory(output_dir) -> None:
-        if output_dir.is_dir() and any(output_dir.iterdir()):
-            raise UserNotificationException(
-                f"Project directory '{output_dir}' is not empty."
-                " The target directory shall either be empty or not exist."
-            )
+            project_builder.with_dir("max")
+        project_builder.build()
 
 
 class InitCommand(Command):
