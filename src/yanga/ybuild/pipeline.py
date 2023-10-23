@@ -104,4 +104,5 @@ class StageRunner:
 
     def run(self) -> None:
         stage = self.stage._class(self.environment, self.stage.group_name)
+        stage.output_dir.mkdir(parents=True, exist_ok=True)
         Executor(stage.output_dir).execute(stage)
