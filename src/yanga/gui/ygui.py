@@ -119,15 +119,19 @@ class YangaPresenter(Presenter):
             return
         self.logger.info(f"Build trigger for variant {variant_name}")
         self.build_running_flag = True
-        build_environment = BuildEnvironment(
-            variant_name,
-            self.project_dir,
-            self.project.get_variant_components(variant_name),
-            self.project.user_config_files,
-        )
-        for stage in self.project.stages:
-            StageRunner(build_environment, stage).run()
-        self.build_running_flag = False
+        try:
+            build_environment = BuildEnvironment(
+                variant_name,
+                self.project_dir,
+                self.project.get_variant_components(variant_name),
+                self.project.user_config_files,
+            )
+            for stage in self.project.stages:
+                StageRunner(build_environment, stage).run()
+        except UserNotificationException as e:
+            self.logger.error(e)
+        finally:
+            self.build_running_flag = False
 
     def _create_project(self) -> Optional[YangaProjectSlurper]:
         try:
