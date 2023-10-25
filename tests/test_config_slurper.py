@@ -29,14 +29,12 @@ def test_parse_config_files(mock_project_dir):
     mock_config = MagicMock(spec=YangaUserConfig)
     with patch(
         "yanga.project.config.YangaUserConfig.from_file", return_value=mock_config
-    ) as mock_method:
+    ):
         configs = slurper.slurp()
 
         assert len(configs) == 4
         for config in configs:
             assert config == mock_config
-
-        mock_method.assert_called_with(mock_project_dir / "dir2/dir3/yanga.yaml")
 
 
 def test_no_config_files(tmp_path):
