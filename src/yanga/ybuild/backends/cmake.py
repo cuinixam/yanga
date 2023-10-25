@@ -2,7 +2,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import List
 
-from py_app_dev.core.logging import logger
+from py_app_dev.core.logging import logger, time_it
 from py_app_dev.core.subprocess import SubprocessExecutor
 
 from yanga.ybuild.components import BuildComponent
@@ -119,11 +119,13 @@ class CMakeRunner:
         self.configure(build_dir)
         self.build(build_dir, target)
 
+    @time_it("CMake configure")
     def configure(self, build_dir: Path) -> None:
         build_dir_str = build_dir.absolute().as_posix()
         arguments = f" -S{build_dir_str}" f" -B{build_dir_str}" f" -G Ninja "
         self.run_cmake(arguments)
 
+    @time_it("CMake build")
     def build(self, build_dir: Path, target: str = "all") -> None:
         build_dir_str = build_dir.absolute().as_posix()
         arguments = f" --build {build_dir_str}" f" --target {target} -- "
@@ -131,5 +133,4 @@ class CMakeRunner:
 
     def run_cmake(self, arguments: str) -> None:
         command = self.executable + " " + arguments
-        print(f"Running {command}")
         SubprocessExecutor([command]).execute()

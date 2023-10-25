@@ -71,6 +71,9 @@ class YangaBuildConfigure(Stage):
 
 
 class YangaBuildRun(Stage):
+    """Run CMake and build the project.
+    This stage is always executed. The dependencies are handled by CMake."""
+
     def __init__(self, environment: BuildEnvironment, group_name: str) -> None:
         super().__init__(environment, group_name)
         self.logger = logger.bind()
@@ -86,7 +89,7 @@ class YangaBuildRun(Stage):
         return 0
 
     def get_inputs(self) -> List[Path]:
-        return [self.output_dir.joinpath("CMakeLists.txt")]
+        return []
 
     def get_outputs(self) -> List[Path]:
         return []
