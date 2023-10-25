@@ -2,6 +2,17 @@
 
 <!--next-version-placeholder-->
 
+## v0.10.0 (2023-10-25)
+
+### Feature
+
+* Gui handle user exception during build ([`5e17d52`](https://github.com/cuinixam/yanga/commit/5e17d52dbb2c191305f7665cf015697270828fbf))
+
+### Fix
+
+* Print subprocess output in realtime ([`10cf353`](https://github.com/cuinixam/yanga/commit/10cf353265413db08176ae228fcae9a3cfa57f34))
+* Yanga build only depends on configure ([`a91f18c`](https://github.com/cuinixam/yanga/commit/a91f18cd52a41e03f60f968a7b93d62712a8dec5))
+
 ## v0.9.0 (2023-10-23)
 
 ### Feature
