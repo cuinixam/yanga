@@ -13,6 +13,8 @@ from yanga.project.project_slurper import YangaProjectSlurper
 from yanga.ybuild.environment import BuildEnvironment
 from yanga.ybuild.pipeline import StageRunner
 
+from .icons import Icons
+
 
 class YangaEvent(EventID):
     BUILD_EVENT = auto()
@@ -31,6 +33,9 @@ class YangaView(View):
         # Configure the main window
         self.root.title("YANGA")
         self.root.geometry(f"{220}x{200}")
+
+        # update app icon
+        self.root.iconbitmap(Icons.YANGA_ICON.file)
 
         # Create selection list
         self.variant_selection = customtkinter.CTkOptionMenu(self.root)
