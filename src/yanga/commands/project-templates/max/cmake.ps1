@@ -1,4 +1,3 @@
-# build.ps1
 $buildDir = "build/cmake_build"
 
 # Check if build directory exists, if not, create it

@@ -41,8 +41,8 @@ Install this via pip (or your favourite package manager):
 ## Start developing
 
 The project uses Poetry for dependencies management and packaging.
-If you do not have Poetry installed, you can run the `boostrap.ps1` script.
-This will install Scoop, Python and start `boostrap.py` to create the Python virtual environment.
+If you do not have Poetry installed, you can run the `bootstrap.ps1` script.
+This will install Scoop, Python and start `bootstrap.py` to create the Python virtual environment.
 
 ```powershell
 Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope CurrentUser -Force

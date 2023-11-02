@@ -91,6 +91,7 @@ warn_unused_ignores = true
 exclude = [
     'docs/.*',
     'setup.py',
+    'template/**'
 ]
 
 [[tool.mypy.overrides]]
@@ -99,6 +100,10 @@ allow_untyped_defs = true
 
 [[tool.mypy.overrides]]
 module = "docs.*"
+ignore_errors = true
+
+[[tool.mypy.overrides]]
+module = "bootstrap.*"
 ignore_errors = true
 
 [build-system]

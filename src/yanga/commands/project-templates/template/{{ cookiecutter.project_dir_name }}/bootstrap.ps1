@@ -1,6 +1,6 @@
 <#
 .DESCRIPTION
-    Script to install python and start the build.py.
+    Script to install python and start the bootstrap.py.
 #>
 
 # About preference variables: https://learn.microsoft.com/en-us/powershell/module/microsoft.powershell.core/about/about_preference_variable
@@ -121,8 +121,8 @@ if ($pythonPath -eq $null) {
     $Env:Path += ";$pythonDir"
 }
 
-# Call the build.py if it exists with all provided arguments
-$buildScript = Join-Path $PSScriptRoot "build.py"
+# Call the bootstrap.py if it exists with all provided arguments
+$buildScript = Join-Path $PSScriptRoot "bootstrap.py"
 if (Test-Path $buildScript) {
     Write-Output "Calling $buildScript ..."
     & $python $buildScript $args
