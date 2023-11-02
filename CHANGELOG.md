@@ -2,6 +2,16 @@
 
 <!--next-version-placeholder-->
 
+## v0.11.0 (2023-11-02)
+
+### Feature
+
+* Add option to init bootstrap files ([`9d8fc84`](https://github.com/cuinixam/yanga/commit/9d8fc84b24f878ef3f7932517e8db52fdaace248))
+
+### Fix
+
+* Gui icons dependencies missing ([`be38650`](https://github.com/cuinixam/yanga/commit/be38650b570258381f7d7a3030bd2fa3533a679c))
+
 ## v0.10.0 (2023-10-25)
 
 ### Feature
