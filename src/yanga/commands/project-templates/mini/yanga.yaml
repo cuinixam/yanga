@@ -5,17 +5,25 @@ components:
       - main.c
 
 variants:
-  - name: MyVar
-    description: My variant.
+  - name: EnglishVariant
+    description: Say hello in English.
     bom:
       components:
         - main
+  - name: GermanVariant
+    description: Say hello in German.
+    bom:
+      components:
+        - main
+    config_file: "config_de.txt"
 
 pipeline:
   install:
     - stage: YangaScoopInstall
       description: Install dependencies
       timeout_sec: 120
+  gen:
+    - stage: YangaKConfigGen
   build:
     - stage: YangaBuildConfigure
     - stage: YangaBuildRun

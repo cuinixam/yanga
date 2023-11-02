@@ -35,13 +35,16 @@ class BuildCommand(Command):
     @time_it("Build")
     def run(self, args: Namespace) -> int:
         self.logger.info(f"Running {self.name} with args {args}")
-        config = BuildCommandConfig.from_namespace(args)
+        return self.do_run(BuildCommandConfig.from_namespace(args))
+
+    def do_run(self, config: BuildCommandConfig) -> int:
         project = YangaProjectSlurper(config.project_dir)
         build_environment = BuildEnvironment(
             config.variant_name,
             config.project_dir,
             project.get_variant_components(config.variant_name),
             project.user_config_files,
+            project.get_variant_config_file(config.variant_name),
         )
         for stage in project.stages:
             StageRunner(build_environment, stage).run()

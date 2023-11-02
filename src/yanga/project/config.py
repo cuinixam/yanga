@@ -66,6 +66,8 @@ class VariantConfig(DataClassDictMixin):
     bom: Optional[VariantBom] = None
     #: Platforms
     platforms: List[str] = field(default_factory=list)
+    #: Configuration
+    config_file: Optional[str] = None
 
 
 @dataclass

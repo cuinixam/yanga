@@ -706,6 +706,17 @@ MarkupSafe = ">=2.0"
 i18n = ["Babel (>=2.7)"]
 
 [[package]]
+name = "kconfiglib"
+version = "14.1.0"
+description = "A flexible Python Kconfig implementation"
+optional = false
+python-versions = ">=2.7,!=3.0.*,!=3.1.*"
+files = [
+    {file = "kconfiglib-14.1.0-py2.py3-none-any.whl", hash = "sha256:edcd35a20e7e138a9a9e96149027f805f785e818d2eae400b6fa8b0c8845114a"},
+    {file = "kconfiglib-14.1.0.tar.gz", hash = "sha256:bed2cc2216f538eca4255a83a4588d8823563cdd50114f86cf1a2674e602c93c"},
+]
+
+[[package]]
 name = "kiwisolver"
 version = "1.4.5"
 description = "A fast implementation of the Cassowary constraint solver"
@@ -817,6 +828,22 @@ files = [
     {file = "kiwisolver-1.4.5-pp39-pypy39_pp73-win_amd64.whl", hash = "sha256:11d011a7574eb3b82bcc9c1a1d35c1d7075677fdd15de527d91b46bd35e935ee"},
     {file = "kiwisolver-1.4.5.tar.gz", hash = "sha256:e57e563a57fb22a142da34f38acc2fc1a5c864bc29ca1517a88abc963e60d6ec"},
 ]
+
+[[package]]
+name = "kspl"
+version = "1.0.0"
+description = "KConfig GUI for Software Product Lines with multiple variants."
+optional = false
+python-versions = ">=3.10,<4.0"
+files = [
+    {file = "kspl-1.0.0-py3-none-any.whl", hash = "sha256:34167a307b8d7927c0c7cd4ec064a3452ed81eb2cfbe33ac81fe1d01af5d79e3"},
+    {file = "kspl-1.0.0.tar.gz", hash = "sha256:2bd9fda766516080b8679955e6f2adc35f848d304bd8f2b4eeba4609386aa14c"},
+]
+
+[package.dependencies]
+customtkinter = ">=5.2.0,<6.0.0"
+kconfiglib = ">=14.1.0,<15.0.0"
+py-app-dev = ">=1.0.0,<2.0.0"
 
 [[package]]
 name = "latexcodec"
@@ -1325,13 +1352,13 @@ virtualenv = ">=20.10.0"
 
 [[package]]
 name = "py-app-dev"
-version = "1.5.0"
+version = "1.5.1"
 description = "My application development modules."
 optional = false
 python-versions = ">=3.10,<4.0"
 files = [
-    {file = "py_app_dev-1.5.0-py3-none-any.whl", hash = "sha256:93ab24ac7faf011a72f42b1a79ef1582c558ea938e26fc0adb4c3b01ec0836ef"},
-    {file = "py_app_dev-1.5.0.tar.gz", hash = "sha256:e670203dfab12a47a71cbf27082c5d1a9d61db9a237231df37f65c4e8eeceb44"},
+    {file = "py_app_dev-1.5.1-py3-none-any.whl", hash = "sha256:1b26ce3b96931958d99f4a2a18bb0e28ecd8e3b3f16e6f24c7967855a6052351"},
+    {file = "py_app_dev-1.5.1.tar.gz", hash = "sha256:c299926a3e52f1444970a6df6e5ce990c066d0cc5d0e84fc2ef576a0a623000b"},
 ]
 
 [package.dependencies]
@@ -1929,4 +1956,4 @@ dev = ["black (>=19.3b0)", "pytest (>=4.6.2)"]
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.10"
-content-hash = "2649181d26da0bebb76b8cce25c01e32e22b0c96f41e675357d2008bd96ee7d5"
+content-hash = "9834925cac25bbf98e12ab75a8438274b323b7c4afa7731209e82feb86e9e948"

@@ -1,6 +1,6 @@
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import List
+from typing import List, Optional
 
 from .components import BuildComponent
 from .project import ProjectBuildArtifactsLocator
@@ -12,6 +12,7 @@ class BuildEnvironment:
     project_root_dir: Path
     components: List[BuildComponent] = field(default_factory=list)
     user_config_files: List[Path] = field(default_factory=list)
+    config_file: Optional[Path] = None
 
     @property
     def artifacts_locator(self) -> ProjectBuildArtifactsLocator:

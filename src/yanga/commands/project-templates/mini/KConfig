@@ -1,0 +1,3 @@
+config LANG_DE
+    bool "German language"
+    default n

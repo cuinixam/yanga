@@ -20,5 +20,9 @@ class Builder(ABC):
         ...
 
     @abstractmethod
+    def with_include_directories(self, include_directories: List[Path]) -> "Builder":
+        ...
+
+    @abstractmethod
     def build(self) -> GeneratedFile:
         ...

@@ -1,6 +1,6 @@
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import List
+from typing import Any, List
 
 from py_app_dev.core.logging import logger, time_it
 from py_app_dev.core.subprocess import SubprocessExecutor
@@ -9,6 +9,10 @@ from yanga.ybuild.components import BuildComponent
 
 from .builder import Builder
 from .generated_file import GeneratedFile
+
+
+def make_list_unique(seq: List[Any]) -> List[Any]:
+    return list(dict.fromkeys(seq))
 
 
 @dataclass
@@ -82,7 +86,7 @@ class BuildFileCollector:
         # TODO: check if there are specific include directories for each component
         includes = [path.parent for path in self.collect_sources()]
         # remove duplicates and return
-        return list(set(includes))
+        return make_list_unique(includes)
 
 
 class CMakeListsBuilder(Builder):
@@ -93,6 +97,7 @@ class CMakeListsBuilder(Builder):
         self.components: List[BuildComponent] = []
         self.cmake_lists = CMakeLists(self.output_path.joinpath(self.file_name))
         self.cmake_lists.cmake_version = cmake_version
+        self.include_directories: List[Path] = []
 
     def with_project_name(self, name: str) -> Builder:
         self.cmake_lists.project_name = name
@@ -102,10 +107,16 @@ class CMakeListsBuilder(Builder):
         self.components = components
         return self
 
+    def with_include_directories(self, include_directories: List[Path]) -> Builder:
+        self.include_directories.extend(include_directories)
+        return self
+
     def build(self) -> GeneratedFile:
         collector = BuildFileCollector(self.components)
         self.cmake_lists.source_files = collector.collect_sources()
-        self.cmake_lists.include_directories = collector.collect_include_directories()
+        self.cmake_lists.include_directories = make_list_unique(
+            self.include_directories + collector.collect_include_directories()
+        )
         return self.cmake_lists
 
 

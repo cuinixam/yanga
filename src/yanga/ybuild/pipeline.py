@@ -18,6 +18,10 @@ class Stage(Runnable, ABC):
         self.environment = environment
         self.output_dir = self.environment.artifacts_locator.build_dir / group_name
 
+    @property
+    def project_root_dir(self) -> Path:
+        return self.environment.project_root_dir
+
 
 @dataclass
 class BuildStage:

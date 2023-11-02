@@ -55,13 +55,25 @@ class YangaProjectSlurper:
         self.logger.info(f"Found {len(self.variants)} variants.")
         self.logger.info("-" * 80)
 
-    def get_variant_components(self, variant_name: str) -> List[BuildComponent]:
+    def get_variant_config(self, variant_name: str) -> VariantConfig:
         variant = next((v for v in self.variants if v.name == variant_name), None)
         if not variant:
             raise UserNotificationException(
                 f"Variant '{variant_name}' not found in the configuration."
             )
-        return self._collect_variant_components(variant)
+
+        return variant
+
+    def get_variant_config_file(self, variant_name: str) -> Optional[Path]:
+        variant = self.get_variant_config(variant_name)
+        return (
+            self.project_dir.joinpath(variant.config_file)
+            if variant.config_file
+            else None
+        )
+
+    def get_variant_components(self, variant_name: str) -> List[BuildComponent]:
+        return self._collect_variant_components(self.get_variant_config(variant_name))
 
     def _collect_variant_components(
         self, variant: VariantConfig
