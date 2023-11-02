@@ -102,7 +102,9 @@ class ProjectBuilder:
             )
 
     def _render_templates(self) -> None:
-        env = Environment(loader=FileSystemLoader(self.input_dir))  # nosec
+        env = Environment(
+            loader=FileSystemLoader(self.input_dir), keep_trailing_newline=True
+        )  # nosec
         for template_file in self.template_files:
             template = env.get_template(template_file.src)
             rendered_content = template.render(self.template_config)

@@ -315,11 +315,6 @@ def main() -> int:
         # print_environment_info()
         build = CreateVirtualEnvironment()
         Executor(build.venv_dir).execute(build)
-        # In case there is a yanga.yml file and the script was called with arguments,
-        # run 'yanga build' with all input arguments
-        args = sys.argv[1:]
-        if this_dir.joinpath("yanga.yaml").exists() and len(args) > 0:
-            build.virtual_env.run(["yanga", "build"] + args, False)
     except UserNotificationException as e:
         logger.error(e)
         return 1
