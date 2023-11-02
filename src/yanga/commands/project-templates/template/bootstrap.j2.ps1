@@ -21,9 +21,10 @@ $config = @{
 # Utility functions
 ###################################################################################################
 
-Function Edit-Env {
-    # workaround for GithubActions
-    if ($Env:USER_PATH_FIRST -eq "true") {
+# Update/Reload current environment variable PATH with settings from registry
+Function Initialize-EnvPath {
+    # workaround for system-wide installations
+    if ($Env:USER_PATH_FIRST) {
         $Env:Path = [System.Environment]::GetEnvironmentVariable("Path", "User") + ";" + [System.Environment]::GetEnvironmentVariable("Path", "Machine")
     }
     else {
@@ -61,16 +62,17 @@ Function Invoke-CommandLine {
 Function Install-Scoop {
     # Initial Scoop installation
     if (-Not (Get-Command 'scoop' -ErrorAction SilentlyContinue)) {
-        $tempFile = New-TemporaryFile
-        Invoke-RestMethod $config.scoopInstaller -OutFile $tempFile.FullName
+        $tempDir = [System.IO.Path]::GetTempPath()
+        $tempFile = "$tempDir\install.ps1"
+        Invoke-RestMethod $config.scoopInstaller -OutFile $tempFile
         if ((New-Object Security.Principal.WindowsPrincipal([Security.Principal.WindowsIdentity]::GetCurrent())).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)) {
-            & $tempFile.FullName -RunAsAdmin
+            & $tempFile -RunAsAdmin
         }
         else {
-            & $tempFile.FullName
+            & $tempFile
         }
-        Edit-Env
-        Remove-Item $tempFile.FullName
+        Initialize-EnvPath
+        Remove-Item $tempFile
     }
 
     # Install needed tools
@@ -87,7 +89,7 @@ Function Install-Scoop {
     Invoke-CommandLine "scoop install 7zip" -Silent $true
     Invoke-CommandLine "scoop install innounp" -StopAtError $false -Silent $true
     Invoke-CommandLine "scoop install dark" -Silent $true
-    Edit-Env
+    Initialize-EnvPath
 }
 
 ###################################################################################################

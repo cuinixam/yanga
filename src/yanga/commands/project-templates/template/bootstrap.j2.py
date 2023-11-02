@@ -16,7 +16,7 @@ from pathlib import Path
 from typing import List, Optional
 
 logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger("build")
+logger = logging.getLogger("bootstrap")
 
 
 this_dir = Path(__file__).parent
