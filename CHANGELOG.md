@@ -2,6 +2,13 @@
 
 <!--next-version-placeholder-->
 
+## v0.11.1 (2023-11-02)
+
+### Fix
+
+* Bootstrap automatically calls yanga ([`3168a58`](https://github.com/cuinixam/yanga/commit/3168a58fb4ce5dd1d8fdb96614a756dce18ec5f7))
+* Scoop installer prompts to open tmp file ([`c4bfab3`](https://github.com/cuinixam/yanga/commit/c4bfab3cda594b163868034816cc8924f025f8dd))
+
 ## v0.11.0 (2023-11-02)
 
 ### Feature
