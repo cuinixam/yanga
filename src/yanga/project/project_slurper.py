@@ -27,7 +27,7 @@ class YangaProjectSlurper:
         self.logger = logger.bind()
         self.project_dir = project_dir
         self.user_configs: List[YangaUserConfig] = YangaConfigSlurper(
-            self.project_dir
+            self.project_dir, [".git", ".github", ".vscode", "build", ".venv"]
         ).slurp()
         self.components_configs_pool: ComponentsConfigsPool = (
             self._collect_components_configs(self.user_configs)
@@ -121,8 +121,9 @@ class YangaProjectSlurper:
                 if components_config.get(component_config.name, None):
                     # TODO: throw the UserNotificationException and mention the two files
                     #  where the components are defined
-                    raise ValueError(
-                        f"Component '{component_config.name}' already exists in the configuration."
+                    raise UserNotificationException(
+                        f"Component '{component_config.name}' is defined in multiple configuration files."
+                        f"See {components_config[component_config.name].file} and {user_config.file}"
                     )
                 components_config[component_config.name] = ComponentConfigWithLocation(
                     component_config, user_config.file
