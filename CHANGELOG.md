@@ -2,6 +2,14 @@
 
 <!--next-version-placeholder-->
 
+## v0.12.0 (2023-11-26)
+
+### Feature
+
+* Propagate install dirs in the environment ([`f814a0f`](https://github.com/cuinixam/yanga/commit/f814a0f664939d1c65caa78ea681cca69c827f46))
+* Exclude directories from config search ([`44abdae`](https://github.com/cuinixam/yanga/commit/44abdaebcae6490f687ef656e8b0c040e2be2db6))
+* Integrate KConfig generation ([`1f0bc8e`](https://github.com/cuinixam/yanga/commit/1f0bc8e54938f6a03506268dc0633808cfa8ffbf))
+
 ## v0.11.1 (2023-11-02)
 
 ### Fix
