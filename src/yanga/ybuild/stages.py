@@ -4,7 +4,7 @@ from typing import List
 from kspl.generate import HeaderWriter
 from kspl.kconfig import KConfig
 from py_app_dev.core.logging import logger
-from py_app_dev.core.scoop_wrapper import InstalledScoopApp, ScoopWrapper
+from py_app_dev.core.scoop_wrapper import ScoopWrapper
 
 from .backends.cmake import CMakeListsBuilder, CMakeRunner
 from .backends.generated_file import GeneratedFile
@@ -16,7 +16,7 @@ class YangaScoopInstall(Stage):
     def __init__(self, environment: BuildEnvironment, group_name: str) -> None:
         super().__init__(environment, group_name)
         self.logger = logger.bind()
-        self.installed_apps: List[InstalledScoopApp] = []
+        self.install_dirs: List[Path] = []
 
     def get_name(self) -> str:
         return "yanga_scoop_install"
@@ -29,14 +29,18 @@ class YangaScoopInstall(Stage):
         self.logger.info(
             f"Run {self.__class__.__name__} stage. Output dir: {self.output_dir}"
         )
-        self.installed_apps = ScoopWrapper().install(self.scoop_file)
+        installed_apps = ScoopWrapper().install(self.scoop_file)
+        for app in installed_apps:
+            self.install_dirs.extend(app.get_all_required_paths())
+        # Update the install directories for the subsequent stages
+        self.environment.add_install_dirs(list(set(self.install_dirs)))
         return 0
 
     def get_inputs(self) -> List[Path]:
         return [self.scoop_file]
 
     def get_outputs(self) -> List[Path]:
-        return [app.path for app in self.installed_apps]
+        return self.install_dirs
 
 
 class YangaBuildConfigure(Stage):
@@ -89,7 +93,7 @@ class YangaBuildRun(Stage):
         self.logger.info(
             f"Run {self.__class__.__name__} stage. Output dir: {self.output_dir}"
         )
-        CMakeRunner().run(self.output_dir)
+        CMakeRunner(self.environment.install_dirs).run(self.output_dir)
         return 0
 
     def get_inputs(self) -> List[Path]:

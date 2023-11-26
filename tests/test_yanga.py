@@ -6,10 +6,12 @@ from py_app_dev.core.subprocess import SubprocessExecutor
 
 from yanga.commands.build import BuildCommand, BuildCommandConfig
 from yanga.commands.init import InitCommandConfig, YangaInit
+from yanga.ybuild.environment import BuildEnvironment
+from yanga.ybuild.stages import YangaScoopInstall
 
 
 @pytest.mark.skipif(
-    sys.platform != "win32", reason="Only run this test on windows platform"
+    sys.platform != "win32", reason="It requires scoop to be installed on windows"
 )
 def test_yanga_mini(tmp_path: Path) -> None:
     project_dir = tmp_path.joinpath("mini")
@@ -29,3 +31,16 @@ def test_yanga_mini(tmp_path: Path) -> None:
     write_time = binary_exe.stat().st_mtime
     assert 0 == BuildCommand().do_run(BuildCommandConfig("GermanVariant", project_dir))
     assert write_time == binary_exe.stat().st_mtime, "Binary file was rebuilt"
+
+
+@pytest.mark.skipif(
+    sys.platform != "win32", reason="It requires scoop to be installed on windows"
+)
+def test_yanga_scoop_install_stage(tmp_path: Path) -> None:
+    project_dir = tmp_path.joinpath("mini")
+    # Create a mini project
+    YangaInit(InitCommandConfig(project_dir=project_dir, mini=True)).run()
+    build_env = BuildEnvironment("some name", project_dir)
+    stage = YangaScoopInstall(build_env, "test")
+    stage.run()
+    assert len(build_env.install_dirs) == 2
