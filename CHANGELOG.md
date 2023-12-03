@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## v0.13.0 (2023-12-03)
+
+### Feature
+
+* Implement component compile target ([`4336fcb`](https://github.com/cuinixam/yanga/commit/4336fcbaa3be1f5fe93f2c023d40ca6af6b41046))
+
 ## v0.12.0 (2023-11-26)
 
 ### Feature
