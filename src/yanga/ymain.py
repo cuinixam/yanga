@@ -15,13 +15,9 @@ from yanga.commands.install import InstallCommand
 
 def do_run() -> None:
     parser = ArgumentParser(prog="yanga", description="Yanga CLI", exit_on_error=False)
-    parser.add_argument(
-        "-v", "--version", action="version", version=f"%(prog)s {__version__}"
-    )
+    parser.add_argument("-v", "--version", action="version", version=f"%(prog)s {__version__}")
     builder = CommandLineHandlerBuilder(parser)
-    builder.add_commands(
-        [BuildCommand(), InitCommand(), InstallCommand(), GuiCommand()]
-    )
+    builder.add_commands([BuildCommand(), InitCommand(), InstallCommand(), GuiCommand()])
     handler = builder.create()
     handler.run(argv[1:])
 

@@ -8,7 +8,7 @@ from py_app_dev.core.scoop_wrapper import ScoopWrapper
 
 from .backends.cmake import CMakeListsBuilder, CMakeRunner
 from .backends.generated_file import GeneratedFile
-from .environment import BuildEnvironment
+from .environment import BuildEnvironment, BuildRequest
 from .pipeline import Stage
 
 
@@ -26,9 +26,7 @@ class YangaScoopInstall(Stage):
         return self.project_root_dir.joinpath("scoopfile.json")
 
     def run(self) -> int:
-        self.logger.info(
-            f"Run {self.__class__.__name__} stage. Output dir: {self.output_dir}"
-        )
+        self.logger.info(f"Run {self.__class__.__name__} stage. Output dir: {self.output_dir}")
         installed_apps = ScoopWrapper().install(self.scoop_file)
         for app in installed_apps:
             self.install_dirs.extend(app.get_all_required_paths())
@@ -53,9 +51,7 @@ class YangaBuildConfigure(Stage):
         return "yanga_build_configure"
 
     def run(self) -> int:
-        self.logger.info(
-            f"Run {self.__class__.__name__} stage. Output dir: {self.output_dir}"
-        )
+        self.logger.info(f"Run {self.__class__.__name__} stage. Output dir: {self.output_dir}")
         self.generated_files.append(self.create_cmake_lists())
         for file in self.generated_files:
             file.to_file()
@@ -90,10 +86,10 @@ class YangaBuildRun(Stage):
         return "yanga_build_run"
 
     def run(self) -> int:
-        self.logger.info(
-            f"Run {self.__class__.__name__} stage. Output dir: {self.output_dir}"
+        self.logger.info(f"Run {self.__class__.__name__} stage. Output dir: {self.output_dir}")
+        CMakeRunner(self.environment.install_dirs).run(
+            self.output_dir, self.determine_target(self.environment.build_request)
         )
-        CMakeRunner(self.environment.install_dirs).run(self.output_dir)
         return 0
 
     def get_inputs(self) -> List[Path]:
@@ -101,6 +97,12 @@ class YangaBuildRun(Stage):
 
     def get_outputs(self) -> List[Path]:
         return []
+
+    def determine_target(self, build_request: BuildRequest) -> str:
+        # TODO: This is a temporary solution. We should have a better way to determine the target.
+        if build_request.component_name:
+            return f"{build_request.component_name}_lib"
+        return "all"
 
 
 class YangaKConfigGen(Stage):
@@ -117,9 +119,7 @@ class YangaKConfigGen(Stage):
         return self.output_dir.joinpath("autoconf.h")
 
     def run(self) -> int:
-        self.logger.info(
-            f"Run {self.__class__.__name__} stage. Output dir: {self.output_dir}"
-        )
+        self.logger.info(f"Run {self.__class__.__name__} stage. Output dir: {self.output_dir}")
         kconfig_model_file = self.project_root_dir.joinpath("KConfig")
         if not kconfig_model_file.is_file():
             self.logger.info("No KConfig file found. Skip this stage.")

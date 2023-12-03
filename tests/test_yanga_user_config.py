@@ -32,9 +32,7 @@ def test_load_pipeline_from_file(tmp_path: Path) -> None:
     assert config.pipeline
     assert config.pipeline["install"][0].stage == "YangaScoopInstall"
     assert config.pipeline["install"][1].stage == "MyInstall"
-    assert (
-        config.file == config_file
-    ), "file name should be automatically added to config"
+    assert config.file == config_file, "file name should be automatically added to config"
 
 
 def test_load_user_config(tmp_path: Path) -> None:

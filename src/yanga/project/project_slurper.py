@@ -29,28 +29,20 @@ class YangaProjectSlurper:
         self.user_configs: List[YangaUserConfig] = YangaConfigSlurper(
             self.project_dir, [".git", ".github", ".vscode", "build", ".venv"]
         ).slurp()
-        self.components_configs_pool: ComponentsConfigsPool = (
-            self._collect_components_configs(self.user_configs)
-        )
-        self.stages: List[BuildStage] = self._collect_stages(
-            self.user_configs, self.project_dir
-        )
+        self.components_configs_pool: ComponentsConfigsPool = self._collect_components_configs(self.user_configs)
+        self.stages: List[BuildStage] = self._collect_stages(self.user_configs, self.project_dir)
         self.variants: List[VariantConfig] = self._collect_variants(self.user_configs)
         self.print_project_info()
 
     @property
     def user_config_files(self) -> List[Path]:
-        return [
-            user_config.file for user_config in self.user_configs if user_config.file
-        ]
+        return [user_config.file for user_config in self.user_configs if user_config.file]
 
     def print_project_info(self) -> None:
         self.logger.info("-" * 80)
         self.logger.info(f"Project directory: {self.project_dir}")
         self.logger.info(f"Parsed {len(self.user_configs)} configuration files.")
-        self.logger.info(
-            f"Found {len(self.components_configs_pool.values())} components."
-        )
+        self.logger.info(f"Found {len(self.components_configs_pool.values())} components.")
         self.logger.info(f"Found {len(self.stages)} stages.")
         self.logger.info(f"Found {len(self.variants)} variants.")
         self.logger.info("-" * 80)
@@ -58,51 +50,35 @@ class YangaProjectSlurper:
     def get_variant_config(self, variant_name: str) -> VariantConfig:
         variant = next((v for v in self.variants if v.name == variant_name), None)
         if not variant:
-            raise UserNotificationException(
-                f"Variant '{variant_name}' not found in the configuration."
-            )
+            raise UserNotificationException(f"Variant '{variant_name}' not found in the configuration.")
 
         return variant
 
     def get_variant_config_file(self, variant_name: str) -> Optional[Path]:
         variant = self.get_variant_config(variant_name)
-        return (
-            self.project_dir.joinpath(variant.config_file)
-            if variant.config_file
-            else None
-        )
+        return self.project_dir.joinpath(variant.config_file) if variant.config_file else None
 
     def get_variant_components(self, variant_name: str) -> List[BuildComponent]:
         return self._collect_variant_components(self.get_variant_config(variant_name))
 
-    def _collect_variant_components(
-        self, variant: VariantConfig
-    ) -> List[BuildComponent]:
+    def _collect_variant_components(self, variant: VariantConfig) -> List[BuildComponent]:
         """ "Collect all components for the given variant.
         Look for components in the component pool and add them to the list."""
         components = []
         if not variant.bom:
-            raise UserNotificationException(
-                f"Variant '{variant.name}' is empty (no 'bom' found)."
-            )
+            raise UserNotificationException(f"Variant '{variant.name}' is empty (no 'bom' found).")
         for component_name in variant.bom.components:
             component_config = self.components_configs_pool.get(component_name, None)
             if not component_config:
-                raise UserNotificationException(
-                    f"Component '{component_name}' not found in the configuration."
-                )
+                raise UserNotificationException(f"Component '{component_name}' not found in the configuration.")
             components.append(self._create_build_component(component_config))
         self._resolve_subcomponents(components, self.components_configs_pool)
         return components
 
-    def _create_build_component(
-        self, component_config: ComponentConfigWithLocation
-    ) -> BuildComponent:
+    def _create_build_component(self, component_config: ComponentConfigWithLocation) -> BuildComponent:
         # TODO: determine component type based on if it has sources, subcomponents
         component_type = BuildComponentType.COMPONENT
-        component_path = (
-            component_config.file.parent if component_config.file else self.project_dir
-        )
+        component_path = component_config.file.parent if component_config.file else self.project_dir
         build_component = BuildComponent(
             component_config.config.name,
             component_type,
@@ -112,9 +88,7 @@ class YangaProjectSlurper:
             build_component.sources = component_config.config.sources
         return build_component
 
-    def _collect_components_configs(
-        self, user_configs: List[YangaUserConfig]
-    ) -> ComponentsConfigsPool:
+    def _collect_components_configs(self, user_configs: List[YangaUserConfig]) -> ComponentsConfigsPool:
         components_config: ComponentsConfigsPool = {}
         for user_config in user_configs:
             for component_config in user_config.components:
@@ -153,33 +127,24 @@ class YangaProjectSlurper:
                     component.components.append(subcomponent)
                     subcomponent.is_subcomponent = True
 
-    def _collect_stages(
-        self, user_configs: List[YangaUserConfig], project_root_dir: Path
-    ) -> List[BuildStage]:
+    def _collect_stages(self, user_configs: List[YangaUserConfig], project_root_dir: Path) -> List[BuildStage]:
         """Find the pipeline configuration and collect all stages.
         In case there are multiple pipeline configurations, throw an exception.
         """
         pipeline_config = self._find_pipeline_config(user_configs)
         return PipelineLoader(pipeline_config, project_root_dir).load_stages()
 
-    def _find_pipeline_config(
-        self, user_configs: List[YangaUserConfig]
-    ) -> PipelineConfig:
-        configs = [
-            user_config.pipeline for user_config in user_configs if user_config.pipeline
-        ]
+    def _find_pipeline_config(self, user_configs: List[YangaUserConfig]) -> PipelineConfig:
+        configs = [user_config.pipeline for user_config in user_configs if user_config.pipeline]
         if not configs:
             raise UserNotificationException("No pipeline configuration found.")
         elif len(configs) > 1:
             raise UserNotificationException(
-                "Multiple pipeline configurations found. "
-                "Only one pipeline configuration is allowed."
+                "Multiple pipeline configurations found. " "Only one pipeline configuration is allowed."
             )
         return configs[0]
 
-    def _collect_variants(
-        self, user_configs: List[YangaUserConfig]
-    ) -> List[VariantConfig]:
+    def _collect_variants(self, user_configs: List[YangaUserConfig]) -> List[VariantConfig]:
         variants = []
         for user_config in user_configs:
             variants.extend(user_config.variants)

@@ -7,7 +7,7 @@ from py_app_dev.core.cmd_line import Command, register_arguments_for_config_data
 from py_app_dev.core.logging import logger, time_it
 
 from yanga.project.project_slurper import YangaProjectSlurper
-from yanga.ybuild.environment import BuildEnvironment
+from yanga.ybuild.environment import BuildEnvironment, BuildRequest
 from yanga.ybuild.pipeline import StageRunner
 
 
@@ -16,10 +16,7 @@ class BuildCommandConfig(DataClassDictMixin):
     variant_name: str = field(metadata={"help": "SPL variant name."})
     project_dir: Path = field(
         default=Path(".").absolute(),
-        metadata={
-            "help": "Project root directory. "
-            "Defaults to the current directory if not specified."
-        },
+        metadata={"help": "Project root directory. " "Defaults to the current directory if not specified."},
     )
 
     @classmethod
@@ -40,8 +37,8 @@ class BuildCommand(Command):
     def do_run(self, config: BuildCommandConfig) -> int:
         project = YangaProjectSlurper(config.project_dir)
         build_environment = BuildEnvironment(
-            config.variant_name,
             config.project_dir,
+            BuildRequest(config.variant_name),
             project.get_variant_components(config.variant_name),
             project.user_config_files,
             project.get_variant_config_file(config.variant_name),

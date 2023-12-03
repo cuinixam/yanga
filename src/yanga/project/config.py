@@ -112,10 +112,6 @@ class YangaUserConfig(DataClassDictMixin):
                 config_dict["file"] = config_file
             return config_dict
         except ScannerError as e:
-            raise UserNotificationException(
-                f"Failed scanning configuration file '{config_file}'. \nError: {e}"
-            )
+            raise UserNotificationException(f"Failed scanning configuration file '{config_file}'. \nError: {e}")
         except ParserError as e:
-            raise UserNotificationException(
-                f"Failed parsing configuration file '{config_file}'. \nError: {e}"
-            )
+            raise UserNotificationException(f"Failed parsing configuration file '{config_file}'. \nError: {e}")

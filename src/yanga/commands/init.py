@@ -25,11 +25,7 @@ class TemplateFileConfig:
 class ProjectBuilder:
     def __init__(self, project_dir: Path, input_dir: Optional[Path] = None) -> None:
         self.project_dir = project_dir
-        self.input_dir = (
-            input_dir
-            if input_dir
-            else Path(__file__).parent.joinpath("project-templates")
-        )
+        self.input_dir = input_dir if input_dir else Path(__file__).parent.joinpath("project-templates")
 
         self.dirs: List[Path] = []
         self.cookiecutter_dir: Optional[Path] = None
@@ -47,15 +43,11 @@ class ProjectBuilder:
         self.dirs.append(self.resolve_file_path(dir))
         return self
 
-    def with_cookiecutter_dir(
-        self, cookiecutter_dir: Union[Path, str]
-    ) -> "ProjectBuilder":
+    def with_cookiecutter_dir(self, cookiecutter_dir: Union[Path, str]) -> "ProjectBuilder":
         self.cookiecutter_dir = self.resolve_file_path(cookiecutter_dir)
         return self
 
-    def with_jinja_template(
-        self, template_path: str, dest_path: Optional[str] = None
-    ) -> "ProjectBuilder":
+    def with_jinja_template(self, template_path: str, dest_path: Optional[str] = None) -> "ProjectBuilder":
         self.template_files.append(TemplateFileConfig(template_path, dest_path))
         return self
 
@@ -63,9 +55,7 @@ class ProjectBuilder:
         self.template_config.update(config)
         return self
 
-    def with_template_config_file(
-        self, json_file: Union[Path, str]
-    ) -> "ProjectBuilder":
+    def with_template_config_file(self, json_file: Union[Path, str]) -> "ProjectBuilder":
         json_file_path = self.resolve_file_path(json_file)
         with json_file_path.open() as f:
             self.template_config.update(json.load(f))
@@ -89,9 +79,7 @@ class ProjectBuilder:
                 extra_context={"project_dir_name": project_dir_name},
             )
             # Copy the temporary directory to the output directory
-            shutil.copytree(
-                tmp_dir_path / project_dir_name, output_dir, dirs_exist_ok=True
-            )
+            shutil.copytree(tmp_dir_path / project_dir_name, output_dir, dirs_exist_ok=True)
 
     @staticmethod
     def _check_target_directory(project_dir: Path) -> None:
@@ -102,17 +90,11 @@ class ProjectBuilder:
             )
 
     def _render_templates(self) -> None:
-        env = Environment(
-            loader=FileSystemLoader(self.input_dir), keep_trailing_newline=True
-        )  # nosec
+        env = Environment(loader=FileSystemLoader(self.input_dir), keep_trailing_newline=True)  # nosec
         for template_file in self.template_files:
             template = env.get_template(template_file.src)
             rendered_content = template.render(self.template_config)
-            dest_file_path = (
-                template_file.dest
-                if template_file.dest
-                else Path(template_file.src).name
-            )
+            dest_file_path = template_file.dest if template_file.dest else Path(template_file.src).name
             dest_path = self.project_dir / dest_file_path
             dest_path.parent.mkdir(parents=True, exist_ok=True)
             dest_path.write_text(rendered_content)
@@ -131,10 +113,7 @@ class ProjectBuilder:
 class InitCommandConfig(DataClassDictMixin):
     project_dir: Path = field(
         default=Path(".").absolute(),
-        metadata={
-            "help": "Project root directory. "
-            "Defaults to the current directory if not specified."
-        },
+        metadata={"help": "Project root directory. " "Defaults to the current directory if not specified."},
     )
     mini: Optional[bool] = field(
         default=False,
@@ -163,17 +142,11 @@ class YangaInit:
         self.config = config
 
     def run(self) -> None:
-        self.logger.info(
-            f"Run yanga init in '{self.config.project_dir.absolute().as_posix()}'"
-        )
+        self.logger.info(f"Run yanga init in '{self.config.project_dir.absolute().as_posix()}'")
         project_builder = ProjectBuilder(self.config.project_dir)
-        project_builder.with_jinja_template(
-            "template/bootstrap.j2.ps1", "bootstrap.ps1"
-        ).with_jinja_template(
+        project_builder.with_jinja_template("template/bootstrap.j2.ps1", "bootstrap.ps1").with_jinja_template(
             "template/bootstrap.j2.py", "bootstrap.py"
-        ).with_template_config_file(
-            "template/cookiecutter.json"
-        )
+        ).with_template_config_file("template/cookiecutter.json")
         if self.config.bootstrap:
             project_builder.with_disable_target_directory_check()
         else:

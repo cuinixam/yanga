@@ -13,10 +13,7 @@ from yanga.gui.ygui import YangaGui
 class GuiCommandConfig(DataClassDictMixin):
     project_dir: Path = field(
         default=Path(".").absolute(),
-        metadata={
-            "help": "Project root directory. "
-            "Defaults to the current directory if not specified."
-        },
+        metadata={"help": "Project root directory. " "Defaults to the current directory if not specified."},
     )
 
     @classmethod

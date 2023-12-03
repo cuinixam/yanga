@@ -3,7 +3,6 @@ from pathlib import Path
 from typing import List, Optional
 
 import customtkinter
-from kspl.kconfig import KConfig
 from py_app_dev.core.exceptions import UserNotificationException
 from py_app_dev.core.logging import logger, time_it
 from py_app_dev.mvp.event_manager import EventID, EventManager
@@ -11,7 +10,7 @@ from py_app_dev.mvp.presenter import Presenter
 from py_app_dev.mvp.view import View
 
 from yanga.project.project_slurper import YangaProjectSlurper
-from yanga.ybuild.environment import BuildEnvironment
+from yanga.ybuild.environment import BuildEnvironment, BuildRequest
 from yanga.ybuild.pipeline import StageRunner
 
 from .icons import Icons
@@ -19,8 +18,10 @@ from .icons import Icons
 
 class YangaEvent(EventID):
     BUILD_EVENT = auto()
-    CONFIGURE_EVENT = auto()
+    COMPILE_EVENT = auto()
     REFRESH_EVENT = auto()
+    VARIANT_SELECTED_EVENT = auto()
+    CLEAN_VARIANT_EVENT = auto()
 
 
 class YangaView(View):
@@ -28,131 +29,244 @@ class YangaView(View):
         self.event_manager = event_manager
         self.root = customtkinter.CTk()
         self.variants: List[str] = []
+        self.components: List[str] = []
+
+    @property
+    def selected_variant(self) -> str:
+        return self.variant_selection.get()
+
+    @property
+    def selected_component(self) -> str:
+        return self.component_selection.get()
 
     def init_gui(self) -> None:
         customtkinter.set_default_color_theme("green")
 
         # Configure the main window
         self.root.title("YANGA")
-        self.root.geometry(f"{220}x{200}")
+        self.root.geometry(f"{220}x{400}")
 
         # update app icon
         self.root.iconbitmap(Icons.YANGA_ICON.file)
+        position_in_grid = 0
 
-        # Create selection list
-        self.variant_selection = customtkinter.CTkOptionMenu(self.root)
-        self.variant_selection.grid(row=0, column=0, sticky="nsew", padx=10, pady=10)
-        self._update_variants(self.variant_selection, self.variants)
+        self.variants_frame = self._create_variants_frame(self.root, position_in_grid)
+        position_in_grid += 1
+        self.components_frame = self._create_components_frame(self.root, position_in_grid)
 
-        # Create the configure button
-        self.configure_button = customtkinter.CTkButton(
-            self.root, text="Configure", command=self._configure_button_pressed
-        )
-        # TODO: implement configure
-        # self.configure_button.grid(row=1, column=0, sticky="nsew", padx=10, pady=10)
-
-        # Create the build button
-        self.build_button = customtkinter.CTkButton(
-            self.root, text="Build", command=self._build_button_pressed
-        )
-        self.build_button.grid(row=2, column=0, sticky="nsew", padx=10, pady=10)
-
-        # Create the refresh button
-        self.refresh_button = customtkinter.CTkButton(
-            self.root, text="Refresh", command=self._refresh_button_pressed
-        )
-        self.refresh_button.grid(row=3, column=0, sticky="nsew", padx=10, pady=10)
+        # Bind F5 key to refresh functionality
+        self.root.bind("<F5>", self._refresh_button_pressed)
 
         # Create events
-        self.build_trigger = self.event_manager.create_event_trigger(
-            YangaEvent.BUILD_EVENT
-        )
-        self.configure_trigger = self.event_manager.create_event_trigger(
-            YangaEvent.CONFIGURE_EVENT
-        )
-        self.refresh_trigger = self.event_manager.create_event_trigger(
-            YangaEvent.REFRESH_EVENT
-        )
+        self.build_trigger = self.event_manager.create_event_trigger(YangaEvent.BUILD_EVENT)
+        self.clean_variant_trigger = self.event_manager.create_event_trigger(YangaEvent.CLEAN_VARIANT_EVENT)
+        self.compile_trigger = self.event_manager.create_event_trigger(YangaEvent.COMPILE_EVENT)
+        self.refresh_trigger = self.event_manager.create_event_trigger(YangaEvent.REFRESH_EVENT)
+        self.variant_selected_trigger = self.event_manager.create_event_trigger(YangaEvent.VARIANT_SELECTED_EVENT)
 
     def _build_button_pressed(self) -> None:
-        self.build_trigger(self.variant_selection.get())
+        self.build_trigger(self.selected_variant)
 
-    def _configure_button_pressed(self) -> None:
-        self.configure_trigger(self.variant_selection.get())
-
-    def _refresh_button_pressed(self) -> None:
+    def _refresh_button_pressed(self, event=None) -> None:  # type: ignore
         self.refresh_trigger()
+
+    def _variant_selected(self, variant_selected: str) -> None:
+        self.variant_selected_trigger(variant_selected)
+
+    def _compile_button_pressed(self) -> None:
+        self.compile_trigger(self.selected_variant, self.selected_component)
+
+    def _clean_variant_button_pressed(self) -> None:
+        self.clean_variant_trigger(self.selected_variant)
 
     def mainloop(self) -> None:
         self.root.mainloop()
 
-    @staticmethod
-    def _update_variants(
-        variant_selection: customtkinter.CTkOptionMenu, variants: List[str]
-    ) -> None:
-        if variants:
-            variant_selection.configure(values=variants)
-            variant_selection.set(variants[0])
-        else:
-            variant_selection.configure(values=["No variants found"])
-            variant_selection.set("No variants found")
+    def _create_variants_frame(self, root: customtkinter.CTk, position_in_root_grid: int) -> customtkinter.CTkFrame:
+        # Create the frame for all elements related to variants
+        variants_frame = customtkinter.CTkFrame(root)
+        variants_frame.grid(row=position_in_root_grid, column=0, sticky="nsew", padx=10, pady=10)
+        current_frame = variants_frame
+        position_in_grid = 0
+
+        # Create label aligned to left
+        variants_label = customtkinter.CTkLabel(current_frame, text="Variants", anchor="w")
+        variants_label.grid(row=position_in_grid, column=0, sticky="nsew", padx=10, pady=5)
+        position_in_grid += 1
+
+        # Create selection list
+        self.variant_selection = customtkinter.CTkOptionMenu(current_frame, command=self._variant_selected)
+        self.variant_selection.grid(row=position_in_grid, column=0, sticky="nsew", padx=10, pady=5)
+        self.update_variants(self.variants)
+        position_in_grid += 1
+
+        # Create the build button
+        self.build_button = customtkinter.CTkButton(current_frame, text="Build", command=self._build_button_pressed)
+        self.build_button.grid(row=position_in_grid, column=0, sticky="nsew", padx=10, pady=5)
+        position_in_grid += 1
+
+        # Create the clean button
+        self.clean_button = customtkinter.CTkButton(
+            current_frame, text="Clean", command=self._clean_variant_button_pressed
+        )
+        self.clean_button.grid(row=position_in_grid, column=0, sticky="nsew", padx=10, pady=5)
+        position_in_grid += 1
+
+        return variants_frame
+
+    def _create_components_frame(self, root: customtkinter.CTk, position_in_root_grid: int) -> customtkinter.CTkFrame:
+        # Create the frame for all elements related to components
+        components_frame = customtkinter.CTkFrame(root)
+        components_frame.grid(row=position_in_root_grid, column=0, sticky="nsew", padx=10, pady=10)
+        current_frame = components_frame
+        position_in_grid = 0
+
+        # Create label aligned to left
+        components_label = customtkinter.CTkLabel(current_frame, text="Components", anchor="w")
+        components_label.grid(row=position_in_grid, column=0, sticky="nsew", padx=10, pady=5)
+        position_in_grid += 1
+
+        # Create selection list
+        self.component_selection = customtkinter.CTkOptionMenu(current_frame)
+        self.component_selection.grid(row=position_in_grid, column=0, sticky="nsew", padx=10, pady=5)
+
+        position_in_grid += 1
+
+        # Create compile button
+        self.compile_button = customtkinter.CTkButton(
+            current_frame, text="Compile", command=self._compile_button_pressed
+        )
+        self.compile_button.grid(row=position_in_grid, column=0, sticky="nsew", padx=10, pady=5)
+        position_in_grid += 1
+
+        return components_frame
 
     def update_variants(self, variants: List[str]) -> None:
-        self.variants = variants
-        self.variants.sort()
-        # sort variants alphabetically
-        self._update_variants(self.variant_selection, variants)
+        self.variant_selection.configure(values=variants)
+
+    def update_current_variant(self, variant: str) -> None:
+        self.variant_selection.set(variant)
+
+    def enable_variant_commands(self) -> None:
+        self.build_button.configure(state="normal")
+        self.clean_button.configure(state="normal")
+
+    def disable_variant_commands(self) -> None:
+        self.build_button.configure(state="disabled")
+        self.clean_button.configure(state="disabled")
+
+    def update_components(self, components: List[str]) -> None:
+        self.component_selection.configure(values=components)
+
+    def update_current_component(self, component: str) -> None:
+        self.component_selection.set(component)
+
+    def enable_component_commands(self) -> None:
+        self.compile_button.configure(state="normal")
+
+    def disable_component_commands(self) -> None:
+        self.compile_button.configure(state="disabled")
 
 
 class YangaPresenter(Presenter):
-    def __init__(
-        self, view: YangaView, event_manager: EventManager, project_dir: Path
-    ) -> None:
+    def __init__(self, view: YangaView, event_manager: EventManager, project_dir: Path) -> None:
         self.logger = logger.bind()
         self.view = view
         self.event_manager = event_manager
         self.project_dir = project_dir
         self.project = self._create_project()
         self.event_manager.subscribe(YangaEvent.BUILD_EVENT, self._build_trigger)
-        self.event_manager.subscribe(
-            YangaEvent.CONFIGURE_EVENT, self._configure_trigger
-        )
+        self.event_manager.subscribe(YangaEvent.COMPILE_EVENT, self._compile_trigger)
         self.event_manager.subscribe(YangaEvent.REFRESH_EVENT, self._refresh_trigger)
-        self.build_running_flag = False
-        self.configure_running_flag = False
+        self.event_manager.subscribe(YangaEvent.VARIANT_SELECTED_EVENT, self._variant_selected_trigger)
+        self.event_manager.subscribe(YangaEvent.CLEAN_VARIANT_EVENT, self._clean_variant_trigger)
+        self.command_running_flag = False
+        self.running_command_name: Optional[str] = None
+        self.selected_variant: Optional[str] = None
+        self.selected_component: Optional[str] = None
 
     def run(self) -> None:
         self.view.init_gui()
-        self.view.update_variants(self._create_variant_names())
+        self._update_view_data()
         self.view.mainloop()
 
     def _build_trigger(self, variant_name: str) -> None:
-        if self.build_running_flag:
-            self.logger.warning("Build already running")
-            return
-        self.run_build(variant_name)
+        self.run_command(variant_name, command="build")
 
-    def _configure_trigger(self, variant_name: str) -> None:
-        if self.configure_running_flag:
-            self.logger.warning("Configure already running")
-            return
-        self.run_configure(variant_name)
+    def _compile_trigger(self, variant_name: str, component_name: str) -> None:
+        self.run_command(variant_name, component_name=component_name, command="compile")
 
     def _refresh_trigger(self) -> None:
         self.project = self._create_project()
-        self.view.update_variants(self._create_variant_names())
+        self._update_view_data()
 
-    @time_it()
-    def run_build(self, variant_name: str) -> None:
+    def _variant_selected_trigger(self, variant_name: str) -> None:
+        self.logger.info(f"Variant selected: {variant_name}")
+        self.selected_variant = variant_name
+        self._update_components()
+
+    def _clean_variant_trigger(self, variant_name: str) -> None:
+        self.run_command(variant_name, command="clean")
+
+    def _update_view_data(self) -> None:
+        self._update_variants()
+        self._update_components()
+
+    def _update_variants(self) -> None:
+        variants = []
+        if self.project:
+            variants = [variant.name for variant in self.project.variants]
+        if variants:
+            variants.sort()
+            self.selected_variant = variants[0]
+        else:
+            variants = ["No variants found"]
+            self.selected_variant = None
+        self.view.update_variants(variants)
+        self.view.update_current_variant(variants[0])
+        if self.selected_variant:
+            self.view.enable_variant_commands()
+        else:
+            self.view.disable_variant_commands()
+
+    def _update_components(self) -> None:
+        components = []
+        if self.project and self.selected_variant:
+            components = self._create_component_names(self.selected_variant)
+        if components:
+            components.sort()
+            self.selected_component = components[0]
+        else:
+            components = ["No components found"]
+            self.selected_component = None
+        self.view.update_components(components)
+        self.view.update_current_component(components[0])
+        if self.selected_component:
+            self.view.enable_component_commands()
+        else:
+            self.view.disable_component_commands()
+
+    @time_it("executing command")
+    def run_command(
+        self, variant_name: str, component_name: Optional[str] = None, command: Optional[str] = None
+    ) -> None:
         if not self.project:
             self.logger.warning("Project is not loaded")
             return
-        self.logger.info(f"Build variant {variant_name}")
-        self.build_running_flag = True
+        if self.command_running_flag:
+            self.logger.warning(f"Command '{self.running_command_name}' still running. Skip starting new command.")
+            return
+        self.logger.info(f"Selected variant: {variant_name}")
+        if component_name:
+            self.logger.info(f"Selected component: {component_name}")
+        if command:
+            self.logger.info(f"Selected command: {command}")
+        self.command_running_flag = True
+        self.running_command_name = command
         try:
             build_environment = BuildEnvironment(
-                variant_name,
                 self.project_dir,
+                BuildRequest(variant_name, component_name, command),
                 self.project.get_variant_components(variant_name),
                 self.project.user_config_files,
                 self.project.get_variant_config_file(variant_name),
@@ -162,27 +276,8 @@ class YangaPresenter(Presenter):
         except UserNotificationException as e:
             self.logger.error(e)
         finally:
-            self.build_running_flag = False
-
-    def run_configure(self, variant_name: str) -> None:
-        if not self.project:
-            self.logger.warning("Project is not loaded")
-            return
-        self.logger.info(f"Configure variant {variant_name}")
-        self.configure_running_flag = True
-        try:
-            kconfig_model_file = self.project_dir.joinpath("KConfig")
-            if not kconfig_model_file.is_file():
-                self.logger.info("No KConfig file found. Nothing to do.")
-            else:
-                KConfig(
-                    kconfig_model_file,
-                    self.project.get_variant_config_file(variant_name),
-                ).menu_config()
-        except UserNotificationException as e:
-            self.logger.error(e)
-        finally:
-            self.configure_running_flag = False
+            self.command_running_flag = False
+            self.running_command_name = None
 
     def _create_project(self) -> Optional[YangaProjectSlurper]:
         try:
@@ -191,9 +286,14 @@ class YangaPresenter(Presenter):
             self.logger.error(e)
             return None
 
-    def _create_variant_names(self) -> List[str]:
+    def _create_component_names(self, variant_name: str) -> List[str]:
         if self.project:
-            return [variant.name for variant in self.project.variants]
+            try:
+                components = self.project.get_variant_components(variant_name)
+                return [component.name for component in components]
+            except UserNotificationException as e:
+                self.logger.error(e)
+                return []
         return []
 
 

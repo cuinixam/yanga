@@ -74,12 +74,8 @@ class Executor:
 
     def store_run_info(self, runnable: Runnable) -> None:
         file_info = {
-            "inputs": {
-                str(path): self.get_file_hash(path) for path in runnable.get_inputs()
-            },
-            "outputs": {
-                str(path): self.get_file_hash(path) for path in runnable.get_outputs()
-            },
+            "inputs": {str(path): self.get_file_hash(path) for path in runnable.get_inputs()},
+            "outputs": {str(path): self.get_file_hash(path) for path in runnable.get_outputs()},
         }
 
         run_info_path = self.get_runnable_run_info_file(runnable)
@@ -111,15 +107,11 @@ class Executor:
     def execute(self, runnable: Runnable) -> int:
         run_info_status = self.previous_run_info_matches(runnable)
         if run_info_status.should_run:
-            logger.info(
-                f"Runnable '{runnable.get_name()}' must run. {run_info_status.message}"
-            )
+            logger.info(f"Runnable '{runnable.get_name()}' must run. {run_info_status.message}")
             exit_code = runnable.run()
             self.store_run_info(runnable)
             return exit_code
-        logger.info(
-            f"Runnable '{runnable.get_name()}' execution skipped. {run_info_status.message}"
-        )
+        logger.info(f"Runnable '{runnable.get_name()}' execution skipped. {run_info_status.message}")
 
         return 0
 
@@ -236,18 +228,14 @@ class UnixVirtualEnvironment(VirtualEnvironment):
         # Create a temporary shell script
         with tempfile.NamedTemporaryFile("w", delete=False, suffix=".sh") as f:
             f.write("#!/bin/bash\n")  # Add a shebang line
-            f.write(
-                f"source {self.activate_script.as_posix()}\n"
-            )  # Write the activate command
+            f.write(f"source {self.activate_script.as_posix()}\n")  # Write the activate command
             f.write(" ".join(args))  # Write the provided command
             temp_script_path = f.name  # Get the path of the temporary script
 
         # Make the temporary script executable
         SubprocessExecutor(["chmod", "+x", temp_script_path]).execute()
         # Run the temporary script
-        SubprocessExecutor(
-            [f"{Path(temp_script_path).as_posix()}"], this_dir, capture_output
-        ).execute()
+        SubprocessExecutor([f"{Path(temp_script_path).as_posix()}"], this_dir, capture_output).execute()
         # Delete the temporary script
         os.remove(temp_script_path)
 
@@ -267,9 +255,7 @@ class CreateVirtualEnvironment(Runnable):
         if match:
             return match.group(1)
         else:
-            raise UserNotificationException(
-                f"Could not extract the package manager name from {package_manager}"
-            )
+            raise UserNotificationException(f"Could not extract the package manager name from {package_manager}")
 
     def run(self) -> int:
         logger.info("Running project build script")
@@ -284,18 +270,13 @@ class CreateVirtualEnvironment(Runnable):
         elif sys.platform.startswith("linux") or sys.platform.startswith("darwin"):
             return UnixVirtualEnvironment(self.venv_dir)
         else:
-            raise UserNotificationException(
-                f"Unsupported operating system: {sys.platform}"
-            )
+            raise UserNotificationException(f"Unsupported operating system: {sys.platform}")
 
     def get_name(self) -> str:
         return "create-virtual-environment"
 
     def get_inputs(self) -> List[Path]:
-        return [
-            self.root_dir / file
-            for file in ["poetry.lock", "poetry.toml", "pyproject.toml", this_file]
-        ]
+        return [self.root_dir / file for file in ["poetry.lock", "poetry.toml", "pyproject.toml", this_file]]
 
     def get_outputs(self) -> List[Path]:
         return []

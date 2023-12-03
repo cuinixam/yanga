@@ -10,9 +10,7 @@ from yanga.ybuild.stages import YangaScoopInstall
 
 
 def test__load_stage():
-    result = PipelineLoader._load_stages(
-        "install", [StageConfig(stage="YangaScoopInstall")], Path(".")
-    )
+    result = PipelineLoader._load_stages("install", [StageConfig(stage="YangaScoopInstall")], Path("."))
     assert len(result) == 1
     assert result[0].group_name == "install"
     assert result[0]._class == YangaScoopInstall
@@ -20,9 +18,7 @@ def test__load_stage():
 
 def test__load_unknown_stage():
     with pytest.raises(UserNotificationException):
-        PipelineLoader._load_stages(
-            "install", [StageConfig(stage="YangaIDontExist")], Path(".")
-        )
+        PipelineLoader._load_stages("install", [StageConfig(stage="YangaIDontExist")], Path("."))
 
 
 def test__loag_stage_from_file(tmp_path: Path) -> None:
@@ -43,9 +39,7 @@ def test__loag_stage_from_file(tmp_path: Path) -> None:
             """
         )
     )
-    result = PipelineLoader._load_stages(
-        "install", [StageConfig(stage="MyStage", file="my_python_file.py")], tmp_path
-    )
+    result = PipelineLoader._load_stages("install", [StageConfig(stage="MyStage", file="my_python_file.py")], tmp_path)
     assert len(result) == 1
     assert result[0].group_name == "install"
     assert result[0]._class.__name__ == "MyStage"

@@ -96,6 +96,9 @@ exclude = [
     'template/**'
 ]
 
+[tool.black]
+line-length = 120
+
 [[tool.mypy.overrides]]
 module = "tests.*"
 allow_untyped_defs = true

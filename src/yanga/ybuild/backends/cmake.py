@@ -1,5 +1,7 @@
 import os
+from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
+from enum import Enum, auto
 from pathlib import Path
 from typing import Any, List
 
@@ -16,11 +18,34 @@ def make_list_unique(seq: List[Any]) -> List[Any]:
     return list(dict.fromkeys(seq))
 
 
+class LibraryType(Enum):
+    OBJECT = auto()
+
+
+class CMakeElement(ABC):
+    @abstractmethod
+    def to_string(self) -> str:
+        pass
+
+    def __str__(self) -> str:
+        return self.to_string()
+
+
 @dataclass
-class CMakeLibrary:
+class CMakeLibrary(CMakeElement):
     name: str
-    files: List[str] = field(default_factory=list)
-    public_include_dirs: List[str] = field(default_factory=list)
+    files: List[Path] = field(default_factory=list)
+    type: LibraryType = LibraryType.OBJECT
+
+    @property
+    def target_name(self) -> str:
+        return f"{self.name}_lib"
+
+    def to_string(self) -> str:
+        return f"add_library({self.target_name} {self.type.name} {self._get_files_string()})"
+
+    def _get_files_string(self) -> str:
+        return " ".join([file.as_posix() for file in self.files])
 
 
 class CMakeLists(GeneratedFile):
@@ -32,7 +57,7 @@ class CMakeLists(GeneratedFile):
         self.cmake_version = ""
         self.source_files: List[Path] = []
         self.include_directories: List[Path] = []
-        # TODO: self.libraries: List[CMakeLibrary] = []
+        self.libraries: List[CMakeLibrary] = []
 
     def to_string(self) -> str:
         content = [
@@ -47,22 +72,25 @@ class CMakeLists(GeneratedFile):
         ]
         content.extend(self._generate_source_files())
         content.append("")
-        content.extend(self._generate_include_directories())
+        content.extend(self._generate_libraries())
         content.append("")
-        content.append("add_executable(${PROJECT_NAME} ${SOURCE_FILES})")
+        content.extend(self._generate_include_directories())
+        libraries_deps = ""
+        if self.libraries:
+            libraries_deps = " ".join([f"$<TARGET_OBJECTS:{library.target_name}>" for library in self.libraries])
+
+        content.append("")
+        content.append(f"add_executable(${{PROJECT_NAME}} ${{SOURCE_FILES}} {libraries_deps})")
         return "\n".join(content) + "\n"
 
     def _generate_source_files(self) -> List[str]:
-        return (
-            ["set(SOURCE_FILES "] + self._add_tabulated_paths(self.source_files) + [")"]
-        )
+        return ["set(SOURCE_FILES "] + self._add_tabulated_paths(self.source_files) + [")"]
+
+    def _generate_libraries(self) -> List[str]:
+        return [library.to_string() for library in self.libraries]
 
     def _generate_include_directories(self) -> List[str]:
-        return (
-            ["include_directories("]
-            + self._add_tabulated_paths(self.include_directories)
-            + [")"]
-        )
+        return ["include_directories("] + self._add_tabulated_paths(self.include_directories) + [")"]
 
     def _add_tabulated_paths(self, paths: List[Path]) -> List[str]:
         return [self._add_tabulated_path(path) for path in paths]
@@ -78,9 +106,7 @@ class BuildFileCollector:
     def collect_sources(self) -> List[Path]:
         files: List[Path] = []
         for component in self.components:
-            files.extend(
-                [component.path.joinpath(source) for source in component.sources]
-            )
+            files.extend([component.path.joinpath(source) for source in component.sources])
         return files
 
     def collect_include_directories(self) -> List[Path]:
@@ -114,7 +140,10 @@ class CMakeListsBuilder(Builder):
 
     def build(self) -> GeneratedFile:
         collector = BuildFileCollector(self.components)
-        self.cmake_lists.source_files = collector.collect_sources()
+        for component in self.components:
+            self.cmake_lists.libraries.append(
+                CMakeLibrary(component.name, BuildFileCollector([component]).collect_sources())
+            )
         self.cmake_lists.include_directories = make_list_unique(
             self.include_directories + collector.collect_include_directories()
         )
@@ -147,9 +176,6 @@ class CMakeRunner:
     def run_cmake(self, arguments: str) -> None:
         # Add the install directories to the PATH
         env = os.environ.copy()
-        env["PATH"] = ";".join(
-            [path.absolute().as_posix() for path in self.install_directories]
-            + [env["PATH"]]
-        )
+        env["PATH"] = ";".join([path.absolute().as_posix() for path in self.install_directories] + [env["PATH"]])
         command = self.executable + " " + arguments
         SubprocessExecutor([command], env=env).execute()

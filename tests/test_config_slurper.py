@@ -27,9 +27,7 @@ def test_parse_config_files(mock_project_dir):
 
     # Mock the YangaUserConfig.from_file to return mock configs
     mock_config = MagicMock(spec=YangaUserConfig)
-    with patch(
-        "yanga.project.config.YangaUserConfig.from_file", return_value=mock_config
-    ):
+    with patch("yanga.project.config.YangaUserConfig.from_file", return_value=mock_config):
         configs = slurper.slurp()
 
         assert len(configs) == 4

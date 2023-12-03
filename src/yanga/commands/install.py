@@ -19,9 +19,7 @@ class InstallCommandConfig(DataClassDictMixin):
 
 class InstallCommand(Command):
     def __init__(self) -> None:
-        super().__init__(
-            "install", "Run a yanga installer based on the provided arguments"
-        )
+        super().__init__("install", "Run a yanga installer based on the provided arguments")
         self.logger = logger.bind()
 
     @time_it("Install")
