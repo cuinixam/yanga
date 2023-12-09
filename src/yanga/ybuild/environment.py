@@ -1,6 +1,9 @@
+import os
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import List, Optional
+
+from py_app_dev.core.subprocess import SubprocessExecutor
 
 from .components import BuildComponent
 from .project import ProjectBuildArtifactsLocator
@@ -37,3 +40,9 @@ class BuildEnvironment:
 
     def add_install_dirs(self, install_dirs: List[Path]) -> None:
         self.install_dirs.extend(install_dirs)
+
+    def create_process_executor(self, command: List[str | Path], cwd: Optional[Path] = None) -> SubprocessExecutor:
+        # Add the install directories to the PATH
+        env = os.environ.copy()
+        env["PATH"] = ";".join([path.absolute().as_posix() for path in self.install_dirs] + [env["PATH"]])
+        return SubprocessExecutor(command, cwd=cwd, env=env)

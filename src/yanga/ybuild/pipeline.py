@@ -18,7 +18,8 @@ from .environment import BuildEnvironment
 class Stage(Runnable, ABC):
     def __init__(self, environment: BuildEnvironment, group_name: str) -> None:
         self.environment = environment
-        self.output_dir = self.environment.artifacts_locator.build_dir / group_name
+        # TODO: I do not like that a Stage knows about a variant and that it has a build dir
+        self.output_dir = self.environment.artifacts_locator.variant_build_dir / group_name
 
     @property
     def project_root_dir(self) -> Path:

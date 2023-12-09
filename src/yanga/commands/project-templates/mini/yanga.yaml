@@ -19,9 +19,12 @@ variants:
 
 pipeline:
   install:
+    - stage: YangaVEnvInstall
     - stage: YangaScoopInstall
-      description: Install dependencies
+      description: Install scoop dependencies
       timeout_sec: 120
+    - stage: YangaWestInstall
+      description: Install west dependencies
   gen:
     - stage: YangaKConfigGen
   build:

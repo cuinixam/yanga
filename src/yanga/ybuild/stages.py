@@ -3,6 +3,7 @@ from typing import List
 
 from kspl.generate import HeaderWriter
 from kspl.kconfig import KConfig
+from py_app_dev.core.exceptions import UserNotificationException
 from py_app_dev.core.logging import logger
 from py_app_dev.core.scoop_wrapper import ScoopWrapper
 
@@ -10,6 +11,46 @@ from .backends.cmake import CMakeListsBuilder, CMakeRunner
 from .backends.generated_file import GeneratedFile
 from .environment import BuildEnvironment, BuildRequest
 from .pipeline import Stage
+
+
+class YangaVEnvInstall(Stage):
+    def __init__(self, environment: BuildEnvironment, group_name: str) -> None:
+        super().__init__(environment, group_name)
+        self.logger = logger.bind()
+
+    @property
+    def install_dirs(self) -> List[Path]:
+        return [
+            self.project_root_dir / dir
+            for dir in [".venv/Scripts", ".venv/bin"]
+            if (self.project_root_dir / dir).exists()
+        ]
+
+    def get_name(self) -> str:
+        return "yanga_venv_install"
+
+    def run(self) -> int:
+        if not self.install_dirs:
+            self.logger.warning("No virtual environment found. Attempt to run 'bootstrap.py'.")
+            build_script_path = self.project_root_dir / "bootstrap.py"
+            if not build_script_path.exists():
+                raise UserNotificationException(
+                    "Failed to find bootstrap script. Make sure that the project is initialized correctly."
+                )
+            self.environment.create_process_executor(
+                ["python", build_script_path.as_posix()],
+                cwd=self.project_root_dir,
+            ).execute()
+        else:
+            self.logger.info("Found virtual environment. Skip 'bootstrap.py'.")
+        self.environment.add_install_dirs(self.install_dirs)
+        return 0
+
+    def get_inputs(self) -> List[Path]:
+        return []
+
+    def get_outputs(self) -> List[Path]:
+        return []
 
 
 class YangaScoopInstall(Stage):
@@ -39,6 +80,56 @@ class YangaScoopInstall(Stage):
 
     def get_outputs(self) -> List[Path]:
         return self.install_dirs
+
+
+class YangaWestInstall(Stage):
+    def __init__(self, environment: BuildEnvironment, group_name: str) -> None:
+        super().__init__(environment, group_name)
+        self.logger = logger.bind()
+        self.artifacts_locator = self.environment.artifacts_locator
+
+    @property
+    def west_executable(self) -> Path:
+        # TODO: This is a temporary solution. We should have a better way to determine the west executable.
+        # The .venv/Scripts directory is already added to the PATH, but calling the west executable directly
+        # does not work. We need to call it with its full path.
+        return self.artifacts_locator.venv_scripts_dir.joinpath("west")
+
+    def get_name(self) -> str:
+        return "yanga_west_install"
+
+    @property
+    def west_manifest_file(self) -> Path:
+        return self.project_root_dir.joinpath("west.yaml")
+
+    def run(self) -> int:
+        self.logger.info(f"Running {self.__class__.__name__} stage. Output dir: {self.output_dir}")
+        try:
+            self.environment.create_process_executor(
+                [
+                    self.west_executable.as_posix(),
+                    "init",
+                    "-l",
+                    "--mf",
+                    self.west_manifest_file.as_posix(),
+                    self.project_root_dir.joinpath("build/west").as_posix(),
+                ],
+                cwd=self.project_root_dir,
+            ).execute()
+            self.environment.create_process_executor(
+                [self.west_executable.as_posix(), "update"],
+                cwd=self.project_root_dir.joinpath("build"),
+            ).execute()
+        except Exception as e:
+            raise UserNotificationException(f"Failed to initialize and update with west: {e}")
+
+        return 0
+
+    def get_inputs(self) -> List[Path]:
+        return [self.west_manifest_file]
+
+    def get_outputs(self) -> List[Path]:
+        return []
 
 
 class YangaBuildConfigure(Stage):
