@@ -88,13 +88,6 @@ class YangaWestInstall(Stage):
         self.logger = logger.bind()
         self.artifacts_locator = self.environment.artifacts_locator
 
-    @property
-    def west_executable(self) -> Path:
-        # TODO: This is a temporary solution. We should have a better way to determine the west executable.
-        # The .venv/Scripts directory is already added to the PATH, but calling the west executable directly
-        # does not work. We need to call it with its full path.
-        return self.artifacts_locator.venv_scripts_dir.joinpath("west")
-
     def get_name(self) -> str:
         return "yanga_west_install"
 
@@ -107,7 +100,7 @@ class YangaWestInstall(Stage):
         try:
             self.environment.create_process_executor(
                 [
-                    self.west_executable.as_posix(),
+                    "west",
                     "init",
                     "-l",
                     "--mf",
@@ -117,7 +110,7 @@ class YangaWestInstall(Stage):
                 cwd=self.project_root_dir,
             ).execute()
             self.environment.create_process_executor(
-                [self.west_executable.as_posix(), "update"],
+                ["west", "update"],
                 cwd=self.project_root_dir.joinpath("build"),
             ).execute()
         except Exception as e:

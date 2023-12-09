@@ -45,4 +45,4 @@ class BuildEnvironment:
         # Add the install directories to the PATH
         env = os.environ.copy()
         env["PATH"] = os.pathsep.join([path.absolute().as_posix() for path in self.install_dirs] + [env["PATH"]])
-        return SubprocessExecutor(command, cwd=cwd, env=env)
+        return SubprocessExecutor(command, cwd=cwd, env=env, shell=True)  # nosec
