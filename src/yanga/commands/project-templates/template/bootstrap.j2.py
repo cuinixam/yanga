@@ -177,6 +177,7 @@ class VirtualEnvironment(ABC):
                 f"Error: {e}"
             )
 
+    @abstractmethod
     def pip(self, args: List[str]) -> None:
         """
         Execute a pip command within the virtual environment. This method should behave as if the
@@ -187,6 +188,7 @@ class VirtualEnvironment(ABC):
                    behave similarly to `pip install requests` at the command line.
         """
 
+    @abstractmethod
     def run(self, args: List[str], capture_output: bool = True) -> None:
         """
         Run an arbitrary command within the virtual environment. This method should behave as if the
