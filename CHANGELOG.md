@@ -2,6 +2,17 @@
 
 <!--next-version-placeholder-->
 
+## v0.14.0 (2023-12-09)
+
+### Feature
+
+* Add open in vscode button ([`16b4228`](https://github.com/cuinixam/yanga/commit/16b422855dcfa82a0069920f00999f509e21920e))
+* Install gtest with west ([`c8e31fc`](https://github.com/cuinixam/yanga/commit/c8e31fc18c2d0f5f4799f74b53ae63d8ff7874fa))
+
+### Fix
+
+* Missing abstract method decorator ([`272a4cd`](https://github.com/cuinixam/yanga/commit/272a4cd667c763a08312b06a0c43e277631d5a58))
+
 ## v0.13.0 (2023-12-03)
 
 ### Feature
