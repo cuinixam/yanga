@@ -5,6 +5,7 @@ from typing import List, Optional
 import customtkinter
 from py_app_dev.core.exceptions import UserNotificationException
 from py_app_dev.core.logging import logger, time_it
+from py_app_dev.core.subprocess import SubprocessExecutor
 from py_app_dev.mvp.event_manager import EventID, EventManager
 from py_app_dev.mvp.presenter import Presenter
 from py_app_dev.mvp.view import View
@@ -22,6 +23,7 @@ class YangaEvent(EventID):
     REFRESH_EVENT = auto()
     VARIANT_SELECTED_EVENT = auto()
     CLEAN_VARIANT_EVENT = auto()
+    OPEN_IN_VSCODE = auto()
 
 
 class YangaView(View):
@@ -63,6 +65,7 @@ class YangaView(View):
         self.compile_trigger = self.event_manager.create_event_trigger(YangaEvent.COMPILE_EVENT)
         self.refresh_trigger = self.event_manager.create_event_trigger(YangaEvent.REFRESH_EVENT)
         self.variant_selected_trigger = self.event_manager.create_event_trigger(YangaEvent.VARIANT_SELECTED_EVENT)
+        self.open_in_vscode_trigger = self.event_manager.create_event_trigger(YangaEvent.OPEN_IN_VSCODE)
 
     def _build_button_pressed(self) -> None:
         self.build_trigger(self.selected_variant)
@@ -78,6 +81,9 @@ class YangaView(View):
 
     def _clean_variant_button_pressed(self) -> None:
         self.clean_variant_trigger(self.selected_variant)
+
+    def _open_in_vscode_button_pressed(self) -> None:
+        self.open_in_vscode_trigger()
 
     def mainloop(self) -> None:
         self.root.mainloop()
@@ -110,6 +116,13 @@ class YangaView(View):
             current_frame, text="Clean", command=self._clean_variant_button_pressed
         )
         self.clean_button.grid(row=position_in_grid, column=0, sticky="nsew", padx=10, pady=5)
+        position_in_grid += 1
+
+        # Create the open in vscode button
+        self.open_in_vscode_button = customtkinter.CTkButton(
+            current_frame, text="Open in VSCode", command=self._open_in_vscode_button_pressed
+        )
+        self.open_in_vscode_button.grid(row=position_in_grid, column=0, sticky="nsew", padx=10, pady=5)
         position_in_grid += 1
 
         return variants_frame
@@ -180,6 +193,7 @@ class YangaPresenter(Presenter):
         self.event_manager.subscribe(YangaEvent.REFRESH_EVENT, self._refresh_trigger)
         self.event_manager.subscribe(YangaEvent.VARIANT_SELECTED_EVENT, self._variant_selected_trigger)
         self.event_manager.subscribe(YangaEvent.CLEAN_VARIANT_EVENT, self._clean_variant_trigger)
+        self.event_manager.subscribe(YangaEvent.OPEN_IN_VSCODE, self._open_in_vscode_trigger)
         self.command_running_flag = False
         self.running_command_name: Optional[str] = None
         self.selected_variant: Optional[str] = None
@@ -207,6 +221,16 @@ class YangaPresenter(Presenter):
 
     def _clean_variant_trigger(self, variant_name: str) -> None:
         self.run_command(variant_name, command="clean")
+
+    def _open_in_vscode_trigger(self) -> None:
+        if not self.project:
+            self.logger.warning("Project is not loaded")
+            return
+        self.logger.info("Opening project in VSCode")
+        try:
+            SubprocessExecutor(["code", self.project_dir.as_posix()], shell=True).execute()  # nosec
+        except UserNotificationException as e:
+            self.logger.error(e)
 
     def _update_view_data(self) -> None:
         self._update_variants()

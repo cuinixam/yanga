@@ -44,5 +44,5 @@ class BuildEnvironment:
     def create_process_executor(self, command: List[str | Path], cwd: Optional[Path] = None) -> SubprocessExecutor:
         # Add the install directories to the PATH
         env = os.environ.copy()
-        env["PATH"] = ";".join([path.absolute().as_posix() for path in self.install_dirs] + [env["PATH"]])
+        env["PATH"] = os.pathsep.join([path.absolute().as_posix() for path in self.install_dirs] + [env["PATH"]])
         return SubprocessExecutor(command, cwd=cwd, env=env)
