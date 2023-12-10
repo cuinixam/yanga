@@ -26,21 +26,6 @@ Requirements
 
    A Variant **shall** have a list of tags.
 
-Implementation
---------------
-
-.. automodule:: yanga.spl.variant
-   :members:
-   :private-members:
-
-Testing
--------
-
-.. automodule:: test_variant
-   :members:
-   :show-inheritance:
-
-
 Reports
 -------
 

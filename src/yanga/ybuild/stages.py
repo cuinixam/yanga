@@ -7,7 +7,12 @@ from py_app_dev.core.exceptions import UserNotificationException
 from py_app_dev.core.logging import logger
 from py_app_dev.core.scoop_wrapper import ScoopWrapper
 
-from .backends.cmake import CMakeListsBuilder, CMakeRunner
+from yanga.ybuild.generators.build_system import (
+    BuildSystemBackend,
+    BuildSystemGenerator,
+)
+
+from .backends.cmake import CMakeRunner
 from .backends.generated_file import GeneratedFile
 from .environment import BuildEnvironment, BuildRequest
 from .pipeline import Stage
@@ -136,20 +141,12 @@ class YangaBuildConfigure(Stage):
 
     def run(self) -> int:
         self.logger.info(f"Run {self.__class__.__name__} stage. Output dir: {self.output_dir}")
-        self.generated_files.append(self.create_cmake_lists())
+        self.generated_files = BuildSystemGenerator(
+            BuildSystemBackend.CMAKE, self.environment, self.output_dir
+        ).generate()
         for file in self.generated_files:
             file.to_file()
         return 0
-
-    def create_cmake_lists(self) -> GeneratedFile:
-        return (
-            CMakeListsBuilder(self.output_dir)
-            .with_project_name(self.environment.variant_name)
-            .with_components(self.environment.components)
-            # TODO: include directories should not be hardcoded here
-            .with_include_directories([self.output_dir.joinpath("../gen")])
-            .build()
-        )
 
     def get_inputs(self) -> List[Path]:
         return self.environment.user_config_files

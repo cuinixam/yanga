@@ -71,6 +71,13 @@ exclude_patterns = ["_build", "Thumbs.db", ".DS_Store"]
 
 extensions.append("sphinx_rtd_dark_mode")
 
+# Resize rtd theme
+extensions.append("sphinx_rtd_size")
+sphinx_rtd_size_width = "90%"
+
+# copy button for code block
+extensions.append("sphinx_copybutton")
+
 # -- Options for HTML output -------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#options-for-html-output
 

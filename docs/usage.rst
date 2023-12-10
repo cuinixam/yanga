@@ -8,7 +8,7 @@ To setup a new project, you need to run ``yanga init`` in the root directory of 
 This will create the necessary files to get you started with an ``Hello World`` project.
 
 Bootstrap a project
-------------------
+-------------------
 
 * `bootstrap.ps1` this is the main script for windows. It only makes sure the correct Python version is installed and then calls the `bootstrap.py` script. We decided to implement as less as possible in PowerShell, because this is available only on Windows hosts.
 * `bootstrap.py` platform agnostic script. This script is called by `bootstrap.ps1` and `bootstrap.sh` and does the actual work. It is written in Python, because this is available on all platforms.
