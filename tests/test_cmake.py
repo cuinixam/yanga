@@ -1,6 +1,6 @@
 from pathlib import Path
 
-from yanga.ybuild.backends.cmake import CMakeLists, CMakeListsBuilder
+from yanga.ybuild.backends.cmake import CMakeLists, CMakeListsBuilder, CMakeVariable
 
 
 def test_cmakelists_to_string():
@@ -34,3 +34,10 @@ def test_cmakelistsbuilder_with_project_name(tmp_path: Path) -> None:
     content = output_path.joinpath("CMakeLists.txt").read_text()
     for line in expected_content:
         assert line in content
+
+
+def test_cmake_variable():
+    cmake_variable = CMakeVariable("test_var", "test_value")
+    assert cmake_variable.to_string() == "set(test_var test_value)"
+    cmake_variable = CMakeVariable("gtest_force_shared_crt", "ON", True, "BOOL", "", True)
+    assert cmake_variable.to_string() == 'set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)'

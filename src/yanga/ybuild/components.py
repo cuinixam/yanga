@@ -20,6 +20,8 @@ class BuildComponent:
     path: Path
     #: Component sources
     sources: List[str] = field(default_factory=list)
+    #: Component test sources
+    test_sources: List[str] = field(default_factory=list)
     #: Component include directories
     include_dirs: List[str] = field(default_factory=list)
     #: Is this component a subcomponent of another component

@@ -86,6 +86,8 @@ class YangaProjectSlurper:
         )
         if component_config.config.sources:
             build_component.sources = component_config.config.sources
+        if component_config.config.test_sources:
+            build_component.test_sources = component_config.config.test_sources
         return build_component
 
     def _collect_components_configs(self, user_configs: List[YangaUserConfig]) -> ComponentsConfigsPool:

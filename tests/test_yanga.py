@@ -6,7 +6,8 @@ from py_app_dev.core.subprocess import SubprocessExecutor
 
 from yanga.commands.build import BuildCommand, BuildCommandConfig
 from yanga.commands.init import InitCommandConfig, YangaInit
-from yanga.ybuild.environment import BuildEnvironment, BuildRequest
+from yanga.ybuild.environment import BuildEnvironment
+from yanga.ybuild.generators.build_system_request import BuildSystemRequest
 from yanga.ybuild.stages import YangaScoopInstall
 
 
@@ -36,7 +37,7 @@ def test_yanga_scoop_install_stage(tmp_path: Path) -> None:
     project_dir = tmp_path.joinpath("mini")
     # Create a mini project
     YangaInit(InitCommandConfig(project_dir=project_dir, mini=True)).run()
-    build_env = BuildEnvironment(project_dir, BuildRequest("some name"))
+    build_env = BuildEnvironment(project_dir, BuildSystemRequest("some name"))
     stage = YangaScoopInstall(build_env, "test")
     stage.run()
     assert len(build_env.install_dirs) == 2

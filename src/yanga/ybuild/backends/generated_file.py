@@ -11,5 +11,8 @@ class GeneratedFile(ABC):
         ...
 
     def to_file(self) -> None:
+        dir = self.path.parent
+        if not dir.exists():
+            dir.mkdir(parents=True, exist_ok=True)
         with open(self.path, "w") as f:
             f.write(self.to_string())

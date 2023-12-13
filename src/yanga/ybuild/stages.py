@@ -11,10 +11,11 @@ from yanga.ybuild.generators.build_system import (
     BuildSystemBackend,
     BuildSystemGenerator,
 )
+from yanga.ybuild.include_directories_provider import IncludeDirectoriesProvider
 
 from .backends.cmake import CMakeRunner
 from .backends.generated_file import GeneratedFile
-from .environment import BuildEnvironment, BuildRequest
+from .environment import BuildEnvironment
 from .pipeline import Stage
 
 
@@ -168,9 +169,7 @@ class YangaBuildRun(Stage):
 
     def run(self) -> int:
         self.logger.info(f"Run {self.__class__.__name__} stage. Output dir: {self.output_dir}")
-        CMakeRunner(self.environment.install_dirs).run(
-            self.output_dir, self.determine_target(self.environment.build_request)
-        )
+        CMakeRunner(self.environment.install_dirs).run(self.output_dir, self.environment.build_request.target_name)
         return 0
 
     def get_inputs(self) -> List[Path]:
@@ -179,11 +178,13 @@ class YangaBuildRun(Stage):
     def get_outputs(self) -> List[Path]:
         return []
 
-    def determine_target(self, build_request: BuildRequest) -> str:
-        # TODO: This is a temporary solution. We should have a better way to determine the target.
-        if build_request.component_name:
-            return f"{build_request.component_name}_lib"
-        return "all"
+
+class KConfigIncludeDirectoriesProvider(IncludeDirectoriesProvider):
+    def __init__(self, output_dir: Path) -> None:
+        self.output_dir = output_dir
+
+    def get_include_directories(self) -> List[Path]:
+        return [self.output_dir]
 
 
 class YangaKConfigGen(Stage):
@@ -212,6 +213,8 @@ class YangaKConfigGen(Stage):
         self.input_files = kconfig.get_parsed_files()
         config = kconfig.collect_config_data()
         HeaderWriter(self.header_file).write(config)
+        # Update the include directories for the subsequent stages
+        self.environment.add_include_dirs_provider(KConfigIncludeDirectoriesProvider(self.output_dir))
         return 0
 
     def get_inputs(self) -> List[Path]:

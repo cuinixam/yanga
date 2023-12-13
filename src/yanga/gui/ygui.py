@@ -11,7 +11,14 @@ from py_app_dev.mvp.presenter import Presenter
 from py_app_dev.mvp.view import View
 
 from yanga.project.project_slurper import YangaProjectSlurper
-from yanga.ybuild.environment import BuildEnvironment, BuildRequest
+from yanga.ybuild.environment import BuildEnvironment
+from yanga.ybuild.generators.build_system_request import (
+    BuildSystemRequest,
+    BuildVariantRequest,
+    CleanVariantRequest,
+    CompileComponentRequest,
+    TestComponentRequest,
+)
 from yanga.ybuild.pipeline import StageRunner
 
 from .icons import Icons
@@ -19,7 +26,8 @@ from .icons import Icons
 
 class YangaEvent(EventID):
     BUILD_EVENT = auto()
-    COMPILE_EVENT = auto()
+    COMPONENT_COMPILE_EVENT = auto()
+    COMPONENT_TEST_EVENT = auto()
     REFRESH_EVENT = auto()
     VARIANT_SELECTED_EVENT = auto()
     CLEAN_VARIANT_EVENT = auto()
@@ -62,7 +70,8 @@ class YangaView(View):
         # Create events
         self.build_trigger = self.event_manager.create_event_trigger(YangaEvent.BUILD_EVENT)
         self.clean_variant_trigger = self.event_manager.create_event_trigger(YangaEvent.CLEAN_VARIANT_EVENT)
-        self.compile_trigger = self.event_manager.create_event_trigger(YangaEvent.COMPILE_EVENT)
+        self.component_compile_trigger = self.event_manager.create_event_trigger(YangaEvent.COMPONENT_COMPILE_EVENT)
+        self.component_test_trigger = self.event_manager.create_event_trigger(YangaEvent.COMPONENT_TEST_EVENT)
         self.refresh_trigger = self.event_manager.create_event_trigger(YangaEvent.REFRESH_EVENT)
         self.variant_selected_trigger = self.event_manager.create_event_trigger(YangaEvent.VARIANT_SELECTED_EVENT)
         self.open_in_vscode_trigger = self.event_manager.create_event_trigger(YangaEvent.OPEN_IN_VSCODE)
@@ -76,8 +85,11 @@ class YangaView(View):
     def _variant_selected(self, variant_selected: str) -> None:
         self.variant_selected_trigger(variant_selected)
 
-    def _compile_button_pressed(self) -> None:
-        self.compile_trigger(self.selected_variant, self.selected_component)
+    def _component_compile_button_pressed(self) -> None:
+        self.component_compile_trigger(self.selected_variant, self.selected_component)
+
+    def _component_test_button_pressed(self) -> None:
+        self.component_test_trigger(self.selected_variant, self.selected_component)
 
     def _clean_variant_button_pressed(self) -> None:
         self.clean_variant_trigger(self.selected_variant)
@@ -145,11 +157,18 @@ class YangaView(View):
 
         position_in_grid += 1
 
-        # Create compile button
-        self.compile_button = customtkinter.CTkButton(
-            current_frame, text="Compile", command=self._compile_button_pressed
+        # Create component compile button
+        self.component_compile_button = customtkinter.CTkButton(
+            current_frame, text="Compile", command=self._component_compile_button_pressed
         )
-        self.compile_button.grid(row=position_in_grid, column=0, sticky="nsew", padx=10, pady=5)
+        self.component_compile_button.grid(row=position_in_grid, column=0, sticky="nsew", padx=10, pady=5)
+        position_in_grid += 1
+
+        # Create component test button
+        self.component_test_button = customtkinter.CTkButton(
+            current_frame, text="Test", command=self._component_test_button_pressed
+        )
+        self.component_test_button.grid(row=position_in_grid, column=0, sticky="nsew", padx=10, pady=5)
         position_in_grid += 1
 
         return components_frame
@@ -175,10 +194,10 @@ class YangaView(View):
         self.component_selection.set(component)
 
     def enable_component_commands(self) -> None:
-        self.compile_button.configure(state="normal")
+        self.component_compile_button.configure(state="normal")
 
     def disable_component_commands(self) -> None:
-        self.compile_button.configure(state="disabled")
+        self.component_compile_button.configure(state="disabled")
 
 
 class YangaPresenter(Presenter):
@@ -189,13 +208,14 @@ class YangaPresenter(Presenter):
         self.project_dir = project_dir
         self.project = self._create_project()
         self.event_manager.subscribe(YangaEvent.BUILD_EVENT, self._build_trigger)
-        self.event_manager.subscribe(YangaEvent.COMPILE_EVENT, self._compile_trigger)
+        self.event_manager.subscribe(YangaEvent.COMPONENT_COMPILE_EVENT, self._component_compile_trigger)
+        self.event_manager.subscribe(YangaEvent.COMPONENT_TEST_EVENT, self._test_compile_trigger)
         self.event_manager.subscribe(YangaEvent.REFRESH_EVENT, self._refresh_trigger)
         self.event_manager.subscribe(YangaEvent.VARIANT_SELECTED_EVENT, self._variant_selected_trigger)
         self.event_manager.subscribe(YangaEvent.CLEAN_VARIANT_EVENT, self._clean_variant_trigger)
         self.event_manager.subscribe(YangaEvent.OPEN_IN_VSCODE, self._open_in_vscode_trigger)
         self.command_running_flag = False
-        self.running_command_name: Optional[str] = None
+        self.running_build_system_request: Optional[BuildSystemRequest] = None
         self.selected_variant: Optional[str] = None
         self.selected_component: Optional[str] = None
 
@@ -205,10 +225,13 @@ class YangaPresenter(Presenter):
         self.view.mainloop()
 
     def _build_trigger(self, variant_name: str) -> None:
-        self.run_command(variant_name, command="build")
+        self.run_command(BuildVariantRequest(variant_name))
 
-    def _compile_trigger(self, variant_name: str, component_name: str) -> None:
-        self.run_command(variant_name, component_name=component_name, command="compile")
+    def _component_compile_trigger(self, variant_name: str, component_name: str) -> None:
+        self.run_command(CompileComponentRequest(variant_name, component_name))
+
+    def _test_compile_trigger(self, variant_name: str, component_name: str) -> None:
+        self.run_command(TestComponentRequest(variant_name, component_name))
 
     def _refresh_trigger(self) -> None:
         self.project = self._create_project()
@@ -220,7 +243,7 @@ class YangaPresenter(Presenter):
         self._update_components()
 
     def _clean_variant_trigger(self, variant_name: str) -> None:
-        self.run_command(variant_name, command="clean")
+        self.run_command(CleanVariantRequest(variant_name))
 
     def _open_in_vscode_trigger(self) -> None:
         if not self.project:
@@ -271,29 +294,33 @@ class YangaPresenter(Presenter):
             self.view.disable_component_commands()
 
     @time_it("executing command")
-    def run_command(
-        self, variant_name: str, component_name: Optional[str] = None, command: Optional[str] = None
-    ) -> None:
+    def run_command(self, build_system_request: BuildSystemRequest) -> None:
+        # Make sure the project is loaded before running any command.
+        # Otherwise, there might be configuration changes that are not reflected in the project.
+        self.project = self._create_project()
         if not self.project:
             self.logger.warning("Project is not loaded")
             return
         if self.command_running_flag:
-            self.logger.warning(f"Command '{self.running_command_name}' still running. Skip starting new command.")
+            self.logger.warning(
+                f"Command '{self.running_build_system_request}' still running. Skip starting new command."
+            )
             return
-        self.logger.info(f"Selected variant: {variant_name}")
-        if component_name:
-            self.logger.info(f"Selected component: {component_name}")
-        if command:
-            self.logger.info(f"Selected command: {command}")
+        if not self.selected_variant:
+            UserNotificationException("No variant selected. This looks like a bug.")
+        self.logger.info(f"Selected variant: {build_system_request.variant_name}")
+        if build_system_request.component_name:
+            self.logger.info(f"Selected component: {build_system_request.component_name}")
+        self.logger.info(f"Selected command: {build_system_request.command}")
         self.command_running_flag = True
-        self.running_command_name = command
+        self.running_build_system_request = build_system_request
         try:
             build_environment = BuildEnvironment(
                 self.project_dir,
-                BuildRequest(variant_name, component_name, command),
-                self.project.get_variant_components(variant_name),
+                build_system_request,
+                self.project.get_variant_components(build_system_request.variant_name),
                 self.project.user_config_files,
-                self.project.get_variant_config_file(variant_name),
+                self.project.get_variant_config_file(build_system_request.variant_name),
             )
             for stage in self.project.stages:
                 StageRunner(build_environment, stage).run()
@@ -301,7 +328,7 @@ class YangaPresenter(Presenter):
             self.logger.error(e)
         finally:
             self.command_running_flag = False
-            self.running_command_name = None
+            self.running_build_system_request = None
 
     def _create_project(self) -> Optional[YangaProjectSlurper]:
         try:

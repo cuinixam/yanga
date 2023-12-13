@@ -7,7 +7,8 @@ from py_app_dev.core.cmd_line import Command, register_arguments_for_config_data
 from py_app_dev.core.logging import logger, time_it
 
 from yanga.project.project_slurper import YangaProjectSlurper
-from yanga.ybuild.environment import BuildEnvironment, BuildRequest
+from yanga.ybuild.environment import BuildEnvironment
+from yanga.ybuild.generators.build_system_request import BuildSystemRequest
 from yanga.ybuild.pipeline import StageRunner
 
 
@@ -38,7 +39,7 @@ class BuildCommand(Command):
         project = YangaProjectSlurper(config.project_dir)
         build_environment = BuildEnvironment(
             config.project_dir,
-            BuildRequest(config.variant_name),
+            BuildSystemRequest(config.variant_name),
             project.get_variant_components(config.variant_name),
             project.user_config_files,
             project.get_variant_config_file(config.variant_name),
