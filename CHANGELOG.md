@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## v0.15.0 (2023-12-17)
+
+### Feature
+
+* Integrate unit testing with gtest ([`caa9300`](https://github.com/cuinixam/yanga/commit/caa9300aa9f85231fcff0a2414374f375de2130b))
+
 ## v0.14.0 (2023-12-09)
 
 ### Feature
