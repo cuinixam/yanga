@@ -21,7 +21,7 @@ logger = logging.getLogger("bootstrap")
 
 this_dir = Path(__file__).parent
 this_file = Path(__file__).name
-package_manager = "poetry>=1.6.1"
+package_manager = "poetry>=1.7.1"
 
 
 class Runnable(ABC):

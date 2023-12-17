@@ -3,6 +3,12 @@ components:
     type: component
     sources:
       - main.c
+  - name: greeter
+    type: component
+    sources:
+      - greeter.c
+    test_sources:
+      - greeter_test.cc
 
 variants:
   - name: EnglishVariant
@@ -10,11 +16,13 @@ variants:
     bom:
       components:
         - main
+        - greeter
   - name: GermanVariant
     description: Say hello in German.
     bom:
       components:
         - main
+        - greeter
     config_file: "config_de.txt"
 
 pipeline:

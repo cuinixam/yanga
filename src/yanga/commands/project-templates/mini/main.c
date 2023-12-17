@@ -1,12 +1,8 @@
 #include <stdio.h>
-#include "autoconf.h"
+#include "greeter.h"
 
 int main(int argc, char *argv[])
 {
-#if defined(CONFIG_LANG_DE) && CONFIG_LANG_DE == 1
-    printf("Hallo, Welt!\n");
-#else
-    printf("Hello, world!\n");
-#endif
+    printf("%s\n", get_greeting());
     return 0;
 }

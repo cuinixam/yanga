@@ -11,4 +11,4 @@ def test_jinja_template_rendering(tmp_path: Path) -> None:
     builder.build()
     assert tmp_path.joinpath("bootstrap.ps1").exists()
     assert tmp_path.joinpath("bootstrap.py").exists()
-    assert "poetry>=1.6.1" in tmp_path.joinpath("bootstrap.py").read_text()
+    assert "poetry>=1.7.1" in tmp_path.joinpath("bootstrap.py").read_text()
