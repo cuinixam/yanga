@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## v0.16.0 (2023-12-17)
+
+### Feature
+
+* Add gtest example to mini project ([`ad4c622`](https://github.com/cuinixam/yanga/commit/ad4c62253782acdb148c84b015618453adb31ef0))
+
 ## v0.15.0 (2023-12-17)
 
 ### Feature
