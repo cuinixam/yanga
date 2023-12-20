@@ -41,10 +41,10 @@ class YangaProjectSlurper:
     def print_project_info(self) -> None:
         self.logger.info("-" * 80)
         self.logger.info(f"Project directory: {self.project_dir}")
-        self.logger.info(f"Parsed {len(self.user_configs)} configuration files.")
-        self.logger.info(f"Found {len(self.components_configs_pool.values())} components.")
-        self.logger.info(f"Found {len(self.stages)} stages.")
-        self.logger.info(f"Found {len(self.variants)} variants.")
+        self.logger.info(f"Parsed {len(self.user_configs)} configuration file(s).")
+        self.logger.info(f"Found {len(self.components_configs_pool.values())} component(s).")
+        self.logger.info(f"Found {len(self.stages)} stage(s).")
+        self.logger.info(f"Found {len(self.variants)} variant(s).")
         self.logger.info("-" * 80)
 
     def get_variant_config(self, variant_name: str) -> VariantConfig:

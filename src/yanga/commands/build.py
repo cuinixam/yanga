@@ -1,9 +1,12 @@
 from argparse import ArgumentParser, Namespace
 from dataclasses import dataclass, field
 from pathlib import Path
+from typing import Optional
 
 from mashumaro import DataClassDictMixin
+from pick import pick
 from py_app_dev.core.cmd_line import Command, register_arguments_for_config_dataclass
+from py_app_dev.core.exceptions import UserNotificationException
 from py_app_dev.core.logging import logger, time_it
 
 from yanga.project.project_slurper import YangaProjectSlurper
@@ -14,7 +17,8 @@ from yanga.ybuild.pipeline import StageRunner
 
 @dataclass
 class BuildCommandConfig(DataClassDictMixin):
-    variant_name: str = field(metadata={"help": "SPL variant name."})
+    # If the user does not specify the variant name, it shall be prompted for it.
+    variant_name: Optional[str] = field(default=None, metadata={"help": "SPL variant name."})
     project_dir: Path = field(
         default=Path(".").absolute(),
         metadata={"help": "Project root directory. " "Defaults to the current directory if not specified."},
@@ -37,12 +41,15 @@ class BuildCommand(Command):
 
     def do_run(self, config: BuildCommandConfig) -> int:
         project = YangaProjectSlurper(config.project_dir)
+        variant_name = self.select_variant(project, config.variant_name)
+        if not variant_name:
+            raise UserNotificationException("No variant selected.")
         build_environment = BuildEnvironment(
             config.project_dir,
-            BuildSystemRequest(config.variant_name),
-            project.get_variant_components(config.variant_name),
+            BuildSystemRequest(variant_name),
+            project.get_variant_components(variant_name),
             project.user_config_files,
-            project.get_variant_config_file(config.variant_name),
+            project.get_variant_config_file(variant_name),
         )
         for stage in project.stages:
             StageRunner(build_environment, stage).run()
@@ -50,3 +57,19 @@ class BuildCommand(Command):
 
     def _register_arguments(self, parser: ArgumentParser) -> None:
         register_arguments_for_config_dataclass(parser, BuildCommandConfig)
+
+    def select_variant(self, project: YangaProjectSlurper, variant_name: Optional[str]) -> Optional[str]:
+        if variant_name:
+            return variant_name
+        if not project.variants:
+            return None
+        variants = [variant.name for variant in project.variants]
+        try:
+            # TODO: this message is only necessary in case the user will press Ctrl+C to quit.
+            # In this case, after pick method returns, the execution is paused until the user presses any key.
+            # I have no idea why that happens.
+            self.logger.info("Press any key to continue...")
+            selected_variant, _ = pick(variants, "Select a variant: ", indicator="=>")
+        except KeyboardInterrupt:
+            selected_variant = None
+        return str(selected_variant) if selected_variant else None
