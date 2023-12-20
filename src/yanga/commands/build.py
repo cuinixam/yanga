@@ -11,7 +11,10 @@ from py_app_dev.core.logging import logger, time_it
 
 from yanga.project.project_slurper import YangaProjectSlurper
 from yanga.ybuild.environment import BuildEnvironment
-from yanga.ybuild.generators.build_system_request import BuildSystemRequest
+from yanga.ybuild.generators.build_system_request import (
+    BuildSystemRequest,
+    CustomBuildSystemRequest,
+)
 from yanga.ybuild.pipeline import StageRunner
 
 
@@ -23,6 +26,7 @@ class BuildCommandConfig(DataClassDictMixin):
         default=Path(".").absolute(),
         metadata={"help": "Project root directory. " "Defaults to the current directory if not specified."},
     )
+    target: Optional[str] = field(default=None, metadata={"help": "Target to build."})
 
     @classmethod
     def from_namespace(cls, namespace: Namespace) -> "BuildCommandConfig":
@@ -44,9 +48,15 @@ class BuildCommand(Command):
         variant_name = self.select_variant(project, config.variant_name)
         if not variant_name:
             raise UserNotificationException("No variant selected.")
+        if config.target:
+            build_request = CustomBuildSystemRequest(variant_name, config.target)
+        else:
+            # TODO: I have no idea why mypy complains here.
+            # BuildSystemRequest is a base class for CustomBuildSystemRequest.
+            build_request = BuildSystemRequest(variant_name)  # type: ignore
         build_environment = BuildEnvironment(
             config.project_dir,
-            BuildSystemRequest(variant_name),
+            build_request,
             project.get_variant_components(variant_name),
             project.user_config_files,
             project.get_variant_config_file(variant_name),

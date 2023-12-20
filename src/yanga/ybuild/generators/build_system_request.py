@@ -26,6 +26,16 @@ class BuildSystemRequest:
         return self.command.value if self.command else "all"
 
 
+class CustomBuildSystemRequest(BuildSystemRequest):
+    def __init__(self, variant_name: str, custom_request: str) -> None:
+        super().__init__(variant_name, None, BuildSystemCommand.CUSTOM)
+        self.custom_request = custom_request
+
+    @property
+    def target_name(self) -> str:
+        return self.custom_request
+
+
 class BuildVariantRequest(BuildSystemRequest):
     def __init__(self, variant_name: str) -> None:
         super().__init__(variant_name, None, BuildSystemCommand.BUILD)
