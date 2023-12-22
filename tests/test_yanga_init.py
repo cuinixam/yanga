@@ -17,7 +17,7 @@ def test_config_from_namespace():
 
 def test_create_project_from_template(tmp_path):
     out_dir = tmp_path / "out"
-    YangaInit(InitCommandConfig(project_dir=out_dir, mini=True)).run()
+    YangaInit(InitCommandConfig(project_dir=out_dir)).run()
     files = ["bootstrap.ps1", "bootstrap.py", "main.c", "yanga.yaml"]
     for file in files:
         assert (out_dir / file).exists()

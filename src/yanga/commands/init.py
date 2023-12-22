@@ -115,13 +115,6 @@ class InitCommandConfig(DataClassDictMixin):
         default=Path(".").absolute(),
         metadata={"help": "Project root directory. " "Defaults to the current directory if not specified."},
     )
-    mini: Optional[bool] = field(
-        default=False,
-        metadata={
-            "help": "Create a minimal 'hello world' project with one component and one variant.",
-            "action": "store_true",
-        },
-    )
 
     bootstrap: Optional[bool] = field(
         default=False,
@@ -151,10 +144,7 @@ class YangaInit:
             project_builder.with_disable_target_directory_check()
         else:
             project_builder.with_dir("common").with_cookiecutter_dir("template")
-            if self.config.mini:
-                project_builder.with_dir("mini")
-            else:
-                project_builder.with_dir("max")
+            project_builder.with_dir("mini")
         project_builder.build()
 
 

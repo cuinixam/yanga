@@ -14,8 +14,8 @@ from yanga.ybuild.stages import YangaScoopInstall
 @pytest.mark.skipif(sys.platform != "win32", reason="It requires scoop to be installed on windows")
 def test_yanga_mini(tmp_path: Path) -> None:
     project_dir = tmp_path.joinpath("mini")
-    # Create a mini project
-    YangaInit(InitCommandConfig(project_dir=project_dir, mini=True)).run()
+    # Create example project
+    YangaInit(InitCommandConfig(project_dir=project_dir)).run()
     assert project_dir.joinpath("yanga.yaml").exists()
     build_script_path = project_dir / "bootstrap.ps1"
     assert build_script_path.exists()
@@ -35,8 +35,8 @@ def test_yanga_mini(tmp_path: Path) -> None:
 @pytest.mark.skipif(sys.platform != "win32", reason="It requires scoop to be installed on windows")
 def test_yanga_scoop_install_stage(tmp_path: Path) -> None:
     project_dir = tmp_path.joinpath("mini")
-    # Create a mini project
-    YangaInit(InitCommandConfig(project_dir=project_dir, mini=True)).run()
+    # Create example project
+    YangaInit(InitCommandConfig(project_dir=project_dir)).run()
     build_env = BuildEnvironment(project_dir, BuildSystemRequest("some name"))
     stage = YangaScoopInstall(build_env, "test")
     stage.run()
