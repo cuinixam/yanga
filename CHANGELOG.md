@@ -2,6 +2,14 @@
 
 <!--next-version-placeholder-->
 
+## v0.17.0 (2023-12-22)
+
+### Feature
+
+* Make mini project default for init ([`982f494`](https://github.com/cuinixam/yanga/commit/982f494afbc3702b55d69ceadb2d0d73ef3fd523))
+* Add custom build request for cli ([`1316177`](https://github.com/cuinixam/yanga/commit/1316177a410dda603e6ace655ee9d6a471ab172e))
+* Add variant selection in command line ([`c117cfa`](https://github.com/cuinixam/yanga/commit/c117cfa4fc16916af8ebdb6d6c8df8dedba07301))
+
 ## v0.16.0 (2023-12-17)
 
 ### Feature
