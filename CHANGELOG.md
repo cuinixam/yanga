@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## v0.17.1 (2024-01-10)
+
+### Fix
+
+* Gui command help message is incorrect ([`91b7784`](https://github.com/cuinixam/yanga/commit/91b778418a6c07da1c36af1f596a760d0d836575))
+
 ## v0.17.0 (2023-12-22)
 
 ### Feature
