@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## v0.18.0 (2024-01-10)
+
+### Feature
+
+* Add support for loading installed stages ([`d2a941e`](https://github.com/cuinixam/yanga/commit/d2a941e83f322f4782cc6b7922222ace558e55f2))
+
 ## v0.17.1 (2024-01-10)
 
 ### Fix
