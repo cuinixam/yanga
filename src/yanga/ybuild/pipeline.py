@@ -1,3 +1,4 @@
+import importlib
 import shutil
 from abc import ABC
 from dataclasses import dataclass
@@ -50,7 +51,9 @@ class PipelineLoader:
         result = []
         for stage_config in stages_config:
             stage_class_name = stage_config.class_name or stage_config.stage
-            if not stage_config.file:
+            if stage_config.module:
+                stage_class = PipelineLoader._load_module_stage(stage_config.module, stage_class_name)
+            elif not stage_config.file:
                 # no file means that the stage is a built-in stage
                 stage_class = PipelineLoader._load_builtin_stage(stage_class_name)
             else:
@@ -91,6 +94,22 @@ class PipelineLoader:
         raise UserNotificationException(
             f"Could not load file '{python_file}'." " Please check the file for any errors."
         )
+
+    @staticmethod
+    def _load_module_stage(module_name: str, stage_class_name: str) -> Type[Stage]:
+        try:
+            module = importlib.import_module(module_name)
+            stage_class = getattr(module, stage_class_name)
+        except ImportError:
+            raise UserNotificationException(
+                f"Could not load module '{module_name}'. Please check your pipeline configuration."
+            )
+        except AttributeError:
+            raise UserNotificationException(
+                f"Could not load class '{stage_class_name}' from module '{module_name}'."
+                " Please check your pipeline configuration."
+            )
+        return stage_class
 
 
 class StageRunner:

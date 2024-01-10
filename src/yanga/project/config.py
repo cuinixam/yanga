@@ -15,6 +15,8 @@ class StageConfig(DataClassDictMixin):
     stage: str
     #: Path to file with stage class
     file: Optional[str] = None
+    #: Python module with stage class
+    module: Optional[str] = None
     #: Stage class name
     class_name: Optional[str] = None
     #: Stage description

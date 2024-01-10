@@ -6,7 +6,7 @@ from py_app_dev.core.exceptions import UserNotificationException
 
 from yanga.project.config import StageConfig
 from yanga.ybuild.pipeline import PipelineLoader
-from yanga.ybuild.stages import YangaScoopInstall
+from yanga.ybuild.stages import YangaBuildRun, YangaScoopInstall
 
 
 def test__load_stage():
@@ -43,3 +43,10 @@ def test__loag_stage_from_file(tmp_path: Path) -> None:
     assert len(result) == 1
     assert result[0].group_name == "install"
     assert result[0]._class.__name__ == "MyStage"
+
+
+def test_load_module_stage_builtin():
+    module_name = "yanga.ybuild.stages"
+    stage_class_name = "YangaBuildRun"
+    result = PipelineLoader._load_module_stage(module_name, stage_class_name)
+    assert result == YangaBuildRun
