@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## v0.18.1 (2024-01-22)
+
+### Fix
+
+* Py-app-dev version is not compatible ([`1d52931`](https://github.com/cuinixam/yanga/commit/1d52931d039bd1c435b901f6ba588e62b24909f1))
+
 ## v0.18.0 (2024-01-10)
 
 ### Feature
