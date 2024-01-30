@@ -1,0 +1,6 @@
+{
+  "python_version": "{{ python_version }}",
+  "python_package_manager": "{{ python_package_manager }}",
+  "scoop_installer": "{{ scoop_installer }}",
+  "bootstrap_version": "{{ bootstrap_version }}"
+}

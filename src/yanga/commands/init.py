@@ -139,7 +139,9 @@ class YangaInit:
         project_builder = ProjectBuilder(self.config.project_dir)
         project_builder.with_jinja_template("template/bootstrap.j2.ps1", "bootstrap.ps1").with_jinja_template(
             "template/bootstrap.j2.py", "bootstrap.py"
-        ).with_template_config_file("template/cookiecutter.json")
+        ).with_jinja_template("template/bootstrap.j2.json", "bootstrap.json").with_template_config_file(
+            "template/cookiecutter.json"
+        )
         if self.config.bootstrap:
             project_builder.with_disable_target_directory_check()
         else:

@@ -21,7 +21,13 @@ logger = logging.getLogger("bootstrap")
 
 this_dir = Path(__file__).parent
 this_file = Path(__file__).name
-package_manager = "{{ python_package_manager }}"
+bootstrap_json_path = Path(__file__).parent / "bootstrap.json"
+if bootstrap_json_path.exists():
+    with bootstrap_json_path.open("r") as f:
+        config = json.load(f)
+    package_manager = config.get("python_package_manager", "{{ python_package_manager }}")
+else:
+    package_manager = "{{ python_package_manager }}"
 
 
 class Runnable(ABC):

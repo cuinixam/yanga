@@ -10,11 +10,18 @@ $ErrorActionPreference = "Stop"
 ###################################################################################################
 # Configuration
 ###################################################################################################
-$config = @{
-    # Required Python version - major.minor (e.g. 3.11)
-    pythonVersion = "{{ python_version }}"
-    # Scoop install script
-    scoopInstaller = "{{ scoop_installer }}"
+$bootstrapJsonPath = Join-Path $PSScriptRoot "bootstrap.json"
+if (Test-Path $bootstrapJsonPath) {
+    $json = Get-Content $bootstrapJsonPath | ConvertFrom-Json
+    $config = @{
+        pythonVersion = $json.python_version
+        scoopInstaller = $json.scoop_installer
+    }
+} else {
+    $config = @{
+        pythonVersion = "{{ python_version }}"
+        scoopInstaller = "{{ scoop_installer }}"
+    }
 }
 
 ###################################################################################################
