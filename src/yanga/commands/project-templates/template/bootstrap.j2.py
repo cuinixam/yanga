@@ -284,7 +284,9 @@ class CreateVirtualEnvironment(Runnable):
         return "create-virtual-environment"
 
     def get_inputs(self) -> List[Path]:
-        return [self.root_dir / file for file in ["poetry.lock", "poetry.toml", "pyproject.toml", this_file]]
+        bootstrap_files = list(self.root_dir.glob("bootstrap.*"))
+        venv_relevant_files = ["poetry.lock", "poetry.toml", "pyproject.toml"]
+        return [self.root_dir / file for file in venv_relevant_files] + bootstrap_files
 
     def get_outputs(self) -> List[Path]:
         return []
