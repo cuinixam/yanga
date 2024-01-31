@@ -1,0 +1,20 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "bootstrap",
+      "command": "${workspaceFolder}/bootstrap.py",
+      "windows": {
+        "command": "${workspaceFolder}/bootstrap.ps1"
+      },
+      "type": "shell",
+      "presentation": {
+        "reveal": "always"
+      },
+      "group": {
+        "kind": "build",
+        "isDefault": false
+      }
+    }
+  ]
+}
