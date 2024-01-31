@@ -25,7 +25,7 @@ class TemplateFileConfig:
 class ProjectBuilder:
     def __init__(self, project_dir: Path, input_dir: Optional[Path] = None) -> None:
         self.project_dir = project_dir
-        self.input_dir = input_dir if input_dir else Path(__file__).parent.joinpath("project-templates")
+        self.input_dir = input_dir if input_dir else Path(__file__).parent.joinpath("project_templates")
 
         self.dirs: List[Path] = []
         self.cookiecutter_dir: Optional[Path] = None
@@ -137,9 +137,9 @@ class YangaInit:
     def run(self) -> None:
         self.logger.info(f"Run yanga init in '{self.config.project_dir.absolute().as_posix()}'")
         project_builder = ProjectBuilder(self.config.project_dir)
-        project_builder.with_jinja_template("template/bootstrap.j2.ps1", "bootstrap.ps1").with_jinja_template(
-            "template/bootstrap.j2.py", "bootstrap.py"
-        ).with_jinja_template("template/bootstrap.j2.json", "bootstrap.json").with_template_config_file(
+        project_builder.with_jinja_template("template/bootstrap_j2.ps1", "bootstrap.ps1").with_jinja_template(
+            "template/bootstrap_j2.py", "bootstrap.py"
+        ).with_jinja_template("template/bootstrap_j2.json", "bootstrap.json").with_template_config_file(
             "template/cookiecutter.json"
         )
         if self.config.bootstrap:
