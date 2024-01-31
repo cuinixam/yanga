@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## v0.20.0 (2024-01-31)
+
+### Feature
+
+* Bootstrap creates pip.ini for pypi source ([`d4b54e7`](https://github.com/cuinixam/yanga/commit/d4b54e79e63fb01106e07b7067cc6c9bd53d9320))
+
 ## v0.19.0 (2024-01-31)
 
 ### Feature
