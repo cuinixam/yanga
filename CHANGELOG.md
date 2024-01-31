@@ -2,6 +2,16 @@
 
 <!--next-version-placeholder-->
 
+## v0.19.0 (2024-01-31)
+
+### Feature
+
+* Read bootstrap config from json ([`ed6b688`](https://github.com/cuinixam/yanga/commit/ed6b688f78d8febc0e35e7c0cb0fd97246b44bf0))
+
+### Fix
+
+* Some bootsrap dependencies are missing ([`37aa08b`](https://github.com/cuinixam/yanga/commit/37aa08b9884c45641beacce7bc8c934d30055132))
+
 ## v0.18.1 (2024-01-22)
 
 ### Fix

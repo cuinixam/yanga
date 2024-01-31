@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "yanga"
-version = "0.18.1"
+version = "0.19.0"
 description = "Yet another ninja generator to build C/CPP projects."
 authors = ["cuinixam <me@cuinixam.com>"]
 license = "MIT"
