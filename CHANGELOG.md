@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## v0.21.1 (2024-02-11)
+
+### Fix
+
+* Pyinstaller build github action failed ([`2e4e6d5`](https://github.com/cuinixam/yanga/commit/2e4e6d51930d793ea7cec4beae4ba8e6760255ff))
+
 ## v0.21.0 (2024-02-11)
 
 ### Feature
