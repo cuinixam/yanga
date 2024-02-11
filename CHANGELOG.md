@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## v0.21.0 (2024-02-11)
+
+### Feature
+
+* Create windows executable ([`1ac3625`](https://github.com/cuinixam/yanga/commit/1ac36257b7d578e98b60e4d719f7e9b90ce1b027))
+
 ## v0.20.0 (2024-01-31)
 
 ### Feature
