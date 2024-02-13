@@ -1,9 +1,12 @@
 name: Release Windows Executable
 
 # When a release is created, the workflow is triggered
+# We can not use the event release created because it is not triggered when the GITHUB_TOKEN is used
 on:
-  release:
-    types: [created]
+  workflow_run:
+    workflows: [CI]
+    types:
+      - completed
 
 jobs:
   pyinstaller-build:
@@ -16,13 +19,10 @@ jobs:
       - name: Install Dependencies
         run: .venv/Scripts/poetry install --with=dev
         shell: powershell
-      - name: Run PyInstaller
-        run: .venv/Scripts/poetry run pyinstaller build_exe.spec
-        shell: powershell
-      - name: Zip windows executable
-        run: Compress-Archive -Path dist/yanga.exe -DestinationPath dist/yanga.windows-amd64.${{ github.event.release.tag_name }}.zip
+      - name: Create windows executable
+        run: .\build_exe.ps1
         shell: powershell
       - name: Upload windows executable to GitHub releases
         uses: softprops/action-gh-release@v1
         with:
-          files: dist/yanga.windows-amd64.${{ github.event.release.tag_name }}.zip
+          files: dist/*.zip
