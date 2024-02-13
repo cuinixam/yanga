@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## v0.21.5 (2024-02-13)
+
+### Fix
+
+* Windows executable still not released ([`cde9cf2`](https://github.com/cuinixam/yanga/commit/cde9cf286d35f11c850b69573b110de33e5ce9df))
+
 ## v0.21.4 (2024-02-13)
 
 ### Fix
