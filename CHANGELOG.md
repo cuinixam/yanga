@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## v0.22.0 (2024-02-13)
+
+### Feature
+
+* Add icon to windows executable ([`ad6c8ab`](https://github.com/cuinixam/yanga/commit/ad6c8abd0bc1a588b9c7b21d0b1edb02886b557f))
+
 ## v0.21.7 (2024-02-13)
 
 ### Fix
