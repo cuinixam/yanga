@@ -83,25 +83,3 @@ jobs:
         if: github.ref_name != 'main'
         with:
           additional_options: --noop
-
-  pyinstaller-build:
-    runs-on: windows-latest
-    needs:
-      - release
-    steps:
-      - uses: actions/checkout@v3
-      - name: Bootstrap and create virtual environment
-        run: .\bootstrap.ps1
-        shell: powershell
-      - name: Install Dependencies
-        run: .venv/Scripts/poetry install --with=dev
-        shell: powershell
-      - name: Run PyInstaller
-        run: .venv/Scripts/poetry run pyinstaller build_exe.spec
-        shell: powershell
-      - name: Upload windows executable to GitHub releases
-        uses: actions/upload-artifact@v3
-        with:
-          name: yanga.windows-amd64.zip
-          path: dist/yanga.exe
-          if-no-files-found: error

@@ -1,0 +1,32 @@
+name: Release Windows Executable
+
+# If a release was created from a tag, run the jobs
+on:
+  release:
+    types: [created]
+
+jobs:
+  pyinstaller-build:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Bootstrap and create virtual environment
+        run: .\bootstrap.ps1
+        shell: powershell
+      - name: Install Dependencies
+        run: .venv/Scripts/poetry install --with=dev
+        shell: powershell
+      - name: Run PyInstaller
+        run: .venv/Scripts/poetry run pyinstaller build_exe.spec
+        shell: powershell
+      - name: Extract tag name
+        run: echo "TAG_NAME=$(echo ${GITHUB_REF#refs/tags/})" >> $GITHUB_ENV
+        shell: powershell
+      - name: Zip windows executable
+        run: Compress-Archive -Path dist/yanga.exe -DestinationPath dist/yanga.windows-amd64.$env:TAG_NAME.zip
+        shell: powershell
+      - name: Upload windows executable to GitHub releases
+        if: ${{startsWith(github.ref, 'refs/tags/') }}
+        uses: softprops/action-gh-release@v1
+        with:
+          files: dist/yanga.windows-amd64.$env:TAG_NAME.zip
