@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## v0.21.3 (2024-02-13)
+
+### Fix
+
+* Windows executable name does not contain tag ([`96ef7e1`](https://github.com/cuinixam/yanga/commit/96ef7e119f5a7fad0bbc10920ca50d60fd44013c))
+
 ## v0.21.2 (2024-02-13)
 
 ### Fix
