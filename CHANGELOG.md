@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## v0.21.4 (2024-02-13)
+
+### Fix
+
+* Windows executable release is not triggered ([`97be7dd`](https://github.com/cuinixam/yanga/commit/97be7dd18feb626c1d1e4bbd26ea59166e10ea61))
+
 ## v0.21.3 (2024-02-13)
 
 ### Fix
