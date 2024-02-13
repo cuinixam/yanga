@@ -22,7 +22,12 @@ jobs:
       - name: Create windows executable
         run: .\build_exe.ps1
         shell: powershell
+      - name: Get the latest tag from the git history
+        id: get_tag
+        run: echo "tag=$(git describe --tags --abbrev=0)" >> $GITHUB_OUTPUT
+
       - name: Upload windows executable to GitHub releases
         uses: softprops/action-gh-release@v1
         with:
           files: dist/*.zip
+          tag_name: ${{ steps.get_tag.outputs.tag }}
