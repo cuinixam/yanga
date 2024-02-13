@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## v0.21.7 (2024-02-13)
+
+### Fix
+
+* Release windows executable requires a tag ([`5cbc3f2`](https://github.com/cuinixam/yanga/commit/5cbc3f23aa47e46ae6eaf5e12dc5574926f5f837))
+
 ## v0.21.6 (2024-02-13)
 
 ### Fix
