@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## v0.21.2 (2024-02-13)
+
+### Fix
+
+* Windows executable is not released ([`1b3122e`](https://github.com/cuinixam/yanga/commit/1b3122ef5975f5a1f39c9ed019d400b286402804))
+
 ## v0.21.1 (2024-02-11)
 
 ### Fix
