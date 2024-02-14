@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## v0.23.0 (2024-02-14)
+
+### Feature
+
+* Make python scoop install configurable ([`f824587`](https://github.com/cuinixam/yanga/commit/f82458776851d44724f8887398b692e5a28942f6))
+
 ## v0.22.0 (2024-02-13)
 
 ### Feature
