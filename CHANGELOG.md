@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## v0.25.0 (2024-02-14)
+
+### Feature
+
+* Add vscode cmake support for mini project ([`0a35dca`](https://github.com/cuinixam/yanga/commit/0a35dca19adc705017379ed5c527e575da15de95))
+
 ## v0.24.0 (2024-02-14)
 
 ### Feature
