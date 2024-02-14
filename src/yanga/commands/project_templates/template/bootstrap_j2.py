@@ -264,7 +264,10 @@ class VirtualEnvironment(ABC):
         """
         pip_config_path = self.venv_dir / "pip.ini"
         with open(pip_config_path, "w") as pip_config_file:
+            match_host = re.match(r"https?://([^/]+)", index_url)
             pip_config_file.write(f"[global]\nindex-url = {index_url}\n")
+            if match_host:
+                pip_config_file.write(f"trusted-host = {match_host.group(1)}\n")
             if not verify_ssl:
                 pip_config_file.write("cert = false\n")
 
@@ -339,7 +342,7 @@ class CreateVirtualEnvironment(Runnable):
     ) -> None:
         self.root_dir = this_dir
         self.venv_dir = self.root_dir / ".venv"
-        self.virtual_env = self.instantiate_os_specific_venv()
+        self.virtual_env = self.instantiate_os_specific_venv(self.venv_dir)
 
     @property
     def package_manager_name(self) -> str:
@@ -360,11 +363,12 @@ class CreateVirtualEnvironment(Runnable):
         self.virtual_env.run([self.package_manager_name, "install"])
         return 0
 
-    def instantiate_os_specific_venv(self) -> VirtualEnvironment:
+    @staticmethod
+    def instantiate_os_specific_venv(venv_dir: Path) -> VirtualEnvironment:
         if sys.platform.startswith("win32"):
-            return WindowsVirtualEnvironment(self.venv_dir)
+            return WindowsVirtualEnvironment(venv_dir)
         elif sys.platform.startswith("linux") or sys.platform.startswith("darwin"):
-            return UnixVirtualEnvironment(self.venv_dir)
+            return UnixVirtualEnvironment(venv_dir)
         else:
             raise UserNotificationException(f"Unsupported operating system: {sys.platform}")
 
