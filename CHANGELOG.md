@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## v0.24.0 (2024-02-14)
+
+### Feature
+
+* Bootstrap support pip trusted host ([`ab6714c`](https://github.com/cuinixam/yanga/commit/ab6714c50c779aca74128b40aa34a29534631883))
+
 ## v0.23.0 (2024-02-14)
 
 ### Feature
