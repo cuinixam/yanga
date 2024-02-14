@@ -2,5 +2,6 @@
   "python_version": "{{ python_version }}",
   "python_package_manager": "{{ python_package_manager }}",
   "scoop_installer": "{{ scoop_installer }}",
+  "scoop_python_json_base_url": "{{ scoop_python_json_base_url }}",
   "bootstrap_version": "{{ bootstrap_version }}"
 }

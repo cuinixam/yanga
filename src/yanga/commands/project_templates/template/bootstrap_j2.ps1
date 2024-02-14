@@ -16,11 +16,13 @@ if (Test-Path $bootstrapJsonPath) {
     $config = @{
         pythonVersion = $json.python_version
         scoopInstaller = $json.scoop_installer
+        scoopPythonJsonBaseUrl = $json.scoop_python_json_base_url
     }
 } else {
     $config = @{
         pythonVersion = "{{ python_version }}"
         scoopInstaller = "{{ scoop_installer }}"
+        scoopPythonJsonBaseUrl = "{{ scoop_python_json_base_url }}"
     }
 }
 
@@ -84,18 +86,9 @@ Function Install-Scoop {
 
     # Install needed tools
     Invoke-CommandLine "scoop update"
-    Invoke-CommandLine "scoop install lessmsi" -Silent $true
-
-    # Some old tweak to get 7zip installed correctly
-    Invoke-CommandLine "scoop config use_lessmsi $true" -Silent $true
-
     # Avoid deadlocks while updating scoop buckets
     Invoke-CommandLine "scoop config autostash_on_conflict $true" -Silent $true
 
-    # Some prerequisites to install other packages
-    Invoke-CommandLine "scoop install 7zip" -Silent $true
-    Invoke-CommandLine "scoop install innounp" -StopAtError $false -Silent $true
-    Invoke-CommandLine "scoop install dark" -Silent $true
     Initialize-EnvPath
 }
 
@@ -119,7 +112,7 @@ $pythonPath = (Get-Command $python -ErrorAction SilentlyContinue).Source
 if ($pythonPath -eq $null) {
     Write-Output "$python not found. Try to install $python via scoop ..."
     # Install python
-    Invoke-CommandLine "scoop install https://raw.githubusercontent.com/ScoopInstaller/Versions/master/bucket/$python.json"
+    Invoke-CommandLine "scoop install $($config.scoopPythonJsonBaseUrl)/$python.json"
     # Check if python is installed
 } else {
     Write-Output "$python found in $pythonPath"
