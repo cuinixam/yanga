@@ -1,0 +1,10 @@
+[
+  {
+    "name": "prod",
+    "environmentSetupScript": "${workspaceFolder}/.venv/Scripts/activate"
+  },
+  {
+    "name": "test",
+    "environmentSetupScript": "${workspaceFolder}/.venv/Scripts/activate"
+  }
+]
