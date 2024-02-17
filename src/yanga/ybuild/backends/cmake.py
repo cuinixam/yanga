@@ -196,6 +196,8 @@ class CMakeAddExecutable(CMakeElement):
     name: str
     sources: List[Union[str, CMakePath, CMakeObjectLibrary]]
     libraries: List[str] = field(default_factory=list)
+    compile_options: List[str] = field(default_factory=list)
+    link_options: List[str] = field(default_factory=list)
     exclude_from_all: bool = False
 
     def to_string(self) -> str:
@@ -203,6 +205,10 @@ class CMakeAddExecutable(CMakeElement):
         if self.libraries:
             # add target_link_libraries
             content += "\n" + self._add_target_link_libraries()
+        if self.compile_options:
+            content += "\n" + self._add_compile_options()
+        if self.link_options:
+            content += "\n" + self._add_link_options()
         return content
 
     def _add_executable(self) -> str:
@@ -228,6 +234,12 @@ class CMakeAddExecutable(CMakeElement):
             return f"$<TARGET_OBJECTS:{source.target_name}>"
         else:
             return str(source)
+
+    def _add_compile_options(self) -> str:
+        return f"target_compile_options({self.name} PRIVATE " + " ".join(self.compile_options) + ")"
+
+    def _add_link_options(self) -> str:
+        return f"target_link_options({self.name} PRIVATE " + " ".join(self.link_options) + ")"
 
 
 class CMakeCommand(CMakeElement):

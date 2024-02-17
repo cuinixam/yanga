@@ -310,6 +310,11 @@ class CmakeTestFilesGenerator:
                     component_test_executable_target,
                     [CMakePath(source) for source in sources],
                     ["GTest::gtest_main"],
+                    [
+                        "-ggdb",  # Include detailed debug information to be able to debug the executable.
+                        "--coverage",  # Enable coverage tracking information to be generated.
+                    ],
+                    ["--coverage"],  # Enable coverage analysis.
                 )
             )
             command = CMakeCommand(
