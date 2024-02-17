@@ -2,6 +2,17 @@
 
 <!--next-version-placeholder-->
 
+## v0.26.0 (2024-02-17)
+
+### Feature
+
+* Add debug options for test executable ([`3a3dea3`](https://github.com/cuinixam/yanga/commit/3a3dea30cc2278db4dcf872fc192cbd7ab0e232a))
+
+### Fix
+
+* Pytest coverage report generation fails ([`ff76f98`](https://github.com/cuinixam/yanga/commit/ff76f98d40c5881ba657b8e2f44b4e2763240448))
+* Bootstrap not running when deps changed ([`5b9f022`](https://github.com/cuinixam/yanga/commit/5b9f02274fbfecad8c32de770c78e457d876f241))
+
 ## v0.25.0 (2024-02-14)
 
 ### Feature
