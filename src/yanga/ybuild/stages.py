@@ -36,19 +36,15 @@ class YangaVEnvInstall(Stage):
         return "yanga_venv_install"
 
     def run(self) -> int:
-        if not self.install_dirs:
-            self.logger.warning("No virtual environment found. Attempt to run 'bootstrap.py'.")
-            build_script_path = self.project_root_dir / "bootstrap.py"
-            if not build_script_path.exists():
-                raise UserNotificationException(
-                    "Failed to find bootstrap script. Make sure that the project is initialized correctly."
-                )
-            self.environment.create_process_executor(
-                ["python", build_script_path.as_posix()],
-                cwd=self.project_root_dir,
-            ).execute()
-        else:
-            self.logger.info("Found virtual environment. Skip 'bootstrap.py'.")
+        build_script_path = self.project_root_dir / "bootstrap.py"
+        if not build_script_path.exists():
+            raise UserNotificationException(
+                "Failed to find bootstrap script. Make sure that the project is initialized correctly."
+            )
+        self.environment.create_process_executor(
+            ["python", build_script_path.as_posix()],
+            cwd=self.project_root_dir,
+        ).execute()
         self.environment.add_install_dirs(self.install_dirs)
         return 0
 
