@@ -322,8 +322,8 @@ class YangaPresenter(Presenter):
                 self.project.user_config_files,
                 self.project.get_variant_config_file(build_system_request.variant_name),
             )
-            for stage in self.project.steps:
-                StageRunner(build_environment, stage).run()
+            for step in self.project.steps:
+                StageRunner(build_environment, step).run()
         except UserNotificationException as e:
             self.logger.error(e)
         finally:

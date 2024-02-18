@@ -1,4 +1,5 @@
 from argparse import ArgumentParser, Namespace
+
 from py_app_dev.core.cmd_line import Command, register_arguments_for_config_dataclass
 from py_app_dev.core.logging import logger
 
