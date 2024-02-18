@@ -22,13 +22,13 @@ def test_yanga_mini(tmp_path: Path) -> None:
     # Bootstrap the project
     SubprocessExecutor(["powershell", "-File", build_script_path.as_posix()]).execute()
     # Build the project
-    assert 0 == BuildCommand().do_run(BuildCommandConfig("GermanVariant", project_dir))
+    assert 0 == BuildCommand().do_run(BuildCommandConfig(project_dir, "GermanVariant"))
     # Check for the build artifacts
     binary_exe = project_dir.joinpath("build/GermanVariant/build/GermanVariant.exe")
     assert binary_exe.exists()
     # Incremental build shall not rebuild the project
     write_time = binary_exe.stat().st_mtime
-    assert 0 == BuildCommand().do_run(BuildCommandConfig("GermanVariant", project_dir))
+    assert 0 == BuildCommand().do_run(BuildCommandConfig(project_dir, "GermanVariant"))
     assert write_time == binary_exe.stat().st_mtime, "Binary file was rebuilt"
 
 

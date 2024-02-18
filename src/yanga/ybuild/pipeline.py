@@ -33,6 +33,7 @@ class BuildStage:
 
     group_name: str
     _class: Type[Stage]
+    config: StageConfig
 
 
 class PipelineLoader:
@@ -60,7 +61,7 @@ class PipelineLoader:
                 stage_class = PipelineLoader._load_user_stage(
                     project_root_dir.joinpath(stage_config.file), stage_class_name
                 )
-            result.append(BuildStage(group_name, stage_class))
+            result.append(BuildStage(group_name, stage_class, stage_config))
         return result
 
     @staticmethod

@@ -30,7 +30,7 @@ class YangaProjectSlurper:
             self.project_dir, [".git", ".github", ".vscode", "build", ".venv"]
         ).slurp()
         self.components_configs_pool: ComponentsConfigsPool = self._collect_components_configs(self.user_configs)
-        self.stages: List[BuildStage] = self._collect_stages(self.user_configs, self.project_dir)
+        self.steps: List[BuildStage] = self._collect_stages(self.user_configs, self.project_dir)
         self.variants: List[VariantConfig] = self._collect_variants(self.user_configs)
         self.print_project_info()
 
@@ -43,7 +43,7 @@ class YangaProjectSlurper:
         self.logger.info(f"Project directory: {self.project_dir}")
         self.logger.info(f"Parsed {len(self.user_configs)} configuration file(s).")
         self.logger.info(f"Found {len(self.components_configs_pool.values())} component(s).")
-        self.logger.info(f"Found {len(self.stages)} stage(s).")
+        self.logger.info(f"Found {len(self.steps)} stage(s).")
         self.logger.info(f"Found {len(self.variants)} variant(s).")
         self.logger.info("-" * 80)
 

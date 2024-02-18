@@ -8,10 +8,11 @@ from typing import Any, Dict, List, Optional, Union
 
 from cookiecutter.main import cookiecutter
 from jinja2 import Environment, FileSystemLoader
-from mashumaro import DataClassDictMixin
 from py_app_dev.core.cmd_line import Command, register_arguments_for_config_dataclass
 from py_app_dev.core.exceptions import UserNotificationException
 from py_app_dev.core.logging import logger, time_it
+
+from .base import CommandConfigBase, CommandConfigFactory
 
 
 @dataclass
@@ -110,12 +111,7 @@ class ProjectBuilder:
 
 
 @dataclass
-class InitCommandConfig(DataClassDictMixin):
-    project_dir: Path = field(
-        default=Path(".").absolute(),
-        metadata={"help": "Project root directory. " "Defaults to the current directory if not specified."},
-    )
-
+class InitCommandConfig(CommandConfigBase):
     bootstrap: Optional[bool] = field(
         default=False,
         metadata={
@@ -123,10 +119,6 @@ class InitCommandConfig(DataClassDictMixin):
             "action": "store_true",
         },
     )
-
-    @classmethod
-    def from_namespace(cls, namespace: Namespace) -> "InitCommandConfig":
-        return cls.from_dict(vars(namespace))
 
 
 class YangaInit:
@@ -158,7 +150,7 @@ class InitCommand(Command):
     @time_it("Init")
     def run(self, args: Namespace) -> int:
         self.logger.info(f"Running {self.name} with args {args}")
-        YangaInit(InitCommandConfig.from_namespace(args)).run()
+        YangaInit(CommandConfigFactory.create_config(InitCommandConfig, args)).run()
         return 0
 
     def _register_arguments(self, parser: ArgumentParser) -> None:

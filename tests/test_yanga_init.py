@@ -5,13 +5,14 @@ from pathlib import Path
 import pytest
 from py_app_dev.core.exceptions import UserNotificationException
 
+from yanga.commands.base import CommandConfigFactory
 from yanga.commands.init import InitCommandConfig, ProjectBuilder, YangaInit
 
 
 def test_config_from_namespace():
     my_dict = {"project_dir": "my/path"}
     namespace = Namespace(**my_dict)
-    config = InitCommandConfig.from_namespace(namespace)
+    config = CommandConfigFactory.create_config(InitCommandConfig, namespace)
     assert config.project_dir == Path("my/path")
 
 
