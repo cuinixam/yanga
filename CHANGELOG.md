@@ -2,6 +2,23 @@
 
 <!--next-version-placeholder-->
 
+## v1.0.0 (2024-02-23)
+
+### Feature
+
+* Replace build command with run ([`0969fb0`](https://github.com/cuinixam/yanga/commit/0969fb0487e61b2f7c378c2bdf2d460008530df1))
+* Run single steps and support force run ([`54a3b22`](https://github.com/cuinixam/yanga/commit/54a3b2206dc88006970f678e881f1910d84e5b59))
+* Implement run step command ([`1870150`](https://github.com/cuinixam/yanga/commit/187015000e154a061e34de19de3a0e03f5cdeb47))
+
+### Fix
+
+* Coverage job error when using subprocess ([`6087267`](https://github.com/cuinixam/yanga/commit/6087267073df228b603eaa086be93039ccbc84f8))
+* Only build executable for tagged commits ([`9f924e9`](https://github.com/cuinixam/yanga/commit/9f924e9fc9e66f7ec52bbe780f188bff6a9929f0))
+
+### Breaking
+
+* replace build command with run ([`0969fb0`](https://github.com/cuinixam/yanga/commit/0969fb0487e61b2f7c378c2bdf2d460008530df1))
+
 ## v0.26.0 (2024-02-17)
 
 ### Feature
