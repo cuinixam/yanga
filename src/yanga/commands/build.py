@@ -37,7 +37,10 @@ class BuildCommand(Command):
 
     def do_run(self, config: BuildCommandConfig) -> int:
         project = YangaProjectSlurper(config.project_dir)
-        variant_name = prompt_user_to_select_option([variant.name for variant in project.variants], config.variant_name)
+        if not config.variant_name:
+            variant_name = prompt_user_to_select_option([variant.name for variant in project.variants])
+        else:
+            variant_name = config.variant_name
         if not variant_name:
             raise UserNotificationException("No variant selected. Stopping the execution.")
         if config.target:

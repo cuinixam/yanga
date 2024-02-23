@@ -17,3 +17,7 @@ class PipelineStepReference:
     def __init__(self, group_name: str, _class: Type[PipelineStep]) -> None:
         self.group_name = group_name
         self._class = _class
+
+    @property
+    def name(self) -> str:
+        return self._class.__name__

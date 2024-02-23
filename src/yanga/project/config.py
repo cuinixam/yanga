@@ -12,7 +12,7 @@ from yaml.scanner import ScannerError
 @dataclass
 class StageConfig(DataClassDictMixin):
     #: Stage name or class name if file is not specified
-    stage: str
+    step: str
     #: Path to file with stage class
     file: Optional[str] = None
     #: Python module with stage class

@@ -34,9 +34,7 @@ class CommandConfigBase(DataClassDictMixin):
     )
 
 
-def prompt_user_to_select_option(options: List[str], option: Optional[str]) -> Optional[str]:
-    if option:
-        return option
+def prompt_user_to_select_option(options: List[str]) -> Optional[str]:
     if not options:
         return None
     try:

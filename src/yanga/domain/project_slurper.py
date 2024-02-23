@@ -4,11 +4,7 @@ from typing import Dict, List, Optional, TypeAlias
 
 from py_app_dev.core.exceptions import UserNotificationException
 from py_app_dev.core.logging import logger
-from py_app_dev.core.pipeline import (
-    PipelineConfig,
-    PipelineLoader,
-    PipelineStepReference,
-)
+from py_app_dev.core.pipeline import PipelineConfig
 
 from .components import Component, ComponentType
 from .config import ComponentConfig, VariantConfig, YangaUserConfig
@@ -33,24 +29,12 @@ class YangaProjectSlurper:
             self.project_dir, [".git", ".github", ".vscode", "build", ".venv"]
         ).slurp()
         self.components_configs_pool: ComponentsConfigsPool = self._collect_components_configs(self.user_configs)
-        self.steps_references: List[PipelineStepReference] = self._collect_steps_references(
-            self.user_configs, self.project_dir
-        )
+        self.pipeline: Optional[PipelineConfig] = self._find_pipeline_config(self.user_configs)
         self.variants: List[VariantConfig] = self._collect_variants(self.user_configs)
-        self.print_project_info()
 
     @property
     def user_config_files(self) -> List[Path]:
         return [user_config.file for user_config in self.user_configs if user_config.file]
-
-    def print_project_info(self) -> None:
-        self.logger.info("-" * 80)
-        self.logger.info(f"Project directory: {self.project_dir}")
-        self.logger.info(f"Parsed {len(self.user_configs)} configuration file(s).")
-        self.logger.info(f"Found {len(self.components_configs_pool.values())} component(s).")
-        self.logger.info(f"Found {len(self.steps_references)} stage(s).")
-        self.logger.info(f"Found {len(self.variants)} variant(s).")
-        self.logger.info("-" * 80)
 
     def get_variant_config(self, variant_name: str) -> VariantConfig:
         variant = next((v for v in self.variants if v.name == variant_name), None)
@@ -134,24 +118,8 @@ class YangaProjectSlurper:
                     component.components.append(subcomponent)
                     subcomponent.is_subcomponent = True
 
-    def _collect_steps_references(
-        self, user_configs: List[YangaUserConfig], project_root_dir: Path
-    ) -> List[PipelineStepReference]:
-        """Find the pipeline configuration and collect all stages.
-        In case there are multiple pipeline configurations, throw an exception.
-        """
-        pipeline_config = self._find_pipeline_config(user_configs)
-        return PipelineLoader(pipeline_config, project_root_dir).load_steps()
-
-    def _find_pipeline_config(self, user_configs: List[YangaUserConfig]) -> PipelineConfig:
-        configs = [user_config.pipeline for user_config in user_configs if user_config.pipeline]
-        if not configs:
-            raise UserNotificationException("No pipeline configuration found.")
-        elif len(configs) > 1:
-            raise UserNotificationException(
-                "Multiple pipeline configurations found. " "Only one pipeline configuration is allowed."
-            )
-        return configs[0]
+    def _find_pipeline_config(self, user_configs: List[YangaUserConfig]) -> Optional[PipelineConfig]:
+        return next((user_config.pipeline for user_config in user_configs if user_config.pipeline), None)
 
     def _collect_variants(self, user_configs: List[YangaUserConfig]) -> List[VariantConfig]:
         variants = []

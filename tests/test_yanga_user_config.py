@@ -11,27 +11,29 @@ def test_load_pipeline_from_file(tmp_path: Path) -> None:
             """\
     pipeline:
         install:
-            - stage: YangaScoopInstall
-            - stage: MyInstall
+            - step: ScoopInstall
+              module: yanga.steps.scoop_install
+            - step: MyInstall
               file: user/install.py
               class: CustomInstall
         build:
-            - stage: MyPreBuild
+            - step: MyPreBuild
               file: user/build.py
               class: CustomPreBuild
-            - stage: YangaBuild
-            - stage: MyPostBuild
+            - step: ExecuteBuild
+              module: yanga.steps.execute_build
+            - step: MyPostBuild
               file: user/build.py
               class: CustomPostBuild
         deploy:
-            - stage: YangaDeploy
+            - step: YangaDeploy
     """
         )
     )
     config = YangaUserConfig.from_file(config_file)
     assert config.pipeline
-    assert config.pipeline["install"][0].stage == "YangaScoopInstall"
-    assert config.pipeline["install"][1].stage == "MyInstall"
+    assert config.pipeline["install"][0].step == "YangaScoopInstall"
+    assert config.pipeline["install"][1].step == "MyInstall"
     assert config.file == config_file, "file name should be automatically added to config"
 
 
@@ -61,14 +63,18 @@ def test_load_user_config(tmp_path: Path) -> None:
 
     pipeline:
       install:
-        - stage: YangaScoopInstall
+        - step: ScoopInstall
+          module: yanga.steps.scoop_install
           description: Install dependencies
           timeout_sec: 120
       gen:
-        - stage: YangaKConfigGen
+        - step: KConfigGen
+          module: yanga.steps.kconfig_gen
       build:
-        - stage: YangaBuildConfigure
-        - stage: YangaBuildRun
+        - step: GenerateBuildSystemFiles
+          module: yanga.steps.execute_build
+        - step: ExecuteBuild
+          module: yanga.steps.execute_build
 
     """
         )

@@ -27,14 +27,20 @@ variants:
 
 pipeline:
   install:
-    - stage: YangaVEnvInstall
-    - stage: YangaScoopInstall
+    - step: CreateVEnv
+      module: yanga.steps.create_venv
+    - step: ScoopInstall
+      module: yanga.steps.scoop_install
       description: Install scoop dependencies
       timeout_sec: 120
-    - stage: YangaWestInstall
+    - step: WestInstall
+      module: yanga.steps.west_install
       description: Install west dependencies
   gen:
-    - stage: YangaKConfigGen
+    - step: KConfigGen
+      module: yanga.steps.kconfig_gen
   build:
-    - stage: YangaBuildConfigure
-    - stage: YangaBuildRun
+    - step: GenerateBuildSystemFiles
+      module: yanga.steps.execute_build
+    - step: ExecuteBuild
+      module: yanga.steps.execute_build
