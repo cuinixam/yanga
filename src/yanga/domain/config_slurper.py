@@ -3,7 +3,7 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
 from typing import List, Set
 
-from yanga.project.config import YangaUserConfig
+from .config import YangaUserConfig
 
 
 def find_files(start_dir: Path, search_pattern: str, exclude_dirs: List[str] = []) -> Set[Path]:

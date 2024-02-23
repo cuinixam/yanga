@@ -1,10 +1,15 @@
 pipeline:
   install:
-    - stage: YangaVEnvInstall
-    - stage: YangaScoopInstall
-    - stage: YangaWestInstall
+    - step: CreateVEnv
+      module: yanga.steps.create_venv
+    - step: ScoopInstall
+      module: yanga.steps.scoop_install
+    - step: WestInstall
+      module: yanga.steps.west_install
   build:
-    - stage: MyStage
+    - step: MyStage
       file: stages/my_stage.py
-    - stage: YangaBuildConfigure
-    - stage: YangaBuildRun
+    - step: GenerateBuildSystemFiles
+      module: yanga.steps.execute_build
+    - step: ExecuteBuild
+      module: yanga.steps.execute_build

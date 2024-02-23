@@ -10,16 +10,14 @@ from py_app_dev.mvp.event_manager import EventID, EventManager
 from py_app_dev.mvp.presenter import Presenter
 from py_app_dev.mvp.view import View
 
-from yanga.project.project_slurper import YangaProjectSlurper
-from yanga.ybuild.environment import BuildEnvironment
-from yanga.ybuild.generators.build_system_request import (
-    BuildSystemRequest,
-    BuildVariantRequest,
-    CleanVariantRequest,
-    CompileComponentRequest,
-    TestComponentRequest,
+from yanga.domain.execution_context import (
+    UserRequest,
+    UserRequestScope,
+    UserRequestTarget,
+    UserVariantRequest,
 )
-from yanga.ybuild.pipeline import StageRunner
+from yanga.domain.project_slurper import YangaProjectSlurper
+from yanga.yrun.pipeline import PipelineScheduler, PipelineStepsExecutor
 
 from .icons import Icons
 
@@ -206,16 +204,16 @@ class YangaPresenter(Presenter):
         self.view = view
         self.event_manager = event_manager
         self.project_dir = project_dir
-        self.project = self._create_project()
+        self.project_slurper = self._create_project_slurper()
         self.event_manager.subscribe(YangaEvent.BUILD_EVENT, self._build_trigger)
         self.event_manager.subscribe(YangaEvent.COMPONENT_COMPILE_EVENT, self._component_compile_trigger)
-        self.event_manager.subscribe(YangaEvent.COMPONENT_TEST_EVENT, self._test_compile_trigger)
+        self.event_manager.subscribe(YangaEvent.COMPONENT_TEST_EVENT, self._component_test_trigger)
         self.event_manager.subscribe(YangaEvent.REFRESH_EVENT, self._refresh_trigger)
         self.event_manager.subscribe(YangaEvent.VARIANT_SELECTED_EVENT, self._variant_selected_trigger)
         self.event_manager.subscribe(YangaEvent.CLEAN_VARIANT_EVENT, self._clean_variant_trigger)
         self.event_manager.subscribe(YangaEvent.OPEN_IN_VSCODE, self._open_in_vscode_trigger)
         self.command_running_flag = False
-        self.running_build_system_request: Optional[BuildSystemRequest] = None
+        self.running_user_request: Optional[UserRequest] = None
         self.selected_variant: Optional[str] = None
         self.selected_component: Optional[str] = None
 
@@ -225,16 +223,18 @@ class YangaPresenter(Presenter):
         self.view.mainloop()
 
     def _build_trigger(self, variant_name: str) -> None:
-        self.run_command(BuildVariantRequest(variant_name))
+        self.run_command(UserVariantRequest(variant_name))
 
     def _component_compile_trigger(self, variant_name: str, component_name: str) -> None:
-        self.run_command(CompileComponentRequest(variant_name, component_name))
+        self.run_command(
+            UserRequest(UserRequestScope.COMPONENT, variant_name, component_name, UserRequestTarget.COMPILE)
+        )
 
-    def _test_compile_trigger(self, variant_name: str, component_name: str) -> None:
-        self.run_command(TestComponentRequest(variant_name, component_name))
+    def _component_test_trigger(self, variant_name: str, component_name: str) -> None:
+        self.run_command(UserRequest(UserRequestScope.COMPONENT, variant_name, component_name, UserRequestTarget.TEST))
 
     def _refresh_trigger(self) -> None:
-        self.project = self._create_project()
+        self.project_slurper = self._create_project_slurper()
         self._update_view_data()
 
     def _variant_selected_trigger(self, variant_name: str) -> None:
@@ -243,10 +243,10 @@ class YangaPresenter(Presenter):
         self._update_components()
 
     def _clean_variant_trigger(self, variant_name: str) -> None:
-        self.run_command(CleanVariantRequest(variant_name))
+        self.run_command(UserVariantRequest(variant_name, UserRequestTarget.CLEAN))
 
     def _open_in_vscode_trigger(self) -> None:
-        if not self.project:
+        if not self.project_slurper:
             self.logger.warning("Project is not loaded")
             return
         self.logger.info("Opening project in VSCode")
@@ -261,8 +261,8 @@ class YangaPresenter(Presenter):
 
     def _update_variants(self) -> None:
         variants = []
-        if self.project:
-            variants = [variant.name for variant in self.project.variants]
+        if self.project_slurper:
+            variants = [variant.name for variant in self.project_slurper.variants]
         if variants:
             variants.sort()
             self.selected_variant = variants[0]
@@ -278,7 +278,7 @@ class YangaPresenter(Presenter):
 
     def _update_components(self) -> None:
         components = []
-        if self.project and self.selected_variant:
+        if self.project_slurper and self.selected_variant:
             components = self._create_component_names(self.selected_variant)
         if components:
             components.sort()
@@ -294,43 +294,40 @@ class YangaPresenter(Presenter):
             self.view.disable_component_commands()
 
     @time_it("executing command")
-    def run_command(self, build_system_request: BuildSystemRequest) -> None:
+    def run_command(self, user_request: UserRequest) -> None:
         # Make sure the project is loaded before running any command.
         # Otherwise, there might be configuration changes that are not reflected in the project.
-        self.project = self._create_project()
-        if not self.project:
+        self.project_slurper = self._create_project_slurper()
+        if not self.project_slurper:
             self.logger.warning("Project is not loaded")
             return
         if self.command_running_flag:
-            self.logger.warning(
-                f"Command '{self.running_build_system_request}' still running. Skip starting new command."
-            )
+            self.logger.warning(f"Command '{self.running_user_request}' still running. Skip starting new command.")
             return
         if not self.selected_variant:
             UserNotificationException("No variant selected. This looks like a bug.")
-        self.logger.info(f"Selected variant: {build_system_request.variant_name}")
-        if build_system_request.component_name:
-            self.logger.info(f"Selected component: {build_system_request.component_name}")
-        self.logger.info(f"Selected command: {build_system_request.command}")
+        self.logger.info(f"Selected variant: {user_request.variant_name}")
+        if user_request.component_name:
+            self.logger.info(f"Selected component: {user_request.component_name}")
+        self.logger.info(f"Selected command: {user_request.target}")
         self.command_running_flag = True
-        self.running_build_system_request = build_system_request
+        self.running_user_request = user_request
         try:
-            build_environment = BuildEnvironment(
-                self.project_dir,
-                build_system_request,
-                self.project.get_variant_components(build_system_request.variant_name),
-                self.project.user_config_files,
-                self.project.get_variant_config_file(build_system_request.variant_name),
-            )
-            for stage in self.project.stages:
-                StageRunner(build_environment, stage).run()
+            if not self.project_slurper.pipeline:
+                raise UserNotificationException("No pipeline found in the configuration.")
+            # Schedule the steps to run
+            steps_references = PipelineScheduler(self.project_slurper.pipeline, self.project_dir).get_steps_to_run()
+            if not steps_references:
+                self.logger.info("No steps to run.")
+                return
+            PipelineStepsExecutor(self.project_slurper, user_request.variant_name, user_request, steps_references).run()
         except UserNotificationException as e:
             self.logger.error(e)
         finally:
             self.command_running_flag = False
-            self.running_build_system_request = None
+            self.running_user_request = None
 
-    def _create_project(self) -> Optional[YangaProjectSlurper]:
+    def _create_project_slurper(self) -> Optional[YangaProjectSlurper]:
         try:
             return YangaProjectSlurper(self.project_dir)
         except UserNotificationException as e:
@@ -338,9 +335,9 @@ class YangaPresenter(Presenter):
             return None
 
     def _create_component_names(self, variant_name: str) -> List[str]:
-        if self.project:
+        if self.project_slurper:
             try:
-                components = self.project.get_variant_components(variant_name)
+                components = self.project_slurper.get_variant_components(variant_name)
                 return [component.name for component in components]
             except UserNotificationException as e:
                 self.logger.error(e)

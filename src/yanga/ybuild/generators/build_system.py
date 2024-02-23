@@ -5,7 +5,16 @@ from typing import Any, List
 from py_app_dev.core.exceptions import UserNotificationException
 from py_app_dev.core.logging import logger
 
-from yanga.ybuild.backends.cmake import (
+from yanga.domain.components import Component
+from yanga.domain.execution_context import (
+    ExecutionContext,
+    UserRequest,
+    UserRequestScope,
+    UserRequestTarget,
+    UserVariantRequest,
+)
+
+from ..backends.cmake import (
     CMakeAddExecutable,
     CMakeAddSubdirectory,
     CMakeCommand,
@@ -26,16 +35,7 @@ from yanga.ybuild.backends.cmake import (
     CMakeProject,
     CMakeVariable,
 )
-from yanga.ybuild.components import BuildComponent
-from yanga.ybuild.generators.build_system_request import (
-    BuildVariantRequest,
-    CompileComponentRequest,
-    TestComponentRequest,
-    TestVariantRequest,
-)
-
 from ..backends.generated_file import GeneratedFile
-from ..environment import BuildEnvironment
 
 
 def make_list_unique(seq: List[Any]) -> List[Any]:
@@ -48,7 +48,7 @@ class BuildSystemBackend(Enum):
 
 
 class BuildComponentAnalyzer:
-    def __init__(self, components: List[BuildComponent]) -> None:
+    def __init__(self, components: List[Component]) -> None:
         self.components = components
 
     def collect_sources(self) -> List[Path]:
@@ -69,7 +69,7 @@ class BuildComponentAnalyzer:
         # remove duplicates and return
         return make_list_unique(includes)
 
-    def get_testable_components(self) -> List[BuildComponent]:
+    def get_testable_components(self) -> List[Component]:
         return [component for component in self.components if component.test_sources]
 
     def is_testable(self) -> bool:
@@ -80,22 +80,22 @@ class BuildSystemGenerator:
     def __init__(
         self,
         backend: BuildSystemBackend,
-        environment: BuildEnvironment,
+        execution_context: ExecutionContext,
         output_dir: Path,
     ):
         self.logger = logger.bind()
         self.backend = backend
-        self.environment = environment
+        self.execution_context = execution_context
         self.output_dir = output_dir
         self.output_test_dir = output_dir.joinpath("test")
 
     def generate(self) -> List[GeneratedFile]:
         files = []
         if self.backend == BuildSystemBackend.CMAKE:
-            files.extend(CmakeBuildFilesGenerator(self.environment, self.output_dir).generate())
-            if BuildComponentAnalyzer(self.environment.components).is_testable():
+            files.extend(CmakeBuildFilesGenerator(self.execution_context, self.output_dir).generate())
+            if BuildComponentAnalyzer(self.execution_context.components).is_testable():
                 self.logger.info("Generating test build files")
-                files.extend(CmakeTestFilesGenerator(self.environment, self.output_test_dir).generate())
+                files.extend(CmakeTestFilesGenerator(self.execution_context, self.output_test_dir).generate())
         else:
             raise UserNotificationException("Only CMake build system files generation is supported for now")
         # TODO: CMakeFile objects are GeneratedFile objects. Try to fix warning without ignoring type check
@@ -107,8 +107,8 @@ class CmakeBuildFilesGenerator:
     for building the variant for a specific platform.
     """
 
-    def __init__(self, environment: BuildEnvironment, output_dir: Path) -> None:
-        self.environment = environment
+    def __init__(self, execution_context: ExecutionContext, output_dir: Path) -> None:
+        self.execution_context = execution_context
         self.output_dir = output_dir
         # The directory where the CMakeLists.txt file is located
         self.cmake_current_list_dir = CMakePath(self.output_dir, "CMAKE_CURRENT_LIST_DIR")
@@ -117,7 +117,7 @@ class CmakeBuildFilesGenerator:
 
     @property
     def variant_name(self) -> str:
-        return self.environment.variant_name
+        return self.execution_context.variant_name
 
     @property
     def variant_cmake_file(self) -> CMakePath:
@@ -148,19 +148,21 @@ class CmakeBuildFilesGenerator:
         variant_executable = CMakeAddExecutable(
             "${PROJECT_NAME}",
             sources=[],
-            libraries=[CMakeObjectLibrary(component.name).target_name for component in self.environment.components],
+            libraries=[
+                CMakeObjectLibrary(component.name).target_name for component in self.execution_context.components
+            ],
         )
 
         cmake_file.append(variant_executable)
         cmake_file.append(
             CMakeCustomTarget(
-                BuildVariantRequest(self.variant_name).target_name,
+                UserVariantRequest(self.variant_name, UserRequestTarget.BUILD).target_name,
                 f"Build variant {self.variant_name}",
                 [],
                 [variant_executable.name],
             )
         )
-        if BuildComponentAnalyzer(self.environment.components).is_testable():
+        if BuildComponentAnalyzer(self.execution_context.components).is_testable():
             # TODO: this is a command for calling a cmake runner.
             # Use the CMakeRunner class somehow otherwise the command options will be duplicated
             command = CMakeCommand(
@@ -175,7 +177,7 @@ class CmakeBuildFilesGenerator:
                 ],
             )
             cmake_file.append(CMakeExecuteProcess("Configure the test cmake project", [command]))
-            test_variant_target = TestVariantRequest(self.variant_name).target_name
+            test_variant_target = UserVariantRequest(self.variant_name, UserRequestTarget.TEST).target_name
             command = CMakeCommand(
                 "${CMAKE_COMMAND}",
                 [
@@ -197,19 +199,21 @@ class CmakeBuildFilesGenerator:
         return cmake_file
 
     def get_include_directories(self) -> CMakeIncludeDirectories:
-        collector = BuildComponentAnalyzer(self.environment.components)
-        include_dirs = collector.collect_include_directories() + self.environment.include_directories
+        collector = BuildComponentAnalyzer(self.execution_context.components)
+        include_dirs = collector.collect_include_directories() + self.execution_context.include_directories
         return CMakeIncludeDirectories([CMakePath(path) for path in include_dirs])
 
     def create_components_cmake(self) -> CMakeFile:
         cmake_file = CMakeFile(self.components_cmake_file.to_path())
-        for component in self.environment.components:
+        for component in self.execution_context.components:
             component_analyzer = BuildComponentAnalyzer([component])
             component_library = CMakeObjectLibrary(component.name, component_analyzer.collect_sources())
             cmake_file.append(component_library)
             cmake_file.append(
                 CMakeCustomTarget(
-                    CompileComponentRequest(self.variant_name, component.name).target_name,
+                    UserRequest(
+                        UserRequestScope.COMPONENT, self.variant_name, component.name, UserRequestTarget.COMPILE
+                    ).target_name,
                     f"Compile component {component.name}",
                     [],
                     [component_library.target_name],
@@ -239,8 +243,8 @@ class CmakeTestFilesGenerator:
     """Generates CMakeLists.txt, variant.cmake, and components.cmake files
     for running tests on the variant and its components."""
 
-    def __init__(self, environment: BuildEnvironment, output_dir: Path) -> None:
-        self.environment = environment
+    def __init__(self, execution_context: ExecutionContext, output_dir: Path) -> None:
+        self.execution_context = execution_context
         self.output_dir = output_dir
         # The directory where the CMakeLists.txt file is located
         self.cmake_source_dir = CMakePath(self.output_dir, "CMAKE_CURRENT_LIST_DIR")
@@ -249,7 +253,7 @@ class CmakeTestFilesGenerator:
 
     @property
     def variant_name(self) -> str:
-        return self.environment.variant_name
+        return self.execution_context.variant_name
 
     @property
     def variant_cmake_file(self) -> CMakePath:
@@ -291,13 +295,13 @@ class CmakeTestFilesGenerator:
         return cmake_file
 
     def get_include_directories(self) -> CMakeIncludeDirectories:
-        collector = BuildComponentAnalyzer(self.environment.components)
-        include_dirs = collector.collect_include_directories() + self.environment.include_directories
+        collector = BuildComponentAnalyzer(self.execution_context.components)
+        include_dirs = collector.collect_include_directories() + self.execution_context.include_directories
         return CMakeIncludeDirectories([CMakePath(path) for path in include_dirs])
 
     def create_components_cmake(self) -> CMakeFile:
         cmake_file = CMakeFile(self.components_cmake_file.to_path())
-        for component in self.environment.components:
+        for component in self.execution_context.components:
             component_analyzer = BuildComponentAnalyzer([component])
             # Skip components without tests
             if not component_analyzer.is_testable():
@@ -340,7 +344,9 @@ class CmakeTestFilesGenerator:
             )
             cmake_file.append(
                 CMakeCustomTarget(
-                    TestComponentRequest(self.variant_name, component.name).target_name,
+                    UserRequest(
+                        UserRequestScope.COMPONENT, self.variant_name, component.name, UserRequestTarget.TEST
+                    ).target_name,
                     f"Execute tests for {component.name}",
                     [],
                     outputs,  # type: ignore

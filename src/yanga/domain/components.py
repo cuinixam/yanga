@@ -4,18 +4,18 @@ from pathlib import Path
 from typing import List, Optional
 
 
-class BuildComponentType(Enum):
+class ComponentType(Enum):
     COMPONENT = auto()
     UNIT = auto()
     CONTAINER = auto()
 
 
 @dataclass
-class BuildComponent:
+class Component:
     #: Component name
     name: str
     #: Component type
-    type: BuildComponentType
+    type: ComponentType
     #: Component path
     path: Path
     #: Component sources
@@ -24,9 +24,9 @@ class BuildComponent:
     test_sources: List[str] = field(default_factory=list)
     #: Component include directories
     include_dirs: List[str] = field(default_factory=list)
-    #: Is this component a subcomponent of another component
+    #: Is this component a sub-component of another component
     is_subcomponent: bool = False
     #: Component description
     description: Optional[str] = None
     #: Subcomponents
-    components: List["BuildComponent"] = field(default_factory=list)
+    components: List["Component"] = field(default_factory=list)

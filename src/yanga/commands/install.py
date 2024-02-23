@@ -7,14 +7,12 @@ from py_app_dev.core.cmd_line import Command, register_arguments_for_config_data
 from py_app_dev.core.logging import logger, time_it
 from py_app_dev.core.scoop_wrapper import ScoopWrapper
 
+from .base import CommandConfigFactory
+
 
 @dataclass
 class InstallCommandConfig(DataClassDictMixin):
     scoop_file: Path = field(metadata={"help": "Scoop install configuration file."})
-
-    @classmethod
-    def from_namespace(cls, namespace: Namespace) -> "InstallCommandConfig":
-        return cls.from_dict(vars(namespace))
 
 
 class InstallCommand(Command):
@@ -25,7 +23,7 @@ class InstallCommand(Command):
     @time_it("Install")
     def run(self, args: Namespace) -> int:
         self.logger.debug(f"Running {self.name} with args {args}")
-        self.do_run(InstallCommandConfig.from_namespace(args))
+        self.do_run(CommandConfigFactory.create_config(InstallCommandConfig, args))
         return 0
 
     def do_run(self, config: InstallCommandConfig) -> int:

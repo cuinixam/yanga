@@ -1,25 +1,64 @@
 import os
+from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
+from enum import Enum, auto
 from pathlib import Path
-from typing import List, Optional
+from typing import List, Optional, Union
 
 from py_app_dev.core.subprocess import SubprocessExecutor
 
-from yanga.ybuild.generators.build_system_request import (
-    BuildSystemRequest,
-    CleanVariantRequest,
-)
-from yanga.ybuild.include_directories_provider import IncludeDirectoriesProvider
+from .components import Component
 
-from .components import BuildComponent
-from .project import ProjectBuildArtifactsLocator
+
+class UserRequestTarget(Enum):
+    NONE = auto()
+    ALL = auto()
+    BUILD = auto()
+    COMPILE = auto()
+    CLEAN = auto()
+    TEST = auto()
+
+    def __str__(self) -> str:
+        return self.name.lower()
+
+
+class UserRequestScope(Enum):
+    VARIANT = auto()
+    COMPONENT = auto()
 
 
 @dataclass
-class BuildEnvironment:
+class UserRequest:
+    scope: UserRequestScope
+    variant_name: str
+    component_name: Optional[str] = None
+    target: Optional[Union[str, UserRequestTarget]] = None
+
+    @property
+    def target_name(self) -> str:
+        target = str(self.target if self.target else UserRequestTarget.ALL)
+        if self.component_name:
+            return f"{self.component_name}_{target}"
+        return target
+
+
+class UserVariantRequest(UserRequest):
+    def __init__(self, variant_name: str, target: Optional[Union[str, UserRequestTarget]] = None) -> None:
+        super().__init__(UserRequestScope.VARIANT, variant_name, None, target=target)
+
+
+class IncludeDirectoriesProvider(ABC):
+    @abstractmethod
+    def get_include_directories(self) -> List[Path]:
+        ...
+
+
+@dataclass
+class ExecutionContext:
     project_root_dir: Path
-    build_request: BuildSystemRequest
-    components: List[BuildComponent] = field(default_factory=list)
+    variant_name: str
+    user_request: UserRequest
+    components: List[Component] = field(default_factory=list)
     user_config_files: List[Path] = field(default_factory=list)
     config_file: Optional[Path] = None
     # Keep track of all install directories, updated by any stage for the subsequent stages
@@ -28,23 +67,11 @@ class BuildEnvironment:
     include_dirs_providers: List[IncludeDirectoriesProvider] = field(default_factory=list)
 
     @property
-    def variant_name(self) -> str:
-        # TODO: It is possible to have no variant selected, if there is only one variant in the project.
-        return self.build_request.variant_name
-
-    @property
     def include_directories(self) -> List[Path]:
         include_dirs = []
         for provider in self.include_dirs_providers:
             include_dirs.extend(provider.get_include_directories())
         return include_dirs
-
-    @property
-    def artifacts_locator(self) -> ProjectBuildArtifactsLocator:
-        return ProjectBuildArtifactsLocator(self.project_root_dir, self.variant_name)
-
-    def is_clean_required(self) -> bool:
-        return isinstance(self.build_request, CleanVariantRequest)
 
     def add_install_dirs(self, install_dirs: List[Path]) -> None:
         self.install_dirs.extend(install_dirs)

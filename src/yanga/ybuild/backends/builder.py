@@ -2,7 +2,7 @@ from abc import ABC, abstractmethod
 from pathlib import Path
 from typing import List
 
-from yanga.ybuild.components import BuildComponent
+from yanga.domain.components import Component
 
 from .generated_file import GeneratedFile
 
@@ -16,7 +16,7 @@ class Builder(ABC):
         ...
 
     @abstractmethod
-    def with_components(self, components: List[BuildComponent]) -> "Builder":
+    def with_components(self, components: List[Component]) -> "Builder":
         ...
 
     @abstractmethod

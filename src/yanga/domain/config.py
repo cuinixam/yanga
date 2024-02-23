@@ -1,31 +1,13 @@
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any, Dict, List, Optional, OrderedDict, TypeAlias
+from typing import Any, Dict, List, Optional
 
 import yaml
 from mashumaro import DataClassDictMixin
 from py_app_dev.core.exceptions import UserNotificationException
+from py_app_dev.core.pipeline import PipelineConfig
 from yaml.parser import ParserError
 from yaml.scanner import ScannerError
-
-
-@dataclass
-class StageConfig(DataClassDictMixin):
-    #: Stage name or class name if file is not specified
-    stage: str
-    #: Path to file with stage class
-    file: Optional[str] = None
-    #: Python module with stage class
-    module: Optional[str] = None
-    #: Stage class name
-    class_name: Optional[str] = None
-    #: Stage description
-    description: Optional[str] = None
-    #: Stage timeout in seconds
-    timeout_sec: Optional[int] = None
-
-
-PipelineConfig: TypeAlias = OrderedDict[str, List[StageConfig]]
 
 
 @dataclass
