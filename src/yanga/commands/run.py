@@ -6,6 +6,7 @@ from py_app_dev.core.cmd_line import Command, register_arguments_for_config_data
 from py_app_dev.core.exceptions import UserNotificationException
 from py_app_dev.core.logging import logger, time_it
 
+from yanga.domain.execution_context import UserRequest, UserRequestScope
 from yanga.domain.project_slurper import YangaProjectSlurper
 from yanga.yrun.pipeline import PipelineScheduler, PipelineStepsExecutor
 
@@ -19,6 +20,10 @@ class RunCommandConfig(CommandConfigBase):
     variant_name: Optional[str] = field(
         default=None, metadata={"help": "SPL variant name. If none is provided, it will prompt to select one."}
     )
+    component_name: Optional[str] = field(
+        default=None, metadata={"help": "Restrict the scope to one specific component."}
+    )
+    target: Optional[str] = field(default=None, metadata={"help": "Define a specific target to execute."})
     step: Optional[str] = field(
         default=None, metadata={"help": "Name of the step to run (as written in the pipeline config)."}
     )
@@ -79,7 +84,13 @@ class RunCommand(Command):
                 raise UserNotificationException(f"Step '{config.step}' not found in the pipeline.")
             self.logger.info("No steps to run.")
             return 0
-        PipelineStepsExecutor(project_slurper, variant_name, steps_references, config.force_run).run()
+        user_request = UserRequest(
+            UserRequestScope.COMPONENT if config.component_name else UserRequestScope.VARIANT,
+            variant_name,
+            config.component_name,
+            config.target,
+        )
+        PipelineStepsExecutor(project_slurper, variant_name, user_request, steps_references, config.force_run).run()
         return 0
 
     def print_project_info(self, project_slurper: YangaProjectSlurper) -> None:

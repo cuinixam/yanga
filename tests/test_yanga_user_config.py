@@ -1,7 +1,7 @@
 import textwrap
 from pathlib import Path
 
-from yanga.project.config import YangaUserConfig
+from yanga.domain.config import YangaUserConfig
 
 
 def test_load_pipeline_from_file(tmp_path: Path) -> None:
@@ -32,7 +32,7 @@ def test_load_pipeline_from_file(tmp_path: Path) -> None:
     )
     config = YangaUserConfig.from_file(config_file)
     assert config.pipeline
-    assert config.pipeline["install"][0].step == "YangaScoopInstall"
+    assert config.pipeline["install"][0].step == "ScoopInstall"
     assert config.pipeline["install"][1].step == "MyInstall"
     assert config.file == config_file, "file name should be automatically added to config"
 

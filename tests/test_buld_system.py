@@ -4,6 +4,7 @@ from unittest.mock import Mock, PropertyMock
 
 import pytest
 
+from yanga.domain.execution_context import ExecutionContext
 from yanga.ybuild.backends.cmake import (
     CMakeCustomTarget,
     CMakeElement,
@@ -15,14 +16,13 @@ from yanga.ybuild.backends.cmake import (
     CMakeProject,
     CMakeVariable,
 )
-from yanga.ybuild.environment import BuildEnvironment
 from yanga.ybuild.generators.build_system import CmakeBuildFilesGenerator
 
 T = TypeVar("T", bound=CMakeElement)
 
 
 @pytest.fixture
-def env() -> BuildEnvironment:
+def env() -> ExecutionContext:
     env = Mock()
     env.variant_name = "var1"
     env.components = []
@@ -51,7 +51,7 @@ class CMakeAnalyzer:
         return elements
 
 
-def test_generate_method(env: BuildEnvironment, tmp_path: Path) -> None:
+def test_generate_method(env: ExecutionContext, tmp_path: Path) -> None:
     generator = CmakeBuildFilesGenerator(env, tmp_path)
     generated_files = generator.generate()
 
@@ -61,7 +61,7 @@ def test_generate_method(env: BuildEnvironment, tmp_path: Path) -> None:
         assert (tmp_path / filename).exists(), f"File {filename} shall be generated"
 
 
-def test_cmake_build_cmakelists_file(env: BuildEnvironment) -> None:
+def test_cmake_build_cmakelists_file(env: ExecutionContext) -> None:
     generator = CmakeBuildFilesGenerator(env, Path("/test/output/dir"))
     generated_files = generator.generate()
 
@@ -73,7 +73,7 @@ def test_cmake_build_cmakelists_file(env: BuildEnvironment) -> None:
     assert "variant.cmake" in cmakelists_analyzer.assert_element_of_type(CMakeInclude).to_string()
 
 
-def test_cmake_build_variant_file(env: BuildEnvironment) -> None:
+def test_cmake_build_variant_file(env: ExecutionContext) -> None:
     component = Mock()
     component.path = Path("/some/path")
     component.sources = ["src/source1", "test/source2"]
@@ -89,7 +89,7 @@ def test_cmake_build_variant_file(env: BuildEnvironment) -> None:
     assert len(variant_analyzer.assert_element_of_type(CMakeIncludeDirectories).paths) == 3, "two components + gen dir"
 
 
-def test_cmake_build_components_file(env: BuildEnvironment) -> None:
+def test_cmake_build_components_file(env: ExecutionContext) -> None:
     component1 = Mock()
     component1.path = Path("/some/path")
     component1.sources = ["src/source1", "test/source2"]

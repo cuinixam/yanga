@@ -7,7 +7,6 @@ from py_app_dev.core.exceptions import UserNotificationException
 from py_app_dev.core.logging import logger, setup_logger
 
 from yanga import __version__
-from yanga.commands.build import BuildCommand
 from yanga.commands.gui import GuiCommand
 from yanga.commands.init import InitCommand
 from yanga.commands.install import InstallCommand
@@ -18,7 +17,7 @@ def do_run() -> None:
     parser = ArgumentParser(prog="yanga", description="Yanga CLI", exit_on_error=False)
     parser.add_argument("-v", "--version", action="version", version=f"%(prog)s {__version__}")
     builder = CommandLineHandlerBuilder(parser)
-    builder.add_commands([BuildCommand(), InitCommand(), InstallCommand(), GuiCommand(), RunCommand()])
+    builder.add_commands([InitCommand(), InstallCommand(), GuiCommand(), RunCommand()])
     handler = builder.create()
     handler.run(argv[1:])
 

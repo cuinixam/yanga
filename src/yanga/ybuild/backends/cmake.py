@@ -8,7 +8,7 @@ from typing import Any, List, Optional, Union
 from py_app_dev.core.logging import logger, time_it
 from py_app_dev.core.subprocess import SubprocessExecutor
 
-from yanga.ybuild.components import BuildComponent
+from yanga.domain.components import Component
 
 from .builder import Builder
 from .generated_file import GeneratedFile
@@ -445,7 +445,7 @@ class CMakeLists(GeneratedFile):
 
 
 class BuildFileCollector:
-    def __init__(self, components: List[BuildComponent]) -> None:
+    def __init__(self, components: List[Component]) -> None:
         self.components = components
 
     def collect_sources(self) -> List[Path]:
@@ -466,7 +466,7 @@ class CMakeListsBuilder(Builder):
 
     def __init__(self, output_path: Path, cmake_version: str = "3.20") -> None:
         self.output_path = output_path
-        self.components: List[BuildComponent] = []
+        self.components: List[Component] = []
         self.cmake_lists = CMakeLists(self.output_path.joinpath(self.file_name))
         self.cmake_lists.cmake_version = cmake_version
         self.include_directories: List[Path] = []
@@ -475,7 +475,7 @@ class CMakeListsBuilder(Builder):
         self.cmake_lists.project_name = name
         return self
 
-    def with_components(self, components: List[BuildComponent]) -> Builder:
+    def with_components(self, components: List[Component]) -> Builder:
         self.components = components
         return self
 

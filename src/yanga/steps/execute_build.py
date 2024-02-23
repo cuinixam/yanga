@@ -5,6 +5,11 @@ from py_app_dev.core.logging import logger
 
 from yanga.domain.execution_context import ExecutionContext
 from yanga.domain.pipeline import PipelineStep
+from yanga.ybuild.backends.cmake import CMakeRunner
+from yanga.ybuild.generators.build_system import (
+    BuildSystemBackend,
+    BuildSystemGenerator,
+)
 
 
 class GenerateBuildSystemFiles(PipelineStep):
@@ -18,7 +23,12 @@ class GenerateBuildSystemFiles(PipelineStep):
 
     def run(self) -> int:
         self.logger.info(f"Run {self.__class__.__name__} stage. Output dir: {self.output_dir}")
-        # TODO: Implement the logic for this step
+        generated_files = BuildSystemGenerator(
+            BuildSystemBackend.CMAKE, self.execution_context, self.output_dir
+        ).generate()
+        for file in generated_files:
+            file.to_file()
+        self.generated_files = [file.path for file in generated_files]
         return 0
 
     def get_inputs(self) -> List[Path]:
@@ -40,7 +50,9 @@ class ExecuteBuild(PipelineStep):
 
     def run(self) -> int:
         self.logger.debug(f"Run {self.get_name()} stage. Output dir: {self.output_dir}")
-        # TODO: Implement the logic for this step
+        CMakeRunner(self.execution_context.install_dirs).run(
+            self.output_dir, self.execution_context.user_request.target_name
+        )
         return 0
 
     def get_inputs(self) -> List[Path]:

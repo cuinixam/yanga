@@ -6,7 +6,8 @@ from py_app_dev.core.pipeline import PipelineConfig
 from py_app_dev.core.pipeline import PipelineLoader as GenericPipelineLoader
 from py_app_dev.core.runnable import Executor
 
-from yanga.domain.execution_context import ExecutionContext
+from yanga.domain.artifacts import ProjectArtifactsLocator
+from yanga.domain.execution_context import ExecutionContext, UserRequest
 from yanga.domain.pipeline import PipelineStep, PipelineStepReference
 from yanga.domain.project_slurper import YangaProjectSlurper
 
@@ -37,12 +38,14 @@ class PipelineStepsExecutor:
         self,
         project_slurper: YangaProjectSlurper,
         variant_name: str,
+        user_request: UserRequest,
         steps_references: List[PipelineStepReference],
         force_run: bool = False,
     ) -> None:
         self.logger = logger.bind()
         self.project_slurper = project_slurper
         self.variant_name = variant_name
+        self.user_request = user_request
         self.steps_references = steps_references
         self.force_run = force_run
 
@@ -50,12 +53,14 @@ class PipelineStepsExecutor:
         execution_context = ExecutionContext(
             self.project_slurper.project_dir,
             self.variant_name,
+            self.user_request,
             self.project_slurper.get_variant_components(self.variant_name),
             self.project_slurper.user_config_files,
             self.project_slurper.get_variant_config_file(self.variant_name),
         )
         for step_reference in self.steps_references:
-            step_output_dir = self.project_slurper.project_dir / step_reference.group_name
+            artifacts_locator = ProjectArtifactsLocator(self.project_slurper.project_dir, self.variant_name)
+            step_output_dir = artifacts_locator.variant_build_dir / step_reference.group_name
             step = step_reference._class(execution_context, step_output_dir)
             Executor(step.output_dir, self.force_run).execute(step)
         return 0
@@ -75,7 +80,7 @@ class PipelineScheduler:
         self.project_dir = project_dir
         self.logger = logger.bind()
 
-    def get_steps_to_run(self, step_name: Optional[str], single: Optional[bool]) -> List[PipelineStepReference]:
+    def get_steps_to_run(self, step_name: Optional[str] = None, single: bool = False) -> List[PipelineStepReference]:
         pipeline_loader = PipelineLoader(self.pipeline, self.project_dir)
         return self.filter_steps_references(pipeline_loader.load_steps_references(), step_name, single)
 

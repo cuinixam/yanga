@@ -1,6 +1,6 @@
 import pytest
 
-from yanga.project.config_slurper import find_files
+from yanga.domain.config_slurper import find_files
 
 
 # Fixture to create a temporary directory structure for testing

@@ -1,12 +1,50 @@
 import os
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
+from enum import Enum, auto
 from pathlib import Path
-from typing import List, Optional
+from typing import List, Optional, Union
 
 from py_app_dev.core.subprocess import SubprocessExecutor
 
 from .components import Component
+
+
+class UserRequestTarget(Enum):
+    NONE = auto()
+    ALL = auto()
+    BUILD = auto()
+    COMPILE = auto()
+    CLEAN = auto()
+    TEST = auto()
+
+    def __str__(self) -> str:
+        return self.name.lower()
+
+
+class UserRequestScope(Enum):
+    VARIANT = auto()
+    COMPONENT = auto()
+
+
+@dataclass
+class UserRequest:
+    scope: UserRequestScope
+    variant_name: str
+    component_name: Optional[str] = None
+    target: Optional[Union[str, UserRequestTarget]] = None
+
+    @property
+    def target_name(self) -> str:
+        target = str(self.target if self.target else UserRequestTarget.ALL)
+        if self.component_name:
+            return f"{self.component_name}_{target}"
+        return target
+
+
+class UserVariantRequest(UserRequest):
+    def __init__(self, variant_name: str, target: Optional[Union[str, UserRequestTarget]] = None) -> None:
+        super().__init__(UserRequestScope.VARIANT, variant_name, None, target=target)
 
 
 class IncludeDirectoriesProvider(ABC):
@@ -19,6 +57,7 @@ class IncludeDirectoriesProvider(ABC):
 class ExecutionContext:
     project_root_dir: Path
     variant_name: str
+    user_request: UserRequest
     components: List[Component] = field(default_factory=list)
     user_config_files: List[Path] = field(default_factory=list)
     config_file: Optional[Path] = None
