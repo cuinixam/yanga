@@ -19,7 +19,7 @@ if ($tag -match "v\d+\.\d+\.\d+") {
     # Archive the executable
     $tag = $tag -replace "v", ""
     $zip = "dist\yanga-$tag-windows-amd64.zip"
-    Compress-Archive -Path "dist\yanga.exe" -DestinationPath $zip
+    Compress-Archive -Path "dist\yanga\*" -DestinationPath $zip
     Write-Host "Archive created: $zip"
 } else {
     Write-Host "The current commit does not have a version tag v*.*.*"
