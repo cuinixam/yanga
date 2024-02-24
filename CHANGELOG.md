@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## v1.1.0 (2024-02-24)
+
+### Feature
+
+* Print project info when refreshing gui ([`8746958`](https://github.com/cuinixam/yanga/commit/8746958a549d32bdb68e54924e0af0a3e3be1818))
+
 ## v1.0.1 (2024-02-24)
 
 ### Fix
