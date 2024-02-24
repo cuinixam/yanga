@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## v1.2.0 (2024-02-24)
+
+### Feature
+
+* Make variant optional ([`883097c`](https://github.com/cuinixam/yanga/commit/883097cb2e0da0b74bece4cd2ebae8d21655ee04))
+
 ## v1.1.0 (2024-02-24)
 
 ### Feature
