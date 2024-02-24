@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## v1.0.1 (2024-02-24)
+
+### Fix
+
+* Pipeline steps are not loaded in the  exe ([`fd65cd5`](https://github.com/cuinixam/yanga/commit/fd65cd5dd303bc1ee21f013858b4b0c243e60bcf))
+
 ## v1.0.0 (2024-02-23)
 
 ### Feature
