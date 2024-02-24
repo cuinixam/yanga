@@ -8,9 +8,6 @@ from typing import Any, List, Optional, Union
 from py_app_dev.core.logging import logger, time_it
 from py_app_dev.core.subprocess import SubprocessExecutor
 
-from yanga.domain.components import Component
-
-from .builder import Builder
 from .generated_file import GeneratedFile
 
 
@@ -442,57 +439,6 @@ class CMakeLists(GeneratedFile):
 
     def _add_tabulated_path(self, path: Path) -> str:
         return self.tab_prefix + path.absolute().as_posix()
-
-
-class BuildFileCollector:
-    def __init__(self, components: List[Component]) -> None:
-        self.components = components
-
-    def collect_sources(self) -> List[Path]:
-        files: List[Path] = []
-        for component in self.components:
-            files.extend([component.path.joinpath(source) for source in component.sources])
-        return files
-
-    def collect_include_directories(self) -> List[Path]:
-        # TODO: check if there are specific include directories for each component
-        includes = [path.parent for path in self.collect_sources()]
-        # remove duplicates and return
-        return make_list_unique(includes)
-
-
-class CMakeListsBuilder(Builder):
-    file_name = "CMakeLists.txt"
-
-    def __init__(self, output_path: Path, cmake_version: str = "3.20") -> None:
-        self.output_path = output_path
-        self.components: List[Component] = []
-        self.cmake_lists = CMakeLists(self.output_path.joinpath(self.file_name))
-        self.cmake_lists.cmake_version = cmake_version
-        self.include_directories: List[Path] = []
-
-    def with_project_name(self, name: str) -> Builder:
-        self.cmake_lists.project_name = name
-        return self
-
-    def with_components(self, components: List[Component]) -> Builder:
-        self.components = components
-        return self
-
-    def with_include_directories(self, include_directories: List[Path]) -> Builder:
-        self.include_directories.extend(include_directories)
-        return self
-
-    def build(self) -> GeneratedFile:
-        collector = BuildFileCollector(self.components)
-        for component in self.components:
-            self.cmake_lists.libraries.append(
-                CMakeLibrary(component.name, BuildFileCollector([component]).collect_sources())
-            )
-        self.cmake_lists.include_directories = make_list_unique(
-            self.include_directories + collector.collect_include_directories()
-        )
-        return self.cmake_lists
 
 
 class CMakeRunner:

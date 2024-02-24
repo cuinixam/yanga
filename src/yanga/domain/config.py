@@ -18,6 +18,9 @@ class PlatformConfig(DataClassDictMixin):
     description: Optional[str] = None
     #: Toolchain file
     toolchain_file: Optional[str] = None
+    # This field is intended to keep track of where configuration was loaded from and
+    # it is automatically added when configuration is loaded from file
+    file: Optional[Path] = None
 
 
 @dataclass
@@ -60,6 +63,9 @@ class ComponentConfig(DataClassDictMixin):
     include_directories: List[str] = field(default_factory=list)
     #: Component variants
     variants: List[VariantConfig] = field(default_factory=list)
+    # This field is intended to keep track of where configuration was loaded from and
+    # it is automatically added when configuration is loaded from file
+    file: Optional[Path] = None
 
 
 @dataclass

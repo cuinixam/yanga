@@ -5,6 +5,7 @@ from typing import Any, List, Optional
 from py_app_dev.core.exceptions import UserNotificationException
 from py_app_dev.core.logging import logger
 
+from yanga.domain.artifacts import ProjectArtifactsLocator
 from yanga.domain.components import Component
 from yanga.domain.execution_context import (
     ExecutionContext,
@@ -48,19 +49,20 @@ class BuildSystemBackend(Enum):
 
 
 class BuildComponentAnalyzer:
-    def __init__(self, components: List[Component]) -> None:
+    def __init__(self, components: List[Component], artifacts_locator: ProjectArtifactsLocator) -> None:
         self.components = components
+        self.artifacts_locator = artifacts_locator
 
     def collect_sources(self) -> List[Path]:
         files: List[Path] = []
         for component in self.components:
-            files.extend([component.path.joinpath(source) for source in component.sources])
+            files.extend([self.locate_component_file(component, source) for source in component.sources])
         return files
 
     def collect_test_sources(self) -> List[Path]:
         files: List[Path] = []
         for component in self.components:
-            files.extend([component.path.joinpath(source) for source in component.test_sources])
+            files.extend([self.locate_component_file(component, source) for source in component.test_sources])
         return files
 
     def collect_include_directories(self) -> List[Path]:
@@ -74,6 +76,9 @@ class BuildComponentAnalyzer:
 
     def is_testable(self) -> bool:
         return any(component.test_sources for component in self.components)
+
+    def locate_component_file(self, component: Component, file: str) -> Path:
+        return self.artifacts_locator.locate_artifact(file, [component.path])
 
 
 class BuildSystemGenerator:
@@ -93,7 +98,9 @@ class BuildSystemGenerator:
         files = []
         if self.backend == BuildSystemBackend.CMAKE:
             files.extend(CmakeBuildFilesGenerator(self.execution_context, self.output_dir).generate())
-            if BuildComponentAnalyzer(self.execution_context.components).is_testable():
+            if BuildComponentAnalyzer(
+                self.execution_context.components, self.execution_context.create_artifacts_locator()
+            ).is_testable():
                 self.logger.info("Generating test build files")
                 files.extend(CmakeTestFilesGenerator(self.execution_context, self.output_test_dir).generate())
         else:
@@ -139,7 +146,9 @@ class CmakeBuildFilesGenerator:
                 CMakeVariable(
                     "CMAKE_TOOLCHAIN_FILE",
                     CMakePath(
-                        self.execution_context.create_artifacts_locator().locate_artifact(platform.toolchain_file)
+                        self.execution_context.create_artifacts_locator().locate_artifact(
+                            platform.toolchain_file, [platform.file]
+                        )
                     ).to_string(),
                 )
             )
@@ -169,7 +178,9 @@ class CmakeBuildFilesGenerator:
                 [variant_executable.name],
             )
         )
-        if BuildComponentAnalyzer(self.execution_context.components).is_testable():
+        if BuildComponentAnalyzer(
+            self.execution_context.components, self.execution_context.create_artifacts_locator()
+        ).is_testable():
             # TODO: this is a command for calling a cmake runner.
             # Use the CMakeRunner class somehow otherwise the command options will be duplicated
             command = CMakeCommand(
@@ -206,14 +217,16 @@ class CmakeBuildFilesGenerator:
         return cmake_file
 
     def get_include_directories(self) -> CMakeIncludeDirectories:
-        collector = BuildComponentAnalyzer(self.execution_context.components)
+        collector = BuildComponentAnalyzer(
+            self.execution_context.components, self.execution_context.create_artifacts_locator()
+        )
         include_dirs = collector.collect_include_directories() + self.execution_context.include_directories
         return CMakeIncludeDirectories([CMakePath(path) for path in include_dirs])
 
     def create_components_cmake(self) -> CMakeFile:
         cmake_file = CMakeFile(self.components_cmake_file.to_path())
         for component in self.execution_context.components:
-            component_analyzer = BuildComponentAnalyzer([component])
+            component_analyzer = BuildComponentAnalyzer([component], self.execution_context.create_artifacts_locator())
             component_library = CMakeObjectLibrary(component.name, component_analyzer.collect_sources())
             cmake_file.append(component_library)
             cmake_file.append(
@@ -302,14 +315,16 @@ class CmakeTestFilesGenerator:
         return cmake_file
 
     def get_include_directories(self) -> CMakeIncludeDirectories:
-        collector = BuildComponentAnalyzer(self.execution_context.components)
+        collector = BuildComponentAnalyzer(
+            self.execution_context.components, self.execution_context.create_artifacts_locator()
+        )
         include_dirs = collector.collect_include_directories() + self.execution_context.include_directories
         return CMakeIncludeDirectories([CMakePath(path) for path in include_dirs])
 
     def create_components_cmake(self) -> CMakeFile:
         cmake_file = CMakeFile(self.components_cmake_file.to_path())
         for component in self.execution_context.components:
-            component_analyzer = BuildComponentAnalyzer([component])
+            component_analyzer = BuildComponentAnalyzer([component], self.execution_context.create_artifacts_locator())
             # Skip components without tests
             if not component_analyzer.is_testable():
                 continue

@@ -74,6 +74,9 @@ def test_cmake_build_cmakelists_file(env: ExecutionContext) -> None:
 
 
 def test_cmake_build_variant_file(env: ExecutionContext) -> None:
+    artifacts_locator = Mock()
+    artifacts_locator.locate_artifact = lambda artifact, _: Path(f"/some/path/{artifact}")
+    env.create_artifacts_locator = lambda: artifacts_locator  # type: ignore
     component = Mock()
     component.path = Path("/some/path")
     component.sources = ["src/source1", "test/source2"]

@@ -1,4 +1,3 @@
-from dataclasses import dataclass
 from pathlib import Path
 from typing import Dict, List, Optional, TypeAlias
 
@@ -10,15 +9,7 @@ from .components import Component, ComponentType
 from .config import ComponentConfig, PlatformConfig, VariantConfig, YangaUserConfig
 from .config_slurper import YangaConfigSlurper
 
-
-@dataclass
-class ComponentConfigWithLocation:
-    config: ComponentConfig
-    #: Path to the file where the component is defined
-    file: Optional[Path] = None
-
-
-ComponentsConfigsPool: TypeAlias = Dict[str, ComponentConfigWithLocation]
+ComponentsConfigsPool: TypeAlias = Dict[str, ComponentConfig]
 
 
 class YangaProjectSlurper:
@@ -74,19 +65,19 @@ class YangaProjectSlurper:
         self._resolve_subcomponents(components, self.components_configs_pool)
         return components
 
-    def _create_build_component(self, component_config: ComponentConfigWithLocation) -> Component:
+    def _create_build_component(self, component_config: ComponentConfig) -> Component:
         # TODO: determine component type based on if it has sources, subcomponents
         component_type = ComponentType.COMPONENT
         component_path = component_config.file.parent if component_config.file else self.project_dir
         build_component = Component(
-            component_config.config.name,
+            component_config.name,
             component_type,
             component_path,
         )
-        if component_config.config.sources:
-            build_component.sources = component_config.config.sources
-        if component_config.config.test_sources:
-            build_component.test_sources = component_config.config.test_sources
+        if component_config.sources:
+            build_component.sources = component_config.sources
+        if component_config.test_sources:
+            build_component.test_sources = component_config.test_sources
         return build_component
 
     def _collect_components_configs(self, user_configs: List[YangaUserConfig]) -> ComponentsConfigsPool:
@@ -100,9 +91,9 @@ class YangaProjectSlurper:
                         f"Component '{component_config.name}' is defined in multiple configuration files."
                         f"See {components_config[component_config.name].file} and {user_config.file}"
                     )
-                components_config[component_config.name] = ComponentConfigWithLocation(
-                    component_config, user_config.file
-                )
+                # TODO: shall the project slurper be responsible for updating the source file for the configuration?
+                component_config.file = user_config.file
+                components_config[component_config.name] = component_config
         return components_config
 
     def _resolve_subcomponents(
@@ -116,8 +107,8 @@ class YangaProjectSlurper:
             # It can not be that there is no configuration for the component,
             # otherwise it would not be in the list
             component_config = components_configs_pool.get(component.name)
-            if component_config and component_config.config.components:
-                for subcomponent_name in component_config.config.components:
+            if component_config and component_config.components:
+                for subcomponent_name in component_config.components:
                     subcomponent = components_pool.get(subcomponent_name, None)
                     if not subcomponent:
                         # TODO: throw the UserNotificationException and mention the file
@@ -141,6 +132,8 @@ class YangaProjectSlurper:
         platforms: List[PlatformConfig] = []
         for user_config in user_configs:
             for platform in user_config.platforms:
+                # TODO: shall the project slurper be responsible for updating the source file for the configuration?
+                platform.file = user_config.file
                 platforms.append(platform)
         return platforms
 
