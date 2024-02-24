@@ -16,18 +16,8 @@ class PlatformConfig(DataClassDictMixin):
     name: str
     #: Description
     description: Optional[str] = None
-    #: Compiler name
-    compiler: Optional[str] = None
-    #: Compiler name
-    cpp_compiler: Optional[str] = None
-    #: C standard
-    c_standard: Optional[str] = None
-    #: C++ standard
-    cpp_standard: Optional[str] = None
-    #: Compile options
-    compile_options: List[str] = field(default_factory=list)
-    #: Link options
-    link_options: List[str] = field(default_factory=list)
+    #: Toolchain file
+    toolchain_file: Optional[str] = None
 
 
 @dataclass
@@ -48,8 +38,8 @@ class VariantConfig(DataClassDictMixin):
     description: Optional[str] = None
     #: Bill of materials
     bom: Optional[VariantBom] = None
-    #: Platforms
-    platforms: List[str] = field(default_factory=list)
+    #: Platform
+    platform: Optional[str] = None
     #: Configuration
     config_file: Optional[str] = None
 

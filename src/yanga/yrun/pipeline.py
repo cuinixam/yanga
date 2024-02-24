@@ -51,12 +51,15 @@ class PipelineStepsExecutor:
 
     def run(self) -> int:
         execution_context = ExecutionContext(
-            self.project_slurper.project_dir,
-            self.variant_name,
-            self.user_request,
-            self.project_slurper.get_variant_components(self.variant_name) if self.variant_name else [],
-            self.project_slurper.user_config_files,
-            self.project_slurper.get_variant_config_file(self.variant_name) if self.variant_name else None,
+            project_root_dir=self.project_slurper.project_dir,
+            variant_name=self.variant_name,
+            user_request=self.user_request,
+            components=self.project_slurper.get_variant_components(self.variant_name) if self.variant_name else [],
+            user_config_files=self.project_slurper.user_config_files,
+            config_file=self.project_slurper.get_variant_config_file(self.variant_name) if self.variant_name else None,
+            install_dirs=[],
+            include_dirs_providers=[],
+            platform=self.project_slurper.get_variant_platform(self.variant_name) if self.variant_name else None,
         )
         for step_reference in self.steps_references:
             artifacts_locator = ProjectArtifactsLocator(self.project_slurper.project_dir, self.variant_name)

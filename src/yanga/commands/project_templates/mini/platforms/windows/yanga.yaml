@@ -1,0 +1,4 @@
+platforms:
+  - name: win_exe
+    description: Windows executable
+    toolchain_file: platforms/windows/clang.cmake

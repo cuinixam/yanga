@@ -37,6 +37,9 @@ class CommandConfigBase(DataClassDictMixin):
 def prompt_user_to_select_option(options: List[str]) -> Optional[str]:
     if not options:
         return None
+    # If there is only one option, return it immediately
+    if len(options) == 1:
+        return options[0]
     try:
         # TODO: this message is only necessary in case the user will press Ctrl+C to quit.
         # In this case, after pick method returns, the execution is paused until the user presses any key.

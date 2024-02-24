@@ -133,15 +133,22 @@ class CmakeBuildFilesGenerator:
     def create_cmake_lists(self) -> CMakeFile:
         cmake_file = CMakeFile(self.output_dir.joinpath("CMakeLists.txt"))
         cmake_file.append(CMakeMinimumVersion("3.20"))
+        platform = self.execution_context.platform
+        if platform and platform.toolchain_file:
+            cmake_file.append(
+                CMakeVariable(
+                    "CMAKE_TOOLCHAIN_FILE",
+                    CMakePath(
+                        self.execution_context.create_artifacts_locator().locate_artifact(platform.toolchain_file)
+                    ).to_string(),
+                )
+            )
         cmake_file.append(CMakeProject(self.variant_name or "MyProject"))
         cmake_file.append(CMakeInclude(self.variant_cmake_file))
         return cmake_file
 
     def create_variants_cmake(self) -> CMakeFile:
         cmake_file = CMakeFile(self.variant_cmake_file.to_path())
-        vars = {"CMAKE_CXX_STANDARD": "99", "CMAKE_C_COMPILER": "clang", "CMAKE_CXX_COMPILER": "clang++"}
-        for var, value in vars.items():
-            cmake_file.append(CMakeVariable(var, value))
         cmake_file.append(CMakeInclude(self.components_cmake_file))
         cmake_file.append(self.get_include_directories())
         # TODO: I do not like that I have to know here that the components are object libraries

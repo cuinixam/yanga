@@ -2,6 +2,8 @@ import sys
 from pathlib import Path
 from typing import Optional
 
+from py_app_dev.core.exceptions import UserNotificationException
+
 
 class ProjectArtifactsLocator:
     """Provides paths to project artifacts."""
@@ -23,3 +25,10 @@ class ProjectArtifactsLocator:
         self.external_dependencies_dir = self.build_dir / "external"
         scripts_dir = "Scripts" if sys.platform.startswith("win32") else "bin"
         self.venv_scripts_dir = self.project_root_dir.joinpath(".venv").joinpath(scripts_dir)
+
+    def locate_artifact(self, artifact: str) -> Path:
+        for dir in [self.variant_dir, self.project_root_dir, self.platforms_dir]:
+            if dir and (artifact_path := Path(dir).joinpath(artifact)).exists():
+                return artifact_path
+        else:
+            raise UserNotificationException(f"Artifact '{artifact}' not found in the project.")

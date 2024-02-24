@@ -14,7 +14,6 @@ from yanga.ybuild.backends.cmake import (
     CMakeMinimumVersion,
     CMakeObjectLibrary,
     CMakeProject,
-    CMakeVariable,
 )
 from yanga.ybuild.generators.build_system import CmakeBuildFilesGenerator
 
@@ -27,6 +26,7 @@ def env() -> ExecutionContext:
     env.variant_name = "var1"
     env.components = []
     env.include_directories = []
+    env.platform = None
     return env
 
 
@@ -84,7 +84,6 @@ def test_cmake_build_variant_file(env: ExecutionContext) -> None:
     variant_file = CmakeBuildFilesGenerator(env, Path("/test/output/dir")).create_variants_cmake()
     assert variant_file.path.name == "variant.cmake"
     variant_analyzer = CMakeAnalyzer(variant_file)
-    variant_analyzer.assert_elements_of_type(CMakeVariable, 3)
     assert "components.cmake" in variant_analyzer.assert_element_of_type(CMakeInclude).to_string()
     assert len(variant_analyzer.assert_element_of_type(CMakeIncludeDirectories).paths) == 3, "two components + gen dir"
 

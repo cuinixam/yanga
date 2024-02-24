@@ -7,7 +7,7 @@ from py_app_dev.core.logging import logger
 from py_app_dev.core.pipeline import PipelineConfig
 
 from .components import Component, ComponentType
-from .config import ComponentConfig, VariantConfig, YangaUserConfig
+from .config import ComponentConfig, PlatformConfig, VariantConfig, YangaUserConfig
 from .config_slurper import YangaConfigSlurper
 
 
@@ -31,6 +31,7 @@ class YangaProjectSlurper:
         self.components_configs_pool: ComponentsConfigsPool = self._collect_components_configs(self.user_configs)
         self.pipeline: Optional[PipelineConfig] = self._find_pipeline_config(self.user_configs)
         self.variants: List[VariantConfig] = self._collect_variants(self.user_configs)
+        self.platforms: List[PlatformConfig] = self._collect_platforms(self.user_configs)
 
     @property
     def user_config_files(self) -> List[Path]:
@@ -49,6 +50,15 @@ class YangaProjectSlurper:
 
     def get_variant_components(self, variant_name: str) -> List[Component]:
         return self._collect_variant_components(self.get_variant_config(variant_name))
+
+    def get_variant_platform(self, variant_name: str) -> Optional[PlatformConfig]:
+        variant = self.get_variant_config(variant_name)
+        if not variant.platform:
+            return None
+        platform = next((p for p in self.platforms if p.name == variant.platform), None)
+        if not platform:
+            raise UserNotificationException(f"Platform '{variant.platform}' not found in the configuration.")
+        return platform
 
     def _collect_variant_components(self, variant: VariantConfig) -> List[Component]:
         """ "Collect all components for the given variant.
@@ -126,6 +136,13 @@ class YangaProjectSlurper:
         for user_config in user_configs:
             variants.extend(user_config.variants)
         return variants
+
+    def _collect_platforms(self, user_configs: List[YangaUserConfig]) -> List[PlatformConfig]:
+        platforms: List[PlatformConfig] = []
+        for user_config in user_configs:
+            for platform in user_config.platforms:
+                platforms.append(platform)
+        return platforms
 
     def print_project_info(self) -> None:
         self.logger.info("-" * 80)

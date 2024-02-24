@@ -7,7 +7,9 @@ from typing import List, Optional, Union
 
 from py_app_dev.core.subprocess import SubprocessExecutor
 
+from .artifacts import ProjectArtifactsLocator
 from .components import Component
+from .config import PlatformConfig
 
 
 class UserRequestTarget(Enum):
@@ -65,6 +67,7 @@ class ExecutionContext:
     install_dirs: List[Path] = field(default_factory=list)
     # Keep track of all include directory providers
     include_dirs_providers: List[IncludeDirectoriesProvider] = field(default_factory=list)
+    platform: Optional[PlatformConfig] = None
 
     @property
     def include_directories(self) -> List[Path]:
@@ -84,3 +87,6 @@ class ExecutionContext:
         env = os.environ.copy()
         env["PATH"] = os.pathsep.join([path.absolute().as_posix() for path in self.install_dirs] + [env["PATH"]])
         return SubprocessExecutor(command, cwd=cwd, env=env, shell=True)  # nosec
+
+    def create_artifacts_locator(self) -> ProjectArtifactsLocator:
+        return ProjectArtifactsLocator(self.project_root_dir, self.variant_name)
