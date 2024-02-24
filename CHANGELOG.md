@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## v1.4.0 (2024-02-24)
+
+### Feature
+
+* Component files location is flexible ([`28e2c1d`](https://github.com/cuinixam/yanga/commit/28e2c1defea3a7d9f46ef239444fb0c65fafac7f))
+
 ## v1.3.0 (2024-02-24)
 
 ### Feature
