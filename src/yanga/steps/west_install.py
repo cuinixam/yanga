@@ -4,7 +4,6 @@ from typing import List
 from py_app_dev.core.exceptions import UserNotificationException
 from py_app_dev.core.logging import logger
 
-from yanga.domain.artifacts import ProjectArtifactsLocator
 from yanga.domain.execution_context import ExecutionContext
 from yanga.domain.pipeline import PipelineStep
 
@@ -13,7 +12,6 @@ class WestInstall(PipelineStep):
     def __init__(self, execution_context: ExecutionContext, output_dir: Path) -> None:
         super().__init__(execution_context, output_dir)
         self.logger = logger.bind()
-        self.artifacts_locator = ProjectArtifactsLocator(self.project_root_dir, self.execution_context.variant_name)
 
     def get_name(self) -> str:
         return self.__class__.__name__

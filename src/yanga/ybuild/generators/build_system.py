@@ -1,6 +1,6 @@
 from enum import Enum, auto
 from pathlib import Path
-from typing import Any, List
+from typing import Any, List, Optional
 
 from py_app_dev.core.exceptions import UserNotificationException
 from py_app_dev.core.logging import logger
@@ -116,7 +116,7 @@ class CmakeBuildFilesGenerator:
         self.cmake_build_dir = CMakePath(self.output_dir / "build", "CMAKE_BUILD_DIR")
 
     @property
-    def variant_name(self) -> str:
+    def variant_name(self) -> Optional[str]:
         return self.execution_context.variant_name
 
     @property
@@ -133,7 +133,7 @@ class CmakeBuildFilesGenerator:
     def create_cmake_lists(self) -> CMakeFile:
         cmake_file = CMakeFile(self.output_dir.joinpath("CMakeLists.txt"))
         cmake_file.append(CMakeMinimumVersion("3.20"))
-        cmake_file.append(CMakeProject(self.variant_name))
+        cmake_file.append(CMakeProject(self.variant_name or "MyProject"))
         cmake_file.append(CMakeInclude(self.variant_cmake_file))
         return cmake_file
 
@@ -252,7 +252,7 @@ class CmakeTestFilesGenerator:
         self.cmake_build_dir = CMakePath(self.output_dir, "CMAKE_BUILD_DIR", Path("build"))
 
     @property
-    def variant_name(self) -> str:
+    def variant_name(self) -> Optional[str]:
         return self.execution_context.variant_name
 
     @property
@@ -269,7 +269,7 @@ class CmakeTestFilesGenerator:
     def create_cmake_lists(self) -> CMakeFile:
         cmake_file = CMakeFile(self.output_dir.joinpath("CMakeLists.txt"))
         cmake_file.append(CMakeMinimumVersion("3.20"))
-        cmake_file.append(CMakeProject(self.variant_name))
+        cmake_file.append(CMakeProject(self.variant_name or "MyProject"))
         cmake_file.append(CMakeInclude(self.variant_cmake_file))
         return cmake_file
 

@@ -37,7 +37,7 @@ class PipelineStepsExecutor:
     def __init__(
         self,
         project_slurper: YangaProjectSlurper,
-        variant_name: str,
+        variant_name: Optional[str],
         user_request: UserRequest,
         steps_references: List[PipelineStepReference],
         force_run: bool = False,
@@ -54,13 +54,16 @@ class PipelineStepsExecutor:
             self.project_slurper.project_dir,
             self.variant_name,
             self.user_request,
-            self.project_slurper.get_variant_components(self.variant_name),
+            self.project_slurper.get_variant_components(self.variant_name) if self.variant_name else [],
             self.project_slurper.user_config_files,
-            self.project_slurper.get_variant_config_file(self.variant_name),
+            self.project_slurper.get_variant_config_file(self.variant_name) if self.variant_name else None,
         )
         for step_reference in self.steps_references:
             artifacts_locator = ProjectArtifactsLocator(self.project_slurper.project_dir, self.variant_name)
-            step_output_dir = artifacts_locator.variant_build_dir / step_reference.group_name
+            if not artifacts_locator.variant_build_dir:
+                step_output_dir = artifacts_locator.build_dir / step_reference.group_name
+            else:
+                step_output_dir = artifacts_locator.variant_build_dir / step_reference.group_name
             step = step_reference._class(execution_context, step_output_dir)
             Executor(step.output_dir, self.force_run).execute(step)
         return 0

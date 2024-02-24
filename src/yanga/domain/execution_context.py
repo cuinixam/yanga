@@ -30,7 +30,7 @@ class UserRequestScope(Enum):
 @dataclass
 class UserRequest:
     scope: UserRequestScope
-    variant_name: str
+    variant_name: Optional[str] = None
     component_name: Optional[str] = None
     target: Optional[Union[str, UserRequestTarget]] = None
 
@@ -43,7 +43,7 @@ class UserRequest:
 
 
 class UserVariantRequest(UserRequest):
-    def __init__(self, variant_name: str, target: Optional[Union[str, UserRequestTarget]] = None) -> None:
+    def __init__(self, variant_name: Optional[str], target: Optional[Union[str, UserRequestTarget]] = None) -> None:
         super().__init__(UserRequestScope.VARIANT, variant_name, None, target=target)
 
 
@@ -56,7 +56,7 @@ class IncludeDirectoriesProvider(ABC):
 @dataclass
 class ExecutionContext:
     project_root_dir: Path
-    variant_name: str
+    variant_name: Optional[str]
     user_request: UserRequest
     components: List[Component] = field(default_factory=list)
     user_config_files: List[Path] = field(default_factory=list)

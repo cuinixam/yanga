@@ -72,7 +72,7 @@ class RunCommand(Command):
         else:
             variant_name = config.variant_name
         if not variant_name:
-            raise UserNotificationException("No variant selected. Stopping the execution.")
+            self.logger.warning("No variant selected. This might cause some steps to fail.")
         if not project_slurper.pipeline:
             raise UserNotificationException("No pipeline found in the configuration.")
         # Schedule the steps to run
