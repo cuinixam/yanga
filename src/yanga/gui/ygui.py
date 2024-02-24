@@ -329,7 +329,9 @@ class YangaPresenter(Presenter):
 
     def _create_project_slurper(self) -> Optional[YangaProjectSlurper]:
         try:
-            return YangaProjectSlurper(self.project_dir)
+            project_slurper = YangaProjectSlurper(self.project_dir)
+            project_slurper.print_project_info()
+            return project_slurper
         except UserNotificationException as e:
             self.logger.error(e)
             return None

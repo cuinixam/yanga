@@ -126,3 +126,12 @@ class YangaProjectSlurper:
         for user_config in user_configs:
             variants.extend(user_config.variants)
         return variants
+
+    def print_project_info(self) -> None:
+        self.logger.info("-" * 80)
+        self.logger.info(f"Project directory: {self.project_dir}")
+        self.logger.info(f"Parsed {len(self.user_configs)} configuration file(s).")
+        self.logger.info(f"Found {len(self.components_configs_pool.values())} component(s).")
+        self.logger.info(f"Found {len(self.variants)} variant(s).")
+        self.logger.info("Found pipeline config.")
+        self.logger.info("-" * 80)

@@ -65,7 +65,7 @@ class RunCommand(Command):
     def do_run(self, config: RunCommandConfig) -> int:
         project_slurper = YangaProjectSlurper(config.project_dir)
         if config.print:
-            self.print_project_info(project_slurper)
+            project_slurper.print_project_info()
             return 0
         if not config.variant_name:
             variant_name = prompt_user_to_select_option([variant.name for variant in project_slurper.variants])
@@ -92,15 +92,6 @@ class RunCommand(Command):
         )
         PipelineStepsExecutor(project_slurper, variant_name, user_request, steps_references, config.force_run).run()
         return 0
-
-    def print_project_info(self, project_slurper: YangaProjectSlurper) -> None:
-        self.logger.info("-" * 80)
-        self.logger.info(f"Project directory: {project_slurper.project_dir}")
-        self.logger.info(f"Parsed {len(project_slurper.user_configs)} configuration file(s).")
-        self.logger.info(f"Found {len(project_slurper.components_configs_pool.values())} component(s).")
-        self.logger.info(f"Found {len(project_slurper.variants)} variant(s).")
-        self.logger.info("Found pipeline config.")
-        self.logger.info("-" * 80)
 
     def _register_arguments(self, parser: ArgumentParser) -> None:
         register_arguments_for_config_dataclass(parser, RunCommandConfig)
