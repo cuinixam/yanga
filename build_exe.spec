@@ -8,6 +8,15 @@ from pathlib import Path
 # We need to copy the VERSION.txt to the build directory in the cookiecutter directory.
 cookiecutter_version_file = Path(cookiecutter.__file__).parent / "VERSION.txt"
 
+# Directory containing all the pipeline steps modules
+steps_dir = Path('src/yanga/steps')
+# List all .py files in the directory, excluding __init__.py
+modules = [f.stem for f in steps_dir.glob('*.py') if f.name != '__init__.py']
+# Convert file names to module names
+steps_module_paths = [f"yanga.steps.{module}" for module in modules]
+print(steps_module_paths)
+
+
 block_cipher = None
 
 a = Analysis(
@@ -19,7 +28,7 @@ a = Analysis(
         ("src/yanga/commands/project_templates/", "yanga/commands/project_templates/"),
         ("src/yanga/gui/resources", "yanga/gui/resources"),
     ],
-    hiddenimports=["cookiecutter.extensions", "yanga.ybuild.stages"],
+    hiddenimports=["cookiecutter.extensions"] + steps_module_paths,
     hookspath=[],
     runtime_hooks=[],
     excludes=[],
