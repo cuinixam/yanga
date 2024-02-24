@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## v1.3.0 (2024-02-24)
+
+### Feature
+
+* Add support for platform toolchain file ([`6c4ff60`](https://github.com/cuinixam/yanga/commit/6c4ff60de13a6c5c1f77f77851f879c36f9d750f))
+
 ## v1.2.1 (2024-02-24)
 
 ### Fix
