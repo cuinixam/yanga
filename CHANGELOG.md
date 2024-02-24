@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## v1.2.1 (2024-02-24)
+
+### Fix
+
+* Standalone exe causes antivirus false positive ([`d55bfdd`](https://github.com/cuinixam/yanga/commit/d55bfdd6112119ad473131abceb8643871fbb18b))
+
 ## v1.2.0 (2024-02-24)
 
 ### Feature
