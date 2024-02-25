@@ -45,6 +45,9 @@ class VariantConfig(DataClassDictMixin):
     platform: Optional[str] = None
     #: Configuration
     config_file: Optional[str] = None
+    # This field is intended to keep track of where configuration was loaded from and
+    # it is automatically added when configuration is loaded from file
+    file: Optional[Path] = None
 
 
 @dataclass

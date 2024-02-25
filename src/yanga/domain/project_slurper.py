@@ -5,6 +5,8 @@ from py_app_dev.core.exceptions import UserNotificationException
 from py_app_dev.core.logging import logger
 from py_app_dev.core.pipeline import PipelineConfig
 
+from yanga.domain.artifacts import ProjectArtifactsLocator
+
 from .components import Component, ComponentType
 from .config import ComponentConfig, PlatformConfig, VariantConfig, YangaUserConfig
 from .config_slurper import YangaConfigSlurper
@@ -37,7 +39,8 @@ class YangaProjectSlurper:
 
     def get_variant_config_file(self, variant_name: str) -> Optional[Path]:
         variant = self.get_variant_config(variant_name)
-        return self.project_dir.joinpath(variant.config_file) if variant.config_file else None
+        artifacts_locator = ProjectArtifactsLocator(self.project_dir, variant_name)
+        return artifacts_locator.locate_artifact(variant.config_file, [variant.file]) if variant.config_file else None
 
     def get_variant_components(self, variant_name: str) -> List[Component]:
         return self._collect_variant_components(self.get_variant_config(variant_name))
@@ -125,7 +128,9 @@ class YangaProjectSlurper:
     def _collect_variants(self, user_configs: List[YangaUserConfig]) -> List[VariantConfig]:
         variants = []
         for user_config in user_configs:
-            variants.extend(user_config.variants)
+            for variant in user_config.variants:
+                variant.file = user_config.file
+                variants.append(variant)
         return variants
 
     def _collect_platforms(self, user_configs: List[YangaUserConfig]) -> List[PlatformConfig]:
