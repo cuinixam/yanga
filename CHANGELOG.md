@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## v1.5.1 (2024-02-25)
+
+### Fix
+
+* Cmake generators loader can not find generator ([`3d68968`](https://github.com/cuinixam/yanga/commit/3d6896822e0f3f5341c223e9f4c5b0bb8e766e4a))
+
 ## v1.5.0 (2024-02-25)
 
 ### Feature
