@@ -1,6 +1,7 @@
 """Used to run ymain from the command line when run from this repository.
 This is required because yanga module is not visible when running
 from the repository."""
+
 import runpy
 import sys
 from pathlib import Path

@@ -89,4 +89,6 @@ class ExecutionContext:
         return SubprocessExecutor(command, cwd=cwd, env=env, shell=True)  # nosec
 
     def create_artifacts_locator(self) -> ProjectArtifactsLocator:
-        return ProjectArtifactsLocator(self.project_root_dir, self.variant_name)
+        return ProjectArtifactsLocator(
+            self.project_root_dir, self.variant_name, self.platform.name if self.platform else None
+        )

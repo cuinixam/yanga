@@ -3,13 +3,10 @@ from typing import List
 
 from py_app_dev.core.logging import logger
 
+from yanga.cmake.builder import CMakeBuildSystemGenerator
+from yanga.cmake.runner import CMakeRunner
 from yanga.domain.execution_context import ExecutionContext
 from yanga.domain.pipeline import PipelineStep
-from yanga.ybuild.backends.cmake import CMakeRunner
-from yanga.ybuild.generators.build_system import (
-    BuildSystemBackend,
-    BuildSystemGenerator,
-)
 
 
 class GenerateBuildSystemFiles(PipelineStep):
@@ -23,9 +20,7 @@ class GenerateBuildSystemFiles(PipelineStep):
 
     def run(self) -> int:
         self.logger.info(f"Run {self.__class__.__name__} stage. Output dir: {self.output_dir}")
-        generated_files = BuildSystemGenerator(
-            BuildSystemBackend.CMAKE, self.execution_context, self.output_dir
-        ).generate()
+        generated_files = CMakeBuildSystemGenerator(self.execution_context, self.output_dir).generate()
         for file in generated_files:
             file.to_file()
         self.generated_files = [file.path for file in generated_files]
@@ -36,6 +31,9 @@ class GenerateBuildSystemFiles(PipelineStep):
 
     def get_outputs(self) -> List[Path]:
         return self.generated_files
+
+    def update_execution_context(self) -> None:
+        pass
 
 
 class ExecuteBuild(PipelineStep):
@@ -60,3 +58,6 @@ class ExecuteBuild(PipelineStep):
 
     def get_outputs(self) -> List[Path]:
         return []
+
+    def update_execution_context(self) -> None:
+        pass

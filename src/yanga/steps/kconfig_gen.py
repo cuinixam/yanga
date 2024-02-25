@@ -43,8 +43,6 @@ class KConfigGen(PipelineStep):
         self.input_files = kconfig.get_parsed_files()
         config = kconfig.collect_config_data()
         HeaderWriter(self.header_file).write(config)
-        # Update the include directories for the subsequent steps
-        self.execution_context.add_include_dirs_provider(KConfigIncludeDirectoriesProvider(self.output_dir))
         return 0
 
     def get_inputs(self) -> List[Path]:
@@ -55,3 +53,7 @@ class KConfigGen(PipelineStep):
 
     def get_outputs(self) -> List[Path]:
         return [self.header_file]
+
+    def update_execution_context(self) -> None:
+        # Update the include directories for the subsequent steps
+        self.execution_context.add_include_dirs_provider(KConfigIncludeDirectoriesProvider(self.output_dir))

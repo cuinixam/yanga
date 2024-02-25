@@ -48,3 +48,6 @@ class WestInstall(PipelineStep):
 
     def get_outputs(self) -> List[Path]:
         return []
+
+    def update_execution_context(self) -> None:
+        pass

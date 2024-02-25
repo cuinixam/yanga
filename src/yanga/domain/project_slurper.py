@@ -5,6 +5,8 @@ from py_app_dev.core.exceptions import UserNotificationException
 from py_app_dev.core.logging import logger
 from py_app_dev.core.pipeline import PipelineConfig
 
+from yanga.domain.artifacts import ProjectArtifactsLocator
+
 from .components import Component, ComponentType
 from .config import ComponentConfig, PlatformConfig, VariantConfig, YangaUserConfig
 from .config_slurper import YangaConfigSlurper
@@ -37,18 +39,18 @@ class YangaProjectSlurper:
 
     def get_variant_config_file(self, variant_name: str) -> Optional[Path]:
         variant = self.get_variant_config(variant_name)
-        return self.project_dir.joinpath(variant.config_file) if variant.config_file else None
+        artifacts_locator = ProjectArtifactsLocator(self.project_dir, variant_name, None)
+        return artifacts_locator.locate_artifact(variant.config_file, [variant.file]) if variant.config_file else None
 
     def get_variant_components(self, variant_name: str) -> List[Component]:
         return self._collect_variant_components(self.get_variant_config(variant_name))
 
-    def get_variant_platform(self, variant_name: str) -> Optional[PlatformConfig]:
-        variant = self.get_variant_config(variant_name)
-        if not variant.platform:
+    def get_platform(self, platform_name: Optional[str]) -> Optional[PlatformConfig]:
+        if not platform_name:
             return None
-        platform = next((p for p in self.platforms if p.name == variant.platform), None)
+        platform = next((p for p in self.platforms if p.name == platform_name), None)
         if not platform:
-            raise UserNotificationException(f"Platform '{variant.platform}' not found in the configuration.")
+            raise UserNotificationException(f"Platform '{platform_name}' not found in the configuration.")
         return platform
 
     def _collect_variant_components(self, variant: VariantConfig) -> List[Component]:
@@ -125,7 +127,9 @@ class YangaProjectSlurper:
     def _collect_variants(self, user_configs: List[YangaUserConfig]) -> List[VariantConfig]:
         variants = []
         for user_config in user_configs:
-            variants.extend(user_config.variants)
+            for variant in user_config.variants:
+                variant.file = user_config.file
+                variants.append(variant)
         return variants
 
     def _collect_platforms(self, user_configs: List[YangaUserConfig]) -> List[PlatformConfig]:
@@ -142,6 +146,11 @@ class YangaProjectSlurper:
         self.logger.info(f"Project directory: {self.project_dir}")
         self.logger.info(f"Parsed {len(self.user_configs)} configuration file(s).")
         self.logger.info(f"Found {len(self.components_configs_pool.values())} component(s).")
-        self.logger.info(f"Found {len(self.variants)} variant(s).")
+        self.logger.info(f"Found {len(self.variants)} variant(s):")
+        for variant in self.variants:
+            self.logger.info(f"  - {variant.name}")
+        self.logger.info(f"Found {len(self.platforms)} platforms(s):")
+        for platform in self.platforms:
+            self.logger.info(f"  - {platform.name}")
         self.logger.info("Found pipeline config.")
         self.logger.info("-" * 80)

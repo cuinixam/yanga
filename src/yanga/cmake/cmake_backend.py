@@ -8,8 +8,6 @@ from typing import Any, List, Optional, Union
 from py_app_dev.core.logging import logger, time_it
 from py_app_dev.core.subprocess import SubprocessExecutor
 
-from .generated_file import GeneratedFile
-
 
 def make_list_unique(seq: List[Any]) -> List[Any]:
     return list(dict.fromkeys(seq))
@@ -368,17 +366,29 @@ class CMakeListAppend(CMakeElement):
         return " ".join(self.values)
 
 
-class CMakeFile(GeneratedFile):
+class CMakeFile:
     def __init__(self, path: Path) -> None:
-        super().__init__(path)
+        self.path = path
         self.content: List[CMakeElement] = []
 
     def to_string(self) -> str:
         return "\n".join(str(elem) for elem in self.content)
 
+    def to_file(self) -> None:
+        dir = self.path.parent
+        if not dir.exists():
+            dir.mkdir(parents=True, exist_ok=True)
+        with open(self.path, "w") as f:
+            f.write(self.to_string())
+
     def append(self, content: Optional[CMakeElement]) -> "CMakeFile":
         if content:
             self.content.append(content)
+        return self
+
+    def extend(self, content: List[CMakeElement]) -> "CMakeFile":
+        for element in content:
+            self.append(element)
         return self
 
 
@@ -388,57 +398,6 @@ class CMakeEnableTesting(CMakeElement):
 
     def to_string(self) -> str:
         return "enable_testing()"
-
-
-class CMakeLists(GeneratedFile):
-    tab_prefix = " " * 4
-
-    def __init__(self, path: Path) -> None:
-        super().__init__(path)
-        self.project_name = ""
-        self.cmake_version = ""
-        self.source_files: List[Path] = []
-        self.include_directories: List[Path] = []
-        self.libraries: List[CMakeLibrary] = []
-
-    def to_string(self) -> str:
-        content = [
-            f"cmake_minimum_required(VERSION {self.cmake_version})",
-            f"project({self.project_name})",
-            "",
-            "set(CMAKE_CXX_STANDARD 99)",
-            "",
-            "set(CMAKE_C_COMPILER clang)",
-            "set(CMAKE_CXX_COMPILER clang++)",
-            "",
-        ]
-        content.extend(self._generate_source_files())
-        content.append("")
-        content.extend(self._generate_libraries())
-        content.append("")
-        content.extend(self._generate_include_directories())
-        libraries_deps = ""
-        if self.libraries:
-            libraries_deps = " ".join([f"$<TARGET_OBJECTS:{library.target_name}>" for library in self.libraries])
-
-        content.append("")
-        content.append(f"add_executable(${{PROJECT_NAME}} ${{SOURCE_FILES}} {libraries_deps})")
-        return "\n".join(content) + "\n"
-
-    def _generate_source_files(self) -> List[str]:
-        return ["set(SOURCE_FILES "] + self._add_tabulated_paths(self.source_files) + [")"]
-
-    def _generate_libraries(self) -> List[str]:
-        return [library.to_string() for library in self.libraries]
-
-    def _generate_include_directories(self) -> List[str]:
-        return ["include_directories("] + self._add_tabulated_paths(self.include_directories) + [")"]
-
-    def _add_tabulated_paths(self, paths: List[Path]) -> List[str]:
-        return [self._add_tabulated_path(path) for path in paths]
-
-    def _add_tabulated_path(self, path: Path) -> str:
-        return self.tab_prefix + path.absolute().as_posix()
 
 
 class CMakeRunner:

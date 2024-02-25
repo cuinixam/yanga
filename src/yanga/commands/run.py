@@ -1,22 +1,25 @@
 from argparse import ArgumentParser, Namespace
 from dataclasses import dataclass, field
-from typing import Optional
+from typing import List, Optional
 
 from py_app_dev.core.cmd_line import Command, register_arguments_for_config_dataclass
 from py_app_dev.core.exceptions import UserNotificationException
 from py_app_dev.core.logging import logger, time_it
 
+from yanga.domain.config import PlatformConfig, VariantConfig
 from yanga.domain.execution_context import UserRequest, UserRequestScope
 from yanga.domain.project_slurper import YangaProjectSlurper
-from yanga.yrun.pipeline import PipelineScheduler, PipelineStepsExecutor
+from yanga.yrun import PipelineScheduler, PipelineStepsExecutor
 
 from .base import CommandConfigBase, CommandConfigFactory, prompt_user_to_select_option
-
-# TODO: Refactor this and the build command to avoid code duplication
 
 
 @dataclass
 class RunCommandConfig(CommandConfigBase):
+    platform: Optional[str] = field(
+        default=None,
+        metadata={"help": "Platform for which to build (see the available platforms in the configuration)."},
+    )
     variant_name: Optional[str] = field(
         default=None, metadata={"help": "SPL variant name. If none is provided, it will prompt to select one."}
     )
@@ -67,12 +70,8 @@ class RunCommand(Command):
         if config.print:
             project_slurper.print_project_info()
             return 0
-        if not config.variant_name:
-            variant_name = prompt_user_to_select_option([variant.name for variant in project_slurper.variants])
-        else:
-            variant_name = config.variant_name
-        if not variant_name:
-            self.logger.warning("No variant selected. This might cause some steps to fail.")
+        variant_name = self.determine_variant_name(config.variant_name, project_slurper.variants)
+        platform_name = self.determine_platform_name(config.platform, project_slurper.platforms)
         if not project_slurper.pipeline:
             raise UserNotificationException("No pipeline found in the configuration.")
         # Schedule the steps to run
@@ -90,8 +89,46 @@ class RunCommand(Command):
             config.component_name,
             config.target,
         )
-        PipelineStepsExecutor(project_slurper, variant_name, user_request, steps_references, config.force_run).run()
+        PipelineStepsExecutor(
+            project_slurper, variant_name, platform_name, user_request, steps_references, config.force_run
+        ).run()
         return 0
+
+    def determine_variant_name(
+        self, variant_name: Optional[str], variant_configs: List[VariantConfig]
+    ) -> Optional[str]:
+        selected_variant_name: Optional[str]
+        if not variant_name:
+            if len(variant_configs) == 1:
+                selected_variant_name = variant_configs[0].name
+                self.logger.info(f"Only one variant found. Using '{selected_variant_name}'.")
+            else:
+                selected_variant_name = prompt_user_to_select_option(
+                    [variant.name for variant in variant_configs], "Select variant: "
+                )
+        else:
+            selected_variant_name = variant_name
+        if not selected_variant_name:
+            self.logger.warning("No variant selected. This might cause some steps to fail.")
+        return selected_variant_name
+
+    def determine_platform_name(
+        self, platform_name: Optional[str], platform_configs: List[PlatformConfig]
+    ) -> Optional[str]:
+        selected_platform_name: Optional[str]
+        if not platform_name:
+            if len(platform_configs) == 1:
+                selected_platform_name = platform_configs[0].name
+                self.logger.info(f"Only one platform found. Using '{selected_platform_name}'.")
+            else:
+                selected_platform_name = prompt_user_to_select_option(
+                    [platform.name for platform in platform_configs], "Select platform: "
+                )
+        else:
+            selected_platform_name = platform_name
+        if not selected_platform_name:
+            self.logger.warning("No platform selected. This might cause some steps to fail.")
+        return selected_platform_name
 
     def _register_arguments(self, parser: ArgumentParser) -> None:
         register_arguments_for_config_dataclass(parser, RunCommandConfig)
