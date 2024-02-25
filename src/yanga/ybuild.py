@@ -2,9 +2,10 @@ from collections import OrderedDict
 from pathlib import Path
 from typing import List, Type
 
+from py_app_dev.core.logging import logger
 from py_app_dev.core.pipeline import PipelineConfig
 from py_app_dev.core.pipeline import PipelineLoader as GenericPipelineLoader
-from py_app_dev.core.logging import logger
+
 from .cmake.cmake_backend import (
     CMakeFile,
     CMakeInclude,
@@ -13,7 +14,6 @@ from .cmake.cmake_backend import (
     CMakeProject,
     CMakeVariable,
 )
-
 from .cmake.generator import CMakeGenerator
 from .domain.execution_context import ExecutionContext
 

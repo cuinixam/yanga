@@ -1,8 +1,6 @@
 from typing import List, Type, TypeVar
 
-from yanga.cmake.cmake_backend import (
-    CMakeElement,
-)
+from yanga.cmake.cmake_backend import CMakeElement
 
 T = TypeVar("T", bound=CMakeElement)
 

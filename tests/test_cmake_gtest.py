@@ -1,6 +1,8 @@
 from pathlib import Path
 from unittest.mock import Mock
+
 import pytest
+
 from tests.utils import CMakeAnalyzer
 from yanga.cmake.cmake_backend import (
     CMakeAddExecutable,
@@ -10,7 +12,6 @@ from yanga.cmake.cmake_backend import (
 )
 from yanga.cmake.gtest import GTestCMakeGenerator
 from yanga.domain.components import Component, ComponentType
-
 from yanga.domain.execution_context import ExecutionContext
 
 

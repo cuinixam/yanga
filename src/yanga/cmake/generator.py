@@ -2,9 +2,9 @@ from abc import ABC, abstractmethod
 from pathlib import Path
 from typing import List
 
-from .cmake_backend import CMakeElement
-
 from yanga.domain.execution_context import ExecutionContext
+
+from .cmake_backend import CMakeElement
 
 
 class CMakeGenerator(ABC):

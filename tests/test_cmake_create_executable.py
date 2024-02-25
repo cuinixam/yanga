@@ -1,17 +1,17 @@
 from pathlib import Path
-import pytest
 from unittest.mock import Mock
+
+import pytest
+
+from tests.utils import CMakeAnalyzer
 from yanga.cmake.cmake_backend import (
     CMakeAddExecutable,
     CMakeCustomTarget,
-    CMakeIncludeDirectories,
     CMakeObjectLibrary,
 )
 from yanga.cmake.create_executable import CreateExecutableCMakeGenerator
-from yanga.domain.artifacts import ProjectArtifactsLocator
 from yanga.domain.components import Component, ComponentType
 from yanga.domain.execution_context import ExecutionContext
-from tests.utils import CMakeAnalyzer
 
 
 @pytest.fixture
