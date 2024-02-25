@@ -2,6 +2,15 @@
 
 <!--next-version-placeholder-->
 
+## v1.5.0 (2024-02-25)
+
+### Feature
+
+* Update mini project for vscode cmake extension ([`78614f3`](https://github.com/cuinixam/yanga/commit/78614f377706d5f833517a6a461597b1e47b8d2c))
+* Update gui to support platforms ([`327652d`](https://github.com/cuinixam/yanga/commit/327652d6065c940fccdca76e897cbd320252a939))
+* Dynamically load cmake generators ([`000c96f`](https://github.com/cuinixam/yanga/commit/000c96f5a32695d929c36aaaab2e7142ea331e35))
+* Variant config location is flexible ([`14bcc07`](https://github.com/cuinixam/yanga/commit/14bcc07e662c9820b5aaa2f409b1546f28abd88e))
+
 ## v1.4.0 (2024-02-24)
 
 ### Feature
