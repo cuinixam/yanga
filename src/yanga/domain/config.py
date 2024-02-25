@@ -1,11 +1,16 @@
 from dataclasses import dataclass, field
+import io
+import json
 from pathlib import Path
+import traceback
 from typing import Any, Dict, List, Optional
 
 import yaml
 from mashumaro import DataClassDictMixin
+from mashumaro.mixins.json import DataClassJSONMixin
+from mashumaro.config import BaseConfig, TO_DICT_ADD_OMIT_NONE_FLAG
 from py_app_dev.core.exceptions import UserNotificationException
-from py_app_dev.core.pipeline import PipelineConfig
+from py_app_dev.core.pipeline import PipelineConfig, PipelineStepConfig
 from yaml.parser import ParserError
 from yaml.scanner import ScannerError
 
@@ -18,6 +23,8 @@ class PlatformConfig(DataClassDictMixin):
     description: Optional[str] = None
     #: Toolchain file
     toolchain_file: Optional[str] = None
+    #: Build system cmake generators
+    cmake_generators: List[PipelineStepConfig] = field(default_factory=list)
     # This field is intended to keep track of where configuration was loaded from and
     # it is automatically added when configuration is loaded from file
     file: Optional[Path] = None
@@ -98,3 +105,24 @@ class YangaUserConfig(DataClassDictMixin):
             raise UserNotificationException(f"Failed scanning configuration file '{config_file}'. \nError: {e}")
         except ParserError as e:
             raise UserNotificationException(f"Failed parsing configuration file '{config_file}'. \nError: {e}")
+
+
+class BaseConfigJSONMixin(DataClassJSONMixin):
+    class Config(BaseConfig):
+        code_generation_options = [TO_DICT_ADD_OMIT_NONE_FLAG]
+
+    @classmethod
+    def from_json_file(cls, file_path: Path):
+        try:
+            result = cls.from_dict(json.loads(file_path.read_text()))
+        except Exception:
+            output = io.StringIO()
+            traceback.print_exc(file=output)
+            raise UserNotificationException(output.getvalue())
+        return result
+
+    def to_json_string(self) -> str:
+        return json.dumps(self.to_dict(omit_none=True), indent=2)
+
+    def to_json_file(self, file_path: Path):
+        file_path.write_text(self.to_json_string())

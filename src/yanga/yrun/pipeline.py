@@ -38,6 +38,7 @@ class PipelineStepsExecutor:
         self,
         project_slurper: YangaProjectSlurper,
         variant_name: Optional[str],
+        platform_name: Optional[str],
         user_request: UserRequest,
         steps_references: List[PipelineStepReference],
         force_run: bool = False,
@@ -45,6 +46,7 @@ class PipelineStepsExecutor:
         self.logger = logger.bind()
         self.project_slurper = project_slurper
         self.variant_name = variant_name
+        self.platform_name = platform_name
         self.user_request = user_request
         self.steps_references = steps_references
         self.force_run = force_run
@@ -59,16 +61,19 @@ class PipelineStepsExecutor:
             config_file=self.project_slurper.get_variant_config_file(self.variant_name) if self.variant_name else None,
             install_dirs=[],
             include_dirs_providers=[],
-            platform=self.project_slurper.get_variant_platform(self.variant_name) if self.variant_name else None,
+            platform=self.project_slurper.get_platform(self.platform_name),
         )
         for step_reference in self.steps_references:
-            artifacts_locator = ProjectArtifactsLocator(self.project_slurper.project_dir, self.variant_name)
-            if not artifacts_locator.variant_build_dir:
-                step_output_dir = artifacts_locator.build_dir / step_reference.group_name
-            else:
-                step_output_dir = artifacts_locator.variant_build_dir / step_reference.group_name
+            artifacts_locator = ProjectArtifactsLocator(
+                self.project_slurper.project_dir, self.variant_name, self.platform_name
+            )
+            step_output_dir = artifacts_locator.variant_build_dir / step_reference.group_name
             step = step_reference._class(execution_context, step_output_dir)
+            # Execute the step is necessary. If the step is not dirty, it will not be executed
             Executor(step.output_dir, self.force_run).execute(step)
+            # Independent if the step was executed or not, every step shall update the context
+            step.update_execution_context()
+
         return 0
 
 

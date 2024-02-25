@@ -1,3 +1,4 @@
+from abc import abstractmethod
 from pathlib import Path
 from typing import Type
 
@@ -11,6 +12,10 @@ class PipelineStep(Runnable):
         self.execution_context = execution_context
         self.output_dir = output_dir
         self.project_root_dir = self.execution_context.project_root_dir
+
+    @abstractmethod
+    def update_execution_context(self) -> None:
+        pass
 
 
 class PipelineStepReference:

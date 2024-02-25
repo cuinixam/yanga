@@ -34,7 +34,7 @@ class CommandConfigBase(DataClassDictMixin):
     )
 
 
-def prompt_user_to_select_option(options: List[str]) -> Optional[str]:
+def prompt_user_to_select_option(options: List[str], prompt: str) -> Optional[str]:
     if not options:
         return None
     # If there is only one option, return it immediately
@@ -45,7 +45,7 @@ def prompt_user_to_select_option(options: List[str]) -> Optional[str]:
         # In this case, after pick method returns, the execution is paused until the user presses any key.
         # I have no idea why that happens.
         logger.info("Press any key to continue...")
-        selected_variant, _ = pick(options, "Select a variant: ", indicator="=>")
+        selected_variant, _ = pick(options, prompt, indicator="=>")
     except KeyboardInterrupt:
         selected_variant = None
     return str(selected_variant) if selected_variant else None

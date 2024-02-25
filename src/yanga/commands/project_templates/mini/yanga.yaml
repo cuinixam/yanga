@@ -17,7 +17,6 @@ variants:
       components:
         - main
         - greeter
-    platform: win_exe
   - name: GermanVariant
     description: Say hello in German.
     bom:

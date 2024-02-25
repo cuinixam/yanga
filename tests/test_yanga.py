@@ -21,13 +21,13 @@ def test_yanga_mini(tmp_path: Path) -> None:
     # Bootstrap the project
     SubprocessExecutor(["powershell", "-File", build_script_path.as_posix()]).execute()
     # Build the project
-    assert 0 == RunCommand().do_run(RunCommandConfig(project_dir, "GermanVariant"))
+    assert 0 == RunCommand().do_run(RunCommandConfig(project_dir, "win_exe", "GermanVariant"))
     # Check for the build artifacts
-    binary_exe = project_dir.joinpath("build/GermanVariant/build/GermanVariant.exe")
+    binary_exe = project_dir.joinpath("build/GermanVariant/win_exe/build/GermanVariant.exe")
     assert binary_exe.exists()
     # Incremental build shall not rebuild the project
     write_time = binary_exe.stat().st_mtime
-    assert 0 == RunCommand().do_run(RunCommandConfig(project_dir, "GermanVariant"))
+    assert 0 == RunCommand().do_run(RunCommandConfig(project_dir, "win_exe", "GermanVariant"))
     assert write_time == binary_exe.stat().st_mtime, "Binary file was rebuilt"
 
 
@@ -37,6 +37,7 @@ def test_yanga_scoop_install_stage(tmp_path: Path) -> None:
     # Create example project
     YangaInit(InitCommandConfig(project_dir=project_dir)).run()
     exec_context = ExecutionContext(project_dir, "my_variant", UserVariantRequest("my_variant"))
-    stage = ScoopInstall(exec_context, tmp_path / "output_scoop")
+    stage = ScoopInstall(exec_context, tmp_path)
     stage.run()
+    stage.update_execution_context()
     assert len(exec_context.install_dirs) == 2
