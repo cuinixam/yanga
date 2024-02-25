@@ -5,7 +5,7 @@ from typing import List, Type
 from py_app_dev.core.pipeline import PipelineConfig
 from py_app_dev.core.pipeline import PipelineLoader as GenericPipelineLoader
 from py_app_dev.core.logging import logger
-from yanga.cmake_generators.cmake_backend import (
+from .cmake_backend import (
     CMakeFile,
     CMakeInclude,
     CMakeMinimumVersion,
@@ -14,7 +14,7 @@ from yanga.cmake_generators.cmake_backend import (
     CMakeVariable,
 )
 
-from yanga.cmake_generators.generator import CMakeGenerator
+from .generator import CMakeGenerator
 from yanga.domain.execution_context import ExecutionContext
 
 

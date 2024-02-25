@@ -2,11 +2,11 @@ from pathlib import Path
 from typing import List
 
 from py_app_dev.core.logging import logger
-from yanga.cmake_generators.builder import CMakeBuildSystemGenerator
 
+from yanga.cmake.builder import CMakeBuildSystemGenerator
+from yanga.cmake.runner import CMakeRunner
 from yanga.domain.execution_context import ExecutionContext
 from yanga.domain.pipeline import PipelineStep
-from yanga.ybuild.backends.cmake import CMakeRunner
 
 
 class GenerateBuildSystemFiles(PipelineStep):

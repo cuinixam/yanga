@@ -88,7 +88,7 @@ class GTestCMakeGenerator(CMakeGenerator):
                 continue
             cmake_file.append(CMakeComment(f"Component {component.name}"))
             sources = component_analyzer.collect_sources() + component_analyzer.collect_test_sources()
-            component_test_executable_target = f"{component.name}_build_test_executable"
+            component_test_executable_target = f"{component.name}"
             cmake_file.append(
                 CMakeAddExecutable(
                     component_test_executable_target,
@@ -122,16 +122,27 @@ class GTestCMakeGenerator(CMakeGenerator):
                     [command],
                 )
             )
-            cmake_file.append(
-                CMakeCustomTarget(
-                    UserRequest(
-                        UserRequestScope.COMPONENT, self.variant_name, component.name, UserRequestTarget.TEST
-                    ).target_name,
-                    f"Execute tests for {component.name}",
-                    [],
-                    outputs,  # type: ignore
-                    True,
-                )
+            cmake_file.extend(
+                [
+                    CMakeCustomTarget(
+                        UserRequest(
+                            UserRequestScope.COMPONENT, self.variant_name, component.name, UserRequestTarget.TEST
+                        ).target_name,
+                        f"Execute tests for {component.name}",
+                        [],
+                        outputs,  # type: ignore
+                        True,
+                    ),
+                    CMakeCustomTarget(
+                        UserRequest(
+                            UserRequestScope.COMPONENT, self.variant_name, component.name, UserRequestTarget.BUILD
+                        ).target_name,
+                        f"Execute tests for {component.name}",
+                        [],
+                        outputs,  # type: ignore
+                        True,
+                    ),
+                ]
             )
             cmake_file.append(CMakeContent(f"gtest_discover_tests({component_test_executable_target})"))
             cmake_file.append(CMakeEmptyLine())

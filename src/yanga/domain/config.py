@@ -1,14 +1,14 @@
-from dataclasses import dataclass, field
 import io
 import json
-from pathlib import Path
 import traceback
+from dataclasses import dataclass, field
+from pathlib import Path
 from typing import Any, Dict, List, Optional
 
 import yaml
 from mashumaro import DataClassDictMixin
+from mashumaro.config import TO_DICT_ADD_OMIT_NONE_FLAG, BaseConfig
 from mashumaro.mixins.json import DataClassJSONMixin
-from mashumaro.config import BaseConfig, TO_DICT_ADD_OMIT_NONE_FLAG
 from py_app_dev.core.exceptions import UserNotificationException
 from py_app_dev.core.pipeline import PipelineConfig, PipelineStepConfig
 from yaml.parser import ParserError
@@ -112,7 +112,7 @@ class BaseConfigJSONMixin(DataClassJSONMixin):
         code_generation_options = [TO_DICT_ADD_OMIT_NONE_FLAG]
 
     @classmethod
-    def from_json_file(cls, file_path: Path):
+    def from_json_file(cls, file_path: Path) -> "BaseConfigJSONMixin":
         try:
             result = cls.from_dict(json.loads(file_path.read_text()))
         except Exception:
@@ -124,5 +124,5 @@ class BaseConfigJSONMixin(DataClassJSONMixin):
     def to_json_string(self) -> str:
         return json.dumps(self.to_dict(omit_none=True), indent=2)
 
-    def to_json_file(self, file_path: Path):
+    def to_json_file(self, file_path: Path) -> None:
         file_path.write_text(self.to_json_string())

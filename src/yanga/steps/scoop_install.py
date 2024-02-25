@@ -4,8 +4,8 @@ from typing import List
 
 from py_app_dev.core.logging import logger
 from py_app_dev.core.scoop_wrapper import ScoopWrapper
-from yanga.domain.config import BaseConfigJSONMixin
 
+from yanga.domain.config import BaseConfigJSONMixin
 from yanga.domain.execution_context import ExecutionContext
 from yanga.domain.pipeline import PipelineStep
 

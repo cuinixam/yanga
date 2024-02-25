@@ -17,7 +17,7 @@ from yanga.domain.execution_context import (
     UserVariantRequest,
 )
 from yanga.domain.project_slurper import YangaProjectSlurper
-from yanga.yrun.pipeline import PipelineScheduler, PipelineStepsExecutor
+from yanga.yrun import PipelineScheduler, PipelineStepsExecutor
 
 from .icons import Icons
 
@@ -54,7 +54,7 @@ class YangaView(View):
 
         # Configure the main window
         self.root.title("YANGA")
-        self.root.geometry(f"{220}x{500}")
+        self.root.geometry(f"{220}x{450}")
 
         # update app icon
         self.root.iconbitmap(Icons.YANGA_ICON.file)
@@ -190,12 +190,12 @@ class YangaView(View):
         self.component_build_button.grid(row=position_in_grid, column=0, sticky="nsew", padx=10, pady=5)
         position_in_grid += 1
 
-        # Create component clean button
-        self.component_clean_button = customtkinter.CTkButton(
-            current_frame, text="Clean", command=self._component_clean_button_pressed
-        )
-        self.component_clean_button.grid(row=position_in_grid, column=0, sticky="nsew", padx=10, pady=5)
-        position_in_grid += 1
+        # # TODO: Create component clean button when it is implemented
+        # self.component_clean_button = customtkinter.CTkButton(
+        #     current_frame, text="Clean", command=self._component_clean_button_pressed
+        # )
+        # self.component_clean_button.grid(row=position_in_grid, column=0, sticky="nsew", padx=10, pady=5)
+        # position_in_grid += 1
 
         return components_frame
 

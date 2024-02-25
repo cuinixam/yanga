@@ -3,12 +3,12 @@ platforms:
     description: Build Windows executable with clang
     cmake_generators:
       - step: CreateExecutableCMakeGenerator
-        module: yanga.cmake_generators.create_executable
+        module: yanga.cmake.create_executable
     toolchain_file: clang.cmake
     is_default: true
   - name: gtest
     description: Build and run components GTest tests
     cmake_generators:
       - step: GTestCMakeGenerator
-        module: yanga.cmake_generators.gtest
+        module: yanga.cmake.gtest
     toolchain_file: gcc.cmake

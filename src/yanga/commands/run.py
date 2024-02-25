@@ -5,11 +5,11 @@ from typing import List, Optional
 from py_app_dev.core.cmd_line import Command, register_arguments_for_config_dataclass
 from py_app_dev.core.exceptions import UserNotificationException
 from py_app_dev.core.logging import logger, time_it
-from yanga.domain.config import PlatformConfig, VariantConfig
 
+from yanga.domain.config import PlatformConfig, VariantConfig
 from yanga.domain.execution_context import UserRequest, UserRequestScope
 from yanga.domain.project_slurper import YangaProjectSlurper
-from yanga.yrun.pipeline import PipelineScheduler, PipelineStepsExecutor
+from yanga.yrun import PipelineScheduler, PipelineStepsExecutor
 
 from .base import CommandConfigBase, CommandConfigFactory, prompt_user_to_select_option
 
@@ -94,7 +94,10 @@ class RunCommand(Command):
         ).run()
         return 0
 
-    def determine_variant_name(self, variant_name: Optional[str], variant_configs: List[VariantConfig]):
+    def determine_variant_name(
+        self, variant_name: Optional[str], variant_configs: List[VariantConfig]
+    ) -> Optional[str]:
+        selected_variant_name: Optional[str]
         if not variant_name:
             if len(variant_configs) == 1:
                 selected_variant_name = variant_configs[0].name
@@ -109,7 +112,10 @@ class RunCommand(Command):
             self.logger.warning("No variant selected. This might cause some steps to fail.")
         return selected_variant_name
 
-    def determine_platform_name(self, platform_name: Optional[str], platform_configs: List[PlatformConfig]):
+    def determine_platform_name(
+        self, platform_name: Optional[str], platform_configs: List[PlatformConfig]
+    ) -> Optional[str]:
+        selected_platform_name: Optional[str]
         if not platform_name:
             if len(platform_configs) == 1:
                 selected_platform_name = platform_configs[0].name
