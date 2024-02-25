@@ -24,11 +24,12 @@ from .icons import Icons
 
 class YangaEvent(EventID):
     BUILD_EVENT = auto()
-    COMPONENT_COMPILE_EVENT = auto()
-    COMPONENT_TEST_EVENT = auto()
+    COMPONENT_BUILD_EVENT = auto()
+    COMPONENT_CLEAN_EVENT = auto()
     REFRESH_EVENT = auto()
     VARIANT_SELECTED_EVENT = auto()
     CLEAN_VARIANT_EVENT = auto()
+    PLATFORM_SELECTED_EVENT = auto()
     OPEN_IN_VSCODE = auto()
 
 
@@ -36,6 +37,7 @@ class YangaView(View):
     def __init__(self, event_manager: EventManager) -> None:
         self.event_manager = event_manager
         self.root = customtkinter.CTk()
+        self.platforms: List[str] = []
         self.variants: List[str] = []
         self.components: List[str] = []
 
@@ -52,15 +54,17 @@ class YangaView(View):
 
         # Configure the main window
         self.root.title("YANGA")
-        self.root.geometry(f"{220}x{400}")
+        self.root.geometry(f"{220}x{500}")
 
         # update app icon
         self.root.iconbitmap(Icons.YANGA_ICON.file)
         position_in_grid = 0
 
-        self.variants_frame = self._create_variants_frame(self.root, position_in_grid)
+        self._create_platforms_frame(self.root, position_in_grid)
         position_in_grid += 1
-        self.components_frame = self._create_components_frame(self.root, position_in_grid)
+        self._create_variants_frame(self.root, position_in_grid)
+        position_in_grid += 1
+        self._create_components_frame(self.root, position_in_grid)
 
         # Bind F5 key to refresh functionality
         self.root.bind("<F5>", self._refresh_button_pressed)
@@ -68,10 +72,11 @@ class YangaView(View):
         # Create events
         self.build_trigger = self.event_manager.create_event_trigger(YangaEvent.BUILD_EVENT)
         self.clean_variant_trigger = self.event_manager.create_event_trigger(YangaEvent.CLEAN_VARIANT_EVENT)
-        self.component_compile_trigger = self.event_manager.create_event_trigger(YangaEvent.COMPONENT_COMPILE_EVENT)
-        self.component_test_trigger = self.event_manager.create_event_trigger(YangaEvent.COMPONENT_TEST_EVENT)
+        self.component_build_trigger = self.event_manager.create_event_trigger(YangaEvent.COMPONENT_BUILD_EVENT)
+        self.component_clean_trigger = self.event_manager.create_event_trigger(YangaEvent.COMPONENT_CLEAN_EVENT)
         self.refresh_trigger = self.event_manager.create_event_trigger(YangaEvent.REFRESH_EVENT)
         self.variant_selected_trigger = self.event_manager.create_event_trigger(YangaEvent.VARIANT_SELECTED_EVENT)
+        self.platform_selected_trigger = self.event_manager.create_event_trigger(YangaEvent.PLATFORM_SELECTED_EVENT)
         self.open_in_vscode_trigger = self.event_manager.create_event_trigger(YangaEvent.OPEN_IN_VSCODE)
 
     def _build_button_pressed(self) -> None:
@@ -83,11 +88,14 @@ class YangaView(View):
     def _variant_selected(self, variant_selected: str) -> None:
         self.variant_selected_trigger(variant_selected)
 
-    def _component_compile_button_pressed(self) -> None:
-        self.component_compile_trigger(self.selected_variant, self.selected_component)
+    def _platform_selected(self, platform_selected: str) -> None:
+        self.platform_selected_trigger(platform_selected)
 
-    def _component_test_button_pressed(self) -> None:
-        self.component_test_trigger(self.selected_variant, self.selected_component)
+    def _component_build_button_pressed(self) -> None:
+        self.component_build_trigger(self.selected_variant, self.selected_component)
+
+    def _component_clean_button_pressed(self) -> None:
+        self.component_clean_trigger(self.selected_variant, self.selected_component)
 
     def _clean_variant_button_pressed(self) -> None:
         self.clean_variant_trigger(self.selected_variant)
@@ -98,6 +106,26 @@ class YangaView(View):
     def mainloop(self) -> None:
         self.root.mainloop()
 
+    def _create_platforms_frame(self, root: customtkinter.CTk, position_in_root_grid: int) -> customtkinter.CTkFrame:
+        # Create the frame for all elements related to platforms
+        platforms_frame = customtkinter.CTkFrame(root)
+        platforms_frame.grid(row=position_in_root_grid, column=0, sticky="nsew", padx=10, pady=10)
+        current_frame = platforms_frame
+        position_in_grid = 0
+
+        # Create platform label
+        variants_label = customtkinter.CTkLabel(current_frame, text="Platforms", anchor="w")
+        variants_label.grid(row=position_in_grid, column=0, sticky="nsew", padx=10, pady=5)
+        position_in_grid += 1
+
+        # Create platform selection list
+        self.platform_selection = customtkinter.CTkOptionMenu(current_frame, command=self._platform_selected)
+        self.platform_selection.grid(row=position_in_grid, column=0, sticky="nsew", padx=10, pady=5)
+        self.update_platforms(self.platforms)
+        position_in_grid += 1
+
+        return platforms_frame
+
     def _create_variants_frame(self, root: customtkinter.CTk, position_in_root_grid: int) -> customtkinter.CTkFrame:
         # Create the frame for all elements related to variants
         variants_frame = customtkinter.CTkFrame(root)
@@ -105,7 +133,7 @@ class YangaView(View):
         current_frame = variants_frame
         position_in_grid = 0
 
-        # Create label aligned to left
+        # Create variant label
         variants_label = customtkinter.CTkLabel(current_frame, text="Variants", anchor="w")
         variants_label.grid(row=position_in_grid, column=0, sticky="nsew", padx=10, pady=5)
         position_in_grid += 1
@@ -155,21 +183,27 @@ class YangaView(View):
 
         position_in_grid += 1
 
-        # Create component compile button
-        self.component_compile_button = customtkinter.CTkButton(
-            current_frame, text="Compile", command=self._component_compile_button_pressed
+        # Create component build button
+        self.component_build_button = customtkinter.CTkButton(
+            current_frame, text="Build", command=self._component_build_button_pressed
         )
-        self.component_compile_button.grid(row=position_in_grid, column=0, sticky="nsew", padx=10, pady=5)
+        self.component_build_button.grid(row=position_in_grid, column=0, sticky="nsew", padx=10, pady=5)
         position_in_grid += 1
 
-        # Create component test button
-        self.component_test_button = customtkinter.CTkButton(
-            current_frame, text="Test", command=self._component_test_button_pressed
+        # Create component clean button
+        self.component_clean_button = customtkinter.CTkButton(
+            current_frame, text="Clean", command=self._component_clean_button_pressed
         )
-        self.component_test_button.grid(row=position_in_grid, column=0, sticky="nsew", padx=10, pady=5)
+        self.component_clean_button.grid(row=position_in_grid, column=0, sticky="nsew", padx=10, pady=5)
         position_in_grid += 1
 
         return components_frame
+
+    def update_platforms(self, platforms: List[str]) -> None:
+        self.platform_selection.configure(values=platforms)
+
+    def update_current_platform(self, platform: str) -> None:
+        self.platform_selection.set(platform)
 
     def update_variants(self, variants: List[str]) -> None:
         self.variant_selection.configure(values=variants)
@@ -192,10 +226,10 @@ class YangaView(View):
         self.component_selection.set(component)
 
     def enable_component_commands(self) -> None:
-        self.component_compile_button.configure(state="normal")
+        self.component_build_button.configure(state="normal")
 
     def disable_component_commands(self) -> None:
-        self.component_compile_button.configure(state="disabled")
+        self.component_build_button.configure(state="disabled")
 
 
 class YangaPresenter(Presenter):
@@ -206,14 +240,16 @@ class YangaPresenter(Presenter):
         self.project_dir = project_dir
         self.project_slurper = self._create_project_slurper()
         self.event_manager.subscribe(YangaEvent.BUILD_EVENT, self._build_trigger)
-        self.event_manager.subscribe(YangaEvent.COMPONENT_COMPILE_EVENT, self._component_compile_trigger)
-        self.event_manager.subscribe(YangaEvent.COMPONENT_TEST_EVENT, self._component_test_trigger)
+        self.event_manager.subscribe(YangaEvent.COMPONENT_BUILD_EVENT, self._component_build_trigger)
+        self.event_manager.subscribe(YangaEvent.COMPONENT_CLEAN_EVENT, self._component_clean_trigger)
         self.event_manager.subscribe(YangaEvent.REFRESH_EVENT, self._refresh_trigger)
         self.event_manager.subscribe(YangaEvent.VARIANT_SELECTED_EVENT, self._variant_selected_trigger)
+        self.event_manager.subscribe(YangaEvent.PLATFORM_SELECTED_EVENT, self._platform_selected_trigger)
         self.event_manager.subscribe(YangaEvent.CLEAN_VARIANT_EVENT, self._clean_variant_trigger)
         self.event_manager.subscribe(YangaEvent.OPEN_IN_VSCODE, self._open_in_vscode_trigger)
         self.command_running_flag = False
         self.running_user_request: Optional[UserRequest] = None
+        self.selected_platform: Optional[str] = None
         self.selected_variant: Optional[str] = None
         self.selected_component: Optional[str] = None
 
@@ -225,13 +261,11 @@ class YangaPresenter(Presenter):
     def _build_trigger(self, variant_name: str) -> None:
         self.run_command(UserVariantRequest(variant_name))
 
-    def _component_compile_trigger(self, variant_name: str, component_name: str) -> None:
-        self.run_command(
-            UserRequest(UserRequestScope.COMPONENT, variant_name, component_name, UserRequestTarget.COMPILE)
-        )
+    def _component_build_trigger(self, variant_name: str, component_name: str) -> None:
+        self.run_command(UserRequest(UserRequestScope.COMPONENT, variant_name, component_name, UserRequestTarget.BUILD))
 
-    def _component_test_trigger(self, variant_name: str, component_name: str) -> None:
-        self.run_command(UserRequest(UserRequestScope.COMPONENT, variant_name, component_name, UserRequestTarget.TEST))
+    def _component_clean_trigger(self, variant_name: str, component_name: str) -> None:
+        self.run_command(UserRequest(UserRequestScope.COMPONENT, variant_name, component_name, UserRequestTarget.CLEAN))
 
     def _refresh_trigger(self) -> None:
         self.project_slurper = self._create_project_slurper()
@@ -241,6 +275,10 @@ class YangaPresenter(Presenter):
         self.logger.info(f"Variant selected: {variant_name}")
         self.selected_variant = variant_name
         self._update_components()
+
+    def _platform_selected_trigger(self, platform_name: str) -> None:
+        self.logger.info(f"Platform selected: {platform_name}")
+        self.selected_platform = platform_name
 
     def _clean_variant_trigger(self, variant_name: str) -> None:
         self.run_command(UserVariantRequest(variant_name, UserRequestTarget.CLEAN))
@@ -256,8 +294,22 @@ class YangaPresenter(Presenter):
             self.logger.error(e)
 
     def _update_view_data(self) -> None:
+        self._update_platforms()
         self._update_variants()
         self._update_components()
+
+    def _update_platforms(self) -> None:
+        platforms = []
+        if self.project_slurper:
+            platforms = [platform.name for platform in self.project_slurper.platforms]
+        if platforms:
+            platforms.sort()
+            self.selected_platform = platforms[0]
+        else:
+            platforms = ["No platforms found"]
+            self.selected_platform = None
+        self.view.update_platforms(platforms)
+        self.view.update_current_platform(platforms[0])
 
     def _update_variants(self) -> None:
         variants = []
@@ -320,7 +372,9 @@ class YangaPresenter(Presenter):
             if not steps_references:
                 self.logger.info("No steps to run.")
                 return
-            PipelineStepsExecutor(self.project_slurper, user_request.variant_name, user_request, steps_references).run()
+            PipelineStepsExecutor(
+                self.project_slurper, user_request.variant_name, self.selected_platform, user_request, steps_references
+            ).run()
         except UserNotificationException as e:
             self.logger.error(e)
         finally:

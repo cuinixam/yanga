@@ -86,4 +86,14 @@ class CreateExecutableCMakeGenerator(CMakeGenerator):
                     [component_library.target_name],
                 )
             )
+            elements.append(
+                CMakeCustomTarget(
+                    UserRequest(
+                        UserRequestScope.COMPONENT, self.variant_name, component.name, UserRequestTarget.BUILD
+                    ).target_name,
+                    f"Compile component {component.name}",
+                    [],
+                    [component_library.target_name],
+                )
+            )
         return elements
