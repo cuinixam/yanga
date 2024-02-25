@@ -1,3 +1,4 @@
+from pathlib import Path
 from typing import List, Type, TypeVar
 
 from yanga.cmake.cmake_backend import CMakeElement
@@ -24,3 +25,9 @@ class CMakeAnalyzer:
             len(elements) == count
         ), f"Expected {count} elements of type {element_type.__name__}, found {len(elements)}"
         return elements
+
+
+def write_file(file: Path, content: str) -> Path:
+    file.parent.mkdir(parents=True, exist_ok=True)
+    file.write_text(content)
+    return file
