@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## v1.5.3 (2024-02-26)
+
+### Fix
+
+* Generated project does no install latest yanga version ([`e22e9f2`](https://github.com/cuinixam/yanga/commit/e22e9f23decf60d614ca1cf94a8ab268f833f88c))
+
 ## v1.5.2 (2024-02-26)
 
 ### Fix
