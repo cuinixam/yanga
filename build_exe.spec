@@ -8,12 +8,12 @@ from pathlib import Path
 # We need to copy the VERSION.txt to the build directory in the cookiecutter directory.
 cookiecutter_version_file = Path(cookiecutter.__file__).parent / "VERSION.txt"
 
-# Directory containing all the pipeline steps modules
-steps_dir = Path('src/yanga/steps')
-# List all .py files in the directory, excluding __init__.py
-modules = [f.stem for f in steps_dir.glob('*.py') if f.name != '__init__.py']
-# Convert file names to module names
-steps_module_paths = [f"yanga.steps.{module}" for module in modules]
+# The Yanga pipeline steps and cmake generators modules, are modules which can be loaded
+# dynamically if found in the user configuration files (yanga.yaml).
+modules = [f.stem for f in Path("src/yanga/steps").glob("*.py") if f.name != "__init__.py"]
+hidden_module_paths = [f"yanga.steps.{module}" for module in modules]
+modules = [f.stem for f in Path("src/yanga/cmake").glob("*.py") if f.name != "__init__.py"]
+hidden_module_paths = hidden_module_paths + [f"yanga.cmake.{module}" for module in modules]
 
 block_cipher = None
 
@@ -27,7 +27,7 @@ a = Analysis(
         ("src/yanga/commands/project_templates/", "yanga/commands/project_templates/"),
         ("src/yanga/gui/resources", "yanga/gui/resources"),
     ],
-    hiddenimports=["cookiecutter.extensions"] + steps_module_paths,
+    hiddenimports=["cookiecutter.extensions"] + hidden_module_paths,
     hookspath=[],
     runtime_hooks=[],
     excludes=[],
@@ -52,21 +52,12 @@ exe = EXE(
     upx=True,
     upx_exclude=[],
     console=True,
-    icon='src/yanga/gui/resources/yanga.ico'
+    icon="src/yanga/gui/resources/yanga.ico",
 )
 
 # COLLECT: Gathers all necessary files into one directory for --onedir mode.
 # This is the key step ensuring the executable uses local files directly.
-coll = COLLECT(
-    exe,
-    a.binaries,
-    a.zipfiles,
-    a.datas,
-    name="yanga",
-    strip=False,
-    upx=True,
-    upx_exclude=[]
-)
+coll = COLLECT(exe, a.binaries, a.zipfiles, a.datas, name="yanga", strip=False, upx=True, upx_exclude=[])
 
 # This spec file setup ensures that your application is packaged in a way that all dependencies
 # are located in the same directory as the executable, without needing to unpack them at runtime.
