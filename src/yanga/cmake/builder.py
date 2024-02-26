@@ -2,6 +2,7 @@ from collections import OrderedDict
 from pathlib import Path
 from typing import List, Type
 
+from py_app_dev.core.exceptions import UserNotificationException
 from py_app_dev.core.logging import logger
 from py_app_dev.core.pipeline import PipelineConfig
 from py_app_dev.core.pipeline import PipelineLoader as GenericPipelineLoader
@@ -95,10 +96,15 @@ class CMakeBuildSystemGenerator:
         # Load all configured CMake generators
         platform = self.execution_context.platform
         if platform:
-            steps_references = CMakeGeneratorsLoader(
-                OrderedDict({"generators": platform.cmake_generators}), self.output_dir
-            ).load_steps_references()
-            for step_reference in steps_references:
-                step = step_reference._class(self.execution_context, self.output_dir)
-                cmake_file.extend(step.generate())
+            try:
+                steps_references = CMakeGeneratorsLoader(
+                    OrderedDict({"generators": platform.cmake_generators}), self.execution_context.project_root_dir
+                ).load_steps_references()
+                for step_reference in steps_references:
+                    step = step_reference._class(self.execution_context, self.output_dir)
+                    cmake_file.extend(step.generate())
+            except FileNotFoundError as e:
+                raise UserNotificationException(e)
+            except TypeError as e:
+                raise UserNotificationException(f"{e}. Please check {platform.file} for {step}.")
         return cmake_file

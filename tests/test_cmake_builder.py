@@ -5,10 +5,10 @@ import pytest
 from py_app_dev.core.pipeline import PipelineStepConfig
 
 from tests.utils import CMakeAnalyzer, write_file
+from yanga.cmake.builder import CMakeBuildSystemGenerator
 from yanga.cmake.cmake_backend import CMakeComment
 from yanga.domain.config import PlatformConfig
 from yanga.domain.execution_context import ExecutionContext
-from yanga.ybuild import CMakeBuildSystemGenerator
 
 
 @pytest.fixture
