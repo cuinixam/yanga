@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## v1.5.2 (2024-02-26)
+
+### Fix
+
+* Yanga standalone exe not working with cmake generators ([`3429bde`](https://github.com/cuinixam/yanga/commit/3429bde982fb27eb3bb2a38b724d25ab38457b1d))
+
 ## v1.5.1 (2024-02-25)
 
 ### Fix
