@@ -68,6 +68,8 @@ class PipelineStepsExecutor:
                 self.project_slurper.project_dir, self.variant_name, self.platform_name
             )
             step_output_dir = artifacts_locator.variant_build_dir / step_reference.group_name
+            # Create the step output directory, to make sure that files can be created.
+            step_output_dir.mkdir(parents=True, exist_ok=True)
             step = step_reference._class(execution_context, step_output_dir)
             # Execute the step is necessary. If the step is not dirty, it will not be executed
             Executor(step.output_dir, self.force_run).execute(step)
