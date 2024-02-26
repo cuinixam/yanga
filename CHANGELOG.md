@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## v1.5.5 (2024-02-26)
+
+### Fix
+
+* Scoop install step can not create file ([`1b1cd5e`](https://github.com/cuinixam/yanga/commit/1b1cd5ef6c249227ada3e83472e6bbc51be48fca))
+
 ## v1.5.4 (2024-02-26)
 
 ### Fix
