@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## v1.5.4 (2024-02-26)
+
+### Fix
+
+* Cmake builder fails to load generator ([`1bc68ee`](https://github.com/cuinixam/yanga/commit/1bc68eef31800b4348c51e0c07c40798a49a6afa))
+
 ## v1.5.3 (2024-02-26)
 
 ### Fix
