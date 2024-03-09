@@ -262,24 +262,22 @@ class VirtualEnvironment(ABC):
             index_url: The index URL to use for pip.
             verify_ssl: Whether to verify SSL certificates when using pip.
         """
-        pip_config_path = self.venv_dir / "pip.ini"
-        with open(pip_config_path, "w") as pip_config_file:
+        pip_ini_path = self.pip_path().parent / "pip.ini"
+        with open(pip_ini_path, "w") as pip_ini_file:
             match_host = re.match(r"https?://([^/]+)", index_url)
-            pip_config_file.write(f"[global]\nindex-url = {index_url}\n")
+            pip_ini_file.write(f"[global]\nindex-url = {index_url}\n")
             if match_host:
-                pip_config_file.write(f"trusted-host = {match_host.group(1)}\n")
+                pip_ini_file.write(f"trusted-host = {match_host.group(1)}\n")
             if not verify_ssl:
-                pip_config_file.write("cert = false\n")
+                pip_ini_file.write("cert = false\n")
+
+    def pip(self, args: List[str]) -> None:
+        SubprocessExecutor([self.pip_path().as_posix(), *args], this_dir).execute()
 
     @abstractmethod
-    def pip(self, args: List[str]) -> None:
+    def pip_path(self) -> Path:
         """
-        Execute a pip command within the virtual environment. This method should behave as if the
-        user had activated the virtual environment and run `pip` from the command line.
-
-        Args:
-            *args: Command-line arguments to pip. For example, `pip('install', 'requests')` should
-                   behave similarly to `pip install requests` at the command line.
+        Get the path to the pip executable within the virtual environment.
         """
 
     @abstractmethod
@@ -299,9 +297,8 @@ class WindowsVirtualEnvironment(VirtualEnvironment):
         super().__init__(venv_dir)
         self.activate_script = self.venv_dir.joinpath("Scripts/activate")
 
-    def pip(self, args: List[str]) -> None:
-        pip_path = self.venv_dir.joinpath("Scripts/pip").as_posix()
-        SubprocessExecutor([pip_path, *args], this_dir).execute()
+    def pip_path(self) -> Path:
+        return self.venv_dir.joinpath("Scripts/pip")
 
     def run(self, args: List[str], capture_output: bool = True) -> None:
         SubprocessExecutor(
@@ -316,9 +313,8 @@ class UnixVirtualEnvironment(VirtualEnvironment):
         super().__init__(venv_dir)
         self.activate_script = self.venv_dir.joinpath("bin/activate")
 
-    def pip(self, args: List[str]) -> None:
-        pip_path = self.venv_dir.joinpath("bin/pip").as_posix()
-        SubprocessExecutor([pip_path, *args]).execute()
+    def pip_path(self) -> Path:
+        return self.venv_dir.joinpath("bin/pip")
 
     def run(self, args: List[str], capture_output: bool = True) -> None:
         # Create a temporary shell script

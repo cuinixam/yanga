@@ -1,4 +1,5 @@
 import runpy
+import sys
 from pathlib import Path
 
 from yanga.commands.init import ProjectBuilder
@@ -32,10 +33,11 @@ url = "https://pypi.org/simple"
 
 def test_create_pip_ini_simple(tmp_path: Path) -> None:
     venv_dir = tmp_path / ".venv"
-    venv_dir.mkdir()
+    scripts_dir = venv_dir.joinpath("Scripts" if sys.platform.startswith("win32") else "bin")
+    scripts_dir.mkdir(parents=True)
     my_venv = CreateVirtualEnvironment.instantiate_os_specific_venv(venv_dir)
     my_venv.pip_configure("https://my.pypi.org/simple/stable", True)
-    pip_ini = venv_dir / "pip.ini"
+    pip_ini = scripts_dir / "pip.ini"
     assert pip_ini.exists()
     assert (
         pip_ini.read_text()
@@ -69,4 +71,4 @@ url = "https://pypi.org/simple"
     # Execute the main function in the bootstrap.py script using runpy
     runpy.run_path(bootstrap_py.as_posix(), run_name="__test_main__")
 
-    assert (project_dir / ".venv" / "pip.ini").exists()
+    assert project_dir.joinpath(".venv", "Scripts" if sys.platform.startswith("win32") else "bin", "pip.ini").exists()
