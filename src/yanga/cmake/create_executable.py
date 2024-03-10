@@ -64,7 +64,8 @@ class CreateExecutableCMakeGenerator(CMakeGenerator):
 
     def get_include_directories(self) -> CMakeIncludeDirectories:
         collector = ComponentAnalyzer(
-            self.execution_context.components, self.execution_context.create_artifacts_locator()
+            self.execution_context.components,
+            self.execution_context.create_artifacts_locator(),
         )
         include_dirs = collector.collect_include_directories() + self.execution_context.include_directories
         return CMakeIncludeDirectories([CMakePath(path) for path in include_dirs])
@@ -78,7 +79,10 @@ class CreateExecutableCMakeGenerator(CMakeGenerator):
             elements.append(
                 CMakeCustomTarget(
                     UserRequest(
-                        UserRequestScope.COMPONENT, self.variant_name, component.name, UserRequestTarget.COMPILE
+                        UserRequestScope.COMPONENT,
+                        self.variant_name,
+                        component.name,
+                        UserRequestTarget.COMPILE,
                     ).target_name,
                     f"Compile component {component.name}",
                     [],
@@ -88,7 +92,10 @@ class CreateExecutableCMakeGenerator(CMakeGenerator):
             elements.append(
                 CMakeCustomTarget(
                     UserRequest(
-                        UserRequestScope.COMPONENT, self.variant_name, component.name, UserRequestTarget.BUILD
+                        UserRequestScope.COMPONENT,
+                        self.variant_name,
+                        component.name,
+                        UserRequestTarget.BUILD,
                     ).target_name,
                     f"Compile component {component.name}",
                     [],

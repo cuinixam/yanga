@@ -32,7 +32,12 @@ class ProjectArtifactsLocator:
         for path in first_search_paths:
             if path:
                 search_paths.append(path.parent if path.is_file() else path)
-        for dir in search_paths + [self.variant_dir, self.project_root_dir, self.platforms_dir]:
+        for dir in [
+            *search_paths,
+            self.variant_dir,
+            self.project_root_dir,
+            self.platforms_dir,
+        ]:
             if dir and (artifact_path := Path(dir).joinpath(artifact)).exists():
                 return artifact_path
         else:

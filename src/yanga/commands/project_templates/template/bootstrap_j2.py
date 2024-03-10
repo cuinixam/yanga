@@ -67,7 +67,7 @@ class PyPiSourceParser:
                     name = parser[section.name]["name"].strip('"')
                     url = parser[section.name]["url"].strip('"')
                     return PyPiSource(name, url)
-                except KeyError:
+                except KeyError as e:
                     raise UserNotificationException(
                         f"Could not parse PyPi source from pyproject.toml section {section.name}. "
                         f"Please make sure the section has the following format:\n"
@@ -75,7 +75,7 @@ class PyPiSourceParser:
                         f'name = "name"\n'
                         f'url = "https://url"\n'
                         f"verify_ssl = true"
-                    )
+                    ) from e
         return None
 
     @staticmethod
@@ -128,11 +128,13 @@ class RunInfoStatus(Enum):
 
 
 class Executor:
-    """Accepts Runnable objects and executes them.
+    """
+    Accepts Runnable objects and executes them.
     It create a file with the same name as the runnable's name
     and stores the inputs and outputs with their hashes.
     If the file exists, it checks the hashes of the inputs and outputs
-    and if they match, it skips the execution."""
+    and if they match, it skips the execution.
+    """
 
     RUN_INFO_FILE_EXTENSION = ".deps.json"
 
@@ -213,7 +215,7 @@ class SubprocessExecutor:
             # print all virtual environment variables
             logger.debug(json.dumps(dict(os.environ), indent=4))
             result = subprocess.run(
-                self.command.split(),
+                self.command.split(),  # noqa: S603
                 cwd=current_dir,
                 capture_output=self.capture_output,
                 text=True,  # to get stdout and stderr as strings instead of bytes
@@ -224,7 +226,7 @@ class SubprocessExecutor:
                 f"Command '{self.command}' failed with:\n"
                 f"{result.stdout if result else ''}\n"
                 f"{result.stderr if result else e}"
-            )
+            ) from e
 
 
 class VirtualEnvironment(ABC):
@@ -244,12 +246,12 @@ class VirtualEnvironment(ABC):
                     f"Failed to create virtual environment in {self.venv_dir}.\n"
                     f"Virtual environment python.exe is still running. Please kill all instances and run again.\n"
                     f"Error: {e}"
-                )
+                ) from e
             raise UserNotificationException(
                 f"Failed to create virtual environment in {self.venv_dir}.\n"
                 f"Please make sure you have the necessary permissions.\n"
                 f"Error: {e}"
-            )
+            ) from e
 
     def pip_configure(self, index_url: str, verify_ssl: bool) -> None:
         """
@@ -259,8 +261,10 @@ class VirtualEnvironment(ABC):
         command line.
 
         Args:
+        ----
             index_url: The index URL to use for pip.
             verify_ssl: Whether to verify SSL certificates when using pip.
+
         """
         pip_ini_path = self.pip_path().parent / "pip.ini"
         with open(pip_ini_path, "w") as pip_ini_file:
@@ -287,8 +291,10 @@ class VirtualEnvironment(ABC):
         user had activated the virtual environment and run the given command from the command line.
 
         Args:
+        ----
             *args: Command-line arguments. For example, `run('python', 'setup.py', 'install')`
                    should behave similarly to `python setup.py install` at the command line.
+
         """
 
 

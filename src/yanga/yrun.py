@@ -13,11 +13,13 @@ from yanga.domain.project_slurper import YangaProjectSlurper
 
 
 class PipelineLoader:
-    """Loads pipeline steps from a pipeline configuration.
+    """
+    Loads pipeline steps from a pipeline configuration.
     The steps are not instantiated, only the references are returned (lazy load).
 
     The pipeline loader needs to know the project root directory to be able to find the
-    user custom local steps."""
+    user custom local steps.
+    """
 
     def __init__(self, pipeline_config: PipelineConfig, project_root_dir: Path) -> None:
         self.pipeline_config = pipeline_config
@@ -56,9 +58,11 @@ class PipelineStepsExecutor:
             project_root_dir=self.project_slurper.project_dir,
             variant_name=self.variant_name,
             user_request=self.user_request,
-            components=self.project_slurper.get_variant_components(self.variant_name) if self.variant_name else [],
+            components=(self.project_slurper.get_variant_components(self.variant_name) if self.variant_name else []),
             user_config_files=self.project_slurper.user_config_files,
-            config_file=self.project_slurper.get_variant_config_file(self.variant_name) if self.variant_name else None,
+            config_file=(
+                self.project_slurper.get_variant_config_file(self.variant_name) if self.variant_name else None
+            ),
             install_dirs=[],
             include_dirs_providers=[],
             platform=self.project_slurper.get_platform(self.platform_name),
@@ -99,7 +103,9 @@ class PipelineScheduler:
 
     @staticmethod
     def filter_steps_references(
-        steps_references: List[PipelineStepReference], step_name: Optional[str], single: Optional[bool]
+        steps_references: List[PipelineStepReference],
+        step_name: Optional[str],
+        single: Optional[bool],
     ) -> List[PipelineStepReference]:
         if step_name:
             step_reference = next((step for step in steps_references if step.name == step_name), None)

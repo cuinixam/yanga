@@ -54,8 +54,10 @@ class YangaProjectSlurper:
         return platform
 
     def _collect_variant_components(self, variant: VariantConfig) -> List[Component]:
-        """ "Collect all components for the given variant.
-        Look for components in the component pool and add them to the list."""
+        """
+        "Collect all components for the given variant.
+        Look for components in the component pool and add them to the list.
+        """
         components = []
         if not variant.bom:
             raise UserNotificationException(f"Variant '{variant.name}' is empty (no 'bom' found).")
@@ -122,7 +124,10 @@ class YangaProjectSlurper:
                     subcomponent.is_subcomponent = True
 
     def _find_pipeline_config(self, user_configs: List[YangaUserConfig]) -> Optional[PipelineConfig]:
-        return next((user_config.pipeline for user_config in user_configs if user_config.pipeline), None)
+        return next(
+            (user_config.pipeline for user_config in user_configs if user_config.pipeline),
+            None,
+        )
 
     def _collect_variants(self, user_configs: List[YangaUserConfig]) -> List[VariantConfig]:
         variants = []

@@ -3,7 +3,7 @@ import json
 import traceback
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any, ClassVar, Dict, List, Optional
 
 import yaml
 from mashumaro import DataClassDictMixin
@@ -102,23 +102,23 @@ class YangaUserConfig(DataClassDictMixin):
                 config_dict["file"] = config_file
             return config_dict
         except ScannerError as e:
-            raise UserNotificationException(f"Failed scanning configuration file '{config_file}'. \nError: {e}")
+            raise UserNotificationException(f"Failed scanning configuration file '{config_file}'. \nError: {e}") from e
         except ParserError as e:
-            raise UserNotificationException(f"Failed parsing configuration file '{config_file}'. \nError: {e}")
+            raise UserNotificationException(f"Failed parsing configuration file '{config_file}'. \nError: {e}") from e
 
 
 class BaseConfigJSONMixin(DataClassJSONMixin):
     class Config(BaseConfig):
-        code_generation_options = [TO_DICT_ADD_OMIT_NONE_FLAG]
+        code_generation_options: ClassVar[List[str]] = [TO_DICT_ADD_OMIT_NONE_FLAG]
 
     @classmethod
     def from_json_file(cls, file_path: Path) -> "BaseConfigJSONMixin":
         try:
             result = cls.from_dict(json.loads(file_path.read_text()))
-        except Exception:
+        except Exception as e:
             output = io.StringIO()
             traceback.print_exc(file=output)
-            raise UserNotificationException(output.getvalue())
+            raise UserNotificationException(output.getvalue()) from e
         return result
 
     def to_json_string(self) -> str:

@@ -6,19 +6,23 @@ from typing import List, Set
 from .config import YangaUserConfig
 
 
-def find_files(start_dir: Path, search_pattern: str, exclude_dirs: List[str] = []) -> Set[Path]:
-    """Find files matching the search_pattern within start_dir, excluding the directories in exclude_dirs.
+def find_files(start_dir: Path, search_pattern: str, exclude_dirs: List[str] | None = None) -> Set[Path]:
+    """
+    Find files matching the search_pattern within start_dir, excluding the directories in exclude_dirs.
 
     Args:
+    ----
         start_dir (Path): The directory to start the search from.
         search_pattern (str): The pattern of file names to search for.
         exclude_dirs (List[str]): A list of relative paths to exclude from the search.
 
     Returns:
+    -------
         Set[Path]: A set of Paths to the files found.
+
     """
     start_dir = start_dir.resolve()
-    exclude_paths = {start_dir.joinpath(d) for d in exclude_dirs}
+    exclude_paths = {start_dir.joinpath(d) for d in exclude_dirs} if exclude_dirs else set()
     found_files = set()
 
     for dirpath, dirnames, filenames in os.walk(start_dir):
@@ -43,9 +47,9 @@ class YangaConfigSlurper:
 
     CONFIG_FILE = "yanga.yaml"
 
-    def __init__(self, project_dir: Path, exclude_dirs: List[str] = []) -> None:
+    def __init__(self, project_dir: Path, exclude_dirs: List[str] | None = None) -> None:
         self.project_dir = project_dir
-        self.exclude_dirs = exclude_dirs
+        self.exclude_dirs = exclude_dirs if exclude_dirs else []
 
     def slurp(self) -> List[YangaUserConfig]:
         user_configs = []

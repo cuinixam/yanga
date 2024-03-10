@@ -69,11 +69,16 @@ class CMakeMinimumVersion(CMakeElement):
         return f"cmake_minimum_required(VERSION {self.version})"
 
 
-@dataclass
 class CMakeLibrary(CMakeElement):
-    name: str
-    files: List[Path] = field(default_factory=list)
-    type: LibraryType = LibraryType.OBJECT
+    def __init__(
+        self,
+        name: str,
+        files: List[Path] | None = None,
+        type: LibraryType = LibraryType.OBJECT,
+    ) -> None:
+        self.name = name
+        self.files = files if files else []
+        self.type = type
 
     @property
     def target_name(self) -> str:
@@ -87,17 +92,12 @@ class CMakeLibrary(CMakeElement):
 
 
 class CMakeObjectLibrary(CMakeLibrary):
-    def __init__(self, name: str, files: List[Path] = field(default_factory=list)) -> None:
+    def __init__(self, name: str, files: List[Path] | None = None) -> None:
         super().__init__(name, files, LibraryType.OBJECT)
 
 
 @dataclass
 class CMakeVariable(CMakeElement):
-    """
-    set(<variable> <value>... CACHE <type> <docstring> [FORCE])
-    https://cmake.org/cmake/help/latest/command/set.html
-    """
-
     name: str
     value: str
     cache: bool = False
@@ -170,7 +170,7 @@ class CMakeIncludeDirectories(CMakeElement):
         self.paths = paths
 
     def to_string(self) -> str:
-        return "\n".join(["include_directories("] + self._add_tabulated_paths(self.paths) + [")"])
+        return "\n".join(["include_directories(", *self._add_tabulated_paths(self.paths), ")"])
 
     def _add_tabulated_paths(self, paths: List[CMakePath]) -> List[str]:
         return [self._add_tabulated_path(path) for path in paths]
@@ -181,12 +181,6 @@ class CMakeIncludeDirectories(CMakeElement):
 
 @dataclass
 class CMakeAddExecutable(CMakeElement):
-    """
-    add_executable(<name> [WIN32] [MACOSX_BUNDLE]
-                     [EXCLUDE_FROM_ALL]
-                        [source1] [source2 ...])
-    https://cmake.org/cmake/help/latest/command/add_executable.html#add-executable
-    """
 
     name: str
     sources: List[Union[str, CMakePath, CMakeObjectLibrary]]
@@ -214,13 +208,15 @@ class CMakeAddExecutable(CMakeElement):
         return "add_executable(" + " ".join(arguments) + ")"
 
     def _add_target_link_libraries(self) -> str:
-        return "target_link_libraries(" + " ".join([self.name] + self.libraries) + ")"
+        return "target_link_libraries(" + " ".join([self.name, *self.libraries]) + ")"
 
     def _get_sources(self) -> List[str]:
         return [self._get_source(source) for source in self.sources]
 
     def _get_source(self, source: str | CMakePath | CMakeObjectLibrary) -> str:
         """
+        Get the source as string.
+
         - str: return as is
         - CMakePath: return the path as string
         - CMakeLibrary: return the target objects

@@ -16,12 +16,15 @@ class CommandConfigFactory:
         """
         Creates a configuration instance from an argparse Namespace for the given class.
 
-        Parameters:
+        Parameters
+        ----------
         - cls: The class type to instantiate, inheriting from DataClassDictMixin.
         - namespace: The argparse Namespace containing configuration data.
 
-        Returns:
+        Returns
+        -------
         An instance of cls populated with data from namespace.
+
         """
         return config_class.from_dict(vars(namespace))
 

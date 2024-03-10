@@ -31,11 +31,13 @@ class CMakeGeneratorReference:
 
 
 class CMakeGeneratorsLoader:
-    """Loads CMake generators from the configuration.
-    The steps are not instantiated, only the references are returned (lazy load).
+    """
+    Loads CMake generators from the configuration.
 
+    The steps are not instantiated, only the references are returned (lazy load).
     The loader needs to know the project root directory to be able to find the
-    user custom local steps."""
+    user custom local steps.
+    """
 
     def __init__(self, pipeline_config: PipelineConfig, project_root_dir: Path) -> None:
         self.pipeline_config = pipeline_config
@@ -98,13 +100,14 @@ class CMakeBuildSystemGenerator:
         if platform:
             try:
                 steps_references = CMakeGeneratorsLoader(
-                    OrderedDict({"generators": platform.cmake_generators}), self.execution_context.project_root_dir
+                    OrderedDict({"generators": platform.cmake_generators}),
+                    self.execution_context.project_root_dir,
                 ).load_steps_references()
                 for step_reference in steps_references:
                     step = step_reference._class(self.execution_context, self.output_dir)
                     cmake_file.extend(step.generate())
             except FileNotFoundError as e:
-                raise UserNotificationException(e)
+                raise UserNotificationException(e) from e
             except TypeError as e:
-                raise UserNotificationException(f"{e}. Please check {platform.file} for {step}.")
+                raise UserNotificationException(f"{e}. Please check {platform.file} for {step}.") from e
         return cmake_file

@@ -158,7 +158,9 @@ class YangaView(View):
 
         # Create the open in vscode button
         self.open_in_vscode_button = customtkinter.CTkButton(
-            current_frame, text="Open in VSCode", command=self._open_in_vscode_button_pressed
+            current_frame,
+            text="Open in VSCode",
+            command=self._open_in_vscode_button_pressed,
         )
         self.open_in_vscode_button.grid(row=position_in_grid, column=0, sticky="nsew", padx=10, pady=5)
         position_in_grid += 1
@@ -262,10 +264,24 @@ class YangaPresenter(Presenter):
         self.run_command(UserVariantRequest(variant_name))
 
     def _component_build_trigger(self, variant_name: str, component_name: str) -> None:
-        self.run_command(UserRequest(UserRequestScope.COMPONENT, variant_name, component_name, UserRequestTarget.BUILD))
+        self.run_command(
+            UserRequest(
+                UserRequestScope.COMPONENT,
+                variant_name,
+                component_name,
+                UserRequestTarget.BUILD,
+            )
+        )
 
     def _component_clean_trigger(self, variant_name: str, component_name: str) -> None:
-        self.run_command(UserRequest(UserRequestScope.COMPONENT, variant_name, component_name, UserRequestTarget.CLEAN))
+        self.run_command(
+            UserRequest(
+                UserRequestScope.COMPONENT,
+                variant_name,
+                component_name,
+                UserRequestTarget.CLEAN,
+            )
+        )
 
     def _refresh_trigger(self) -> None:
         self.project_slurper = self._create_project_slurper()
@@ -289,7 +305,7 @@ class YangaPresenter(Presenter):
             return
         self.logger.info("Opening project in VSCode")
         try:
-            SubprocessExecutor(["code", self.project_dir.as_posix()], shell=True).execute()  # nosec
+            SubprocessExecutor(["code", self.project_dir.as_posix()], shell=True).execute()  # noqa: S604
         except UserNotificationException as e:
             self.logger.error(e)
 
@@ -373,7 +389,11 @@ class YangaPresenter(Presenter):
                 self.logger.info("No steps to run.")
                 return
             PipelineStepsExecutor(
-                self.project_slurper, user_request.variant_name, self.selected_platform, user_request, steps_references
+                self.project_slurper,
+                user_request.variant_name,
+                self.selected_platform,
+                user_request,
+                steps_references,
             ).run()
         except UserNotificationException as e:
             self.logger.error(e)

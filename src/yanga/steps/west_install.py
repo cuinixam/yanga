@@ -39,7 +39,7 @@ class WestInstall(PipelineStep):
                 cwd=self.project_root_dir.joinpath("build"),
             ).execute()
         except Exception as e:
-            raise UserNotificationException(f"Failed to initialize and update with west: {e}")
+            raise UserNotificationException(f"Failed to initialize and update with west: {e}") from e
 
         return 0
 

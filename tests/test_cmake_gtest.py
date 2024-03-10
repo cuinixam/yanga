@@ -72,12 +72,16 @@ def test_generate(gtest_cmake_generator: GTestCMakeGenerator) -> None:
     assert [include.path for include in includes] == ["GoogleTest", "CTest"]
 
 
-def test_create_variant_cmake_elements(gtest_cmake_generator: GTestCMakeGenerator) -> None:
+def test_create_variant_cmake_elements(
+    gtest_cmake_generator: GTestCMakeGenerator,
+) -> None:
     elements = gtest_cmake_generator.create_variant_cmake_elements()
     assert elements
 
 
-def test_cmake_build_components_file(gtest_cmake_generator: GTestCMakeGenerator) -> None:
+def test_cmake_build_components_file(
+    gtest_cmake_generator: GTestCMakeGenerator,
+) -> None:
     elements = gtest_cmake_generator.create_components_cmake_elements()
     cmake_analyzer = CMakeAnalyzer(elements)
     executable = cmake_analyzer.assert_element_of_type(CMakeAddExecutable)

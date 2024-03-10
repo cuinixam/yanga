@@ -75,7 +75,9 @@ def test_generate(create_executable_generator: CreateExecutableCMakeGenerator) -
     ]
 
 
-def test_create_variant_cmake_elements(create_executable_generator: CreateExecutableCMakeGenerator) -> None:
+def test_create_variant_cmake_elements(
+    create_executable_generator: CreateExecutableCMakeGenerator,
+) -> None:
     elements = create_executable_generator.create_variant_cmake_elements()
     cmake_analyzer = CMakeAnalyzer(elements)
     executable = cmake_analyzer.assert_element_of_type(CMakeAddExecutable)
@@ -84,11 +86,15 @@ def test_create_variant_cmake_elements(create_executable_generator: CreateExecut
     assert custom_target.name == "build"
 
 
-def test_get_include_directories(create_executable_generator: CreateExecutableCMakeGenerator) -> None:
+def test_get_include_directories(
+    create_executable_generator: CreateExecutableCMakeGenerator,
+) -> None:
     assert len(create_executable_generator.get_include_directories().paths) == 3  # Two from components, one global
 
 
-def test_create_components_cmake_elements(create_executable_generator: CreateExecutableCMakeGenerator) -> None:
+def test_create_components_cmake_elements(
+    create_executable_generator: CreateExecutableCMakeGenerator,
+) -> None:
     elements = create_executable_generator.create_components_cmake_elements()
     cmake_analyzer = CMakeAnalyzer(elements)
     object_libraries = cmake_analyzer.find_elements_of_type(CMakeObjectLibrary)

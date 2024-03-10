@@ -21,14 +21,16 @@ class RunCommandConfig(CommandConfigBase):
         metadata={"help": "Platform for which to build (see the available platforms in the configuration)."},
     )
     variant_name: Optional[str] = field(
-        default=None, metadata={"help": "SPL variant name. If none is provided, it will prompt to select one."}
+        default=None,
+        metadata={"help": "SPL variant name. If none is provided, it will prompt to select one."},
     )
     component_name: Optional[str] = field(
         default=None, metadata={"help": "Restrict the scope to one specific component."}
     )
     target: Optional[str] = field(default=None, metadata={"help": "Define a specific target to execute."})
     step: Optional[str] = field(
-        default=None, metadata={"help": "Name of the step to run (as written in the pipeline config)."}
+        default=None,
+        metadata={"help": "Name of the step to run (as written in the pipeline config)."},
     )
     single: bool = field(
         default=False,
@@ -84,13 +86,18 @@ class RunCommand(Command):
             self.logger.info("No steps to run.")
             return 0
         user_request = UserRequest(
-            UserRequestScope.COMPONENT if config.component_name else UserRequestScope.VARIANT,
+            (UserRequestScope.COMPONENT if config.component_name else UserRequestScope.VARIANT),
             variant_name,
             config.component_name,
             config.target,
         )
         PipelineStepsExecutor(
-            project_slurper, variant_name, platform_name, user_request, steps_references, config.force_run
+            project_slurper,
+            variant_name,
+            platform_name,
+            user_request,
+            steps_references,
+            config.force_run,
         ).run()
         return 0
 
@@ -122,7 +129,8 @@ class RunCommand(Command):
                 self.logger.info(f"Only one platform found. Using '{selected_platform_name}'.")
             else:
                 selected_platform_name = prompt_user_to_select_option(
-                    [platform.name for platform in platform_configs], "Select platform: "
+                    [platform.name for platform in platform_configs],
+                    "Select platform: ",
                 )
         else:
             selected_platform_name = platform_name

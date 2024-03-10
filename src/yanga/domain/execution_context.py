@@ -45,14 +45,17 @@ class UserRequest:
 
 
 class UserVariantRequest(UserRequest):
-    def __init__(self, variant_name: Optional[str], target: Optional[Union[str, UserRequestTarget]] = None) -> None:
+    def __init__(
+        self,
+        variant_name: Optional[str],
+        target: Optional[Union[str, UserRequestTarget]] = None,
+    ) -> None:
         super().__init__(UserRequestScope.VARIANT, variant_name, None, target=target)
 
 
 class IncludeDirectoriesProvider(ABC):
     @abstractmethod
-    def get_include_directories(self) -> List[Path]:
-        ...
+    def get_include_directories(self) -> List[Path]: ...
 
 
 @dataclass
@@ -86,9 +89,11 @@ class ExecutionContext:
         # Add the install directories to the PATH
         env = os.environ.copy()
         env["PATH"] = os.pathsep.join([path.absolute().as_posix() for path in self.install_dirs] + [env["PATH"]])
-        return SubprocessExecutor(command, cwd=cwd, env=env, shell=True)  # nosec
+        return SubprocessExecutor(command, cwd=cwd, env=env, shell=True)  # noqa: S604
 
     def create_artifacts_locator(self) -> ProjectArtifactsLocator:
         return ProjectArtifactsLocator(
-            self.project_root_dir, self.variant_name, self.platform.name if self.platform else None
+            self.project_root_dir,
+            self.variant_name,
+            self.platform.name if self.platform else None,
         )
