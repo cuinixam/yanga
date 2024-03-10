@@ -85,7 +85,7 @@ html_theme_options = {
     "home_page_in_toc": True,
     "github_url": "https://github.com/cuinixam/yanga",
     "repository_url": "https://github.com/cuinixam/yanga",
-    "repository_branch": "master",
+    "repository_branch": "main",
     "path_to_docs": "docs",
     "use_repository_button": True,
     "use_edit_page_button": True,
