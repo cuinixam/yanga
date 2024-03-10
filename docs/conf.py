@@ -5,7 +5,6 @@
 import os
 import sys
 from pathlib import Path
-from typing import Any
 
 import mlx.traceability
 
@@ -19,7 +18,7 @@ for path in ["src", "tests"]:
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
 
 project = "Yet Another Ninja Generator"
-copyright = "2022, cuinixam"
+copyright = "cuinixam"
 author = "cuinixam"
 release = "0.0.0"
 
@@ -28,8 +27,18 @@ release = "0.0.0"
 
 extensions = []
 
-# markdown to rst (m2r) config - @see https://pypi.org/project/m2r/
-extensions.append("m2r")
+# https://github.com/executablebooks/sphinx-design
+extensions.append("sphinx_design")
+
+# https://myst-parser.readthedocs.io/en/latest/intro.html
+extensions.append("myst_parser")
+
+myst_enable_extensions = [
+    "colon_fence",
+    "deflist",
+    "html_admonition",
+    "html_image",
+]
 
 # TODO: enable this extension when is is supported by readthedocs
 # draw.io config - @see https://pypi.org/project/sphinxcontrib-drawio/
@@ -49,14 +58,9 @@ extensions.extend(
     ]
 )
 
-# The bibtex extension allows BibTeX citations to be inserted into documentation
-# https://pypi.org/project/sphinxcontrib-bibtex/
-extensions.append("sphinxcontrib.bibtex")
-bibtex_bibfiles = ["refs.bib"]
-
 # mlx.traceability config - https://pypi.org/project/mlx-traceability/
 extensions.append("mlx.traceability")
-html_static_path = [os.path.join(os.path.dirname(mlx.traceability.__file__), "assets")]
+
 # Make relationship like 'validated_by' be shown for each requirement
 traceability_render_relationship_per_item = True
 
@@ -69,24 +73,27 @@ source_suffix = [
 templates_path = ["_templates"]
 exclude_patterns = ["_build", "Thumbs.db", ".DS_Store"]
 
-extensions.append("sphinx_rtd_dark_mode")
-
-# Resize rtd theme
-extensions.append("sphinx_rtd_size")
-sphinx_rtd_size_width = "90%"
-
 # copy button for code block
 extensions.append("sphinx_copybutton")
 
 # -- Options for HTML output -------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#options-for-html-output
 
-html_theme = "sphinx_rtd_theme"
-html_static_path = ["_static"]
-
-
-def setup(app: Any) -> None:
-    # New directive types: treated exactly as ``item`` directive, but
-    # using a different name. Item template can be customized for
-    # these types
-    app.add_css_file("css/extra.css")
+html_theme = "sphinx_book_theme"
+html_logo = "_static/yanga.png"
+html_theme_options = {
+    "home_page_in_toc": True,
+    "github_url": "https://github.com/cuinixam/yanga",
+    "repository_url": "https://github.com/cuinixam/yanga",
+    "repository_branch": "master",
+    "path_to_docs": "docs",
+    "use_repository_button": True,
+    "use_edit_page_button": True,
+    "use_issues_button": True,
+    "navigation_with_keys": False,
+}
+html_last_updated_fmt = ""
+html_static_path = [
+    os.path.join(os.path.dirname(mlx.traceability.__file__), "assets"),
+    "_static",
+]

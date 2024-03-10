@@ -57,7 +57,7 @@ sphinx-design = "^0.5.0"
 [tool.semantic_release]
 version_toml = ["pyproject.toml:tool.poetry.version"]
 version_variables = [
-    "src/hello_python/__init__.py:__version__",
+    "src/yanga/__init__.py:__version__",
     "docs/conf.py:release",
 ]
 build_command = ".venv/Scripts/poetry build"
