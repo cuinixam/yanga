@@ -2,6 +2,13 @@
 
 
 
+## v1.5.7 (2024-03-10)
+
+### Fix
+
+* fix: readthedocs build fails ([`38e1e7d`](https://github.com/cuinixam/yanga/commit/38e1e7d190987bbab1dbe30300a0a0a0b9841a7f))
+
+
 ## v1.5.6 (2024-03-10)
 
 ### Documentation
