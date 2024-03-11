@@ -2,6 +2,13 @@
 
 
 
+## v1.5.8 (2024-03-11)
+
+### Fix
+
+* fix: pypi release is broken ([`d4b37d8`](https://github.com/cuinixam/yanga/commit/d4b37d8444266947e723ab63c30779f0e38d58bf))
+
+
 ## v1.5.7 (2024-03-10)
 
 ### Fix

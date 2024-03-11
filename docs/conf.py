@@ -20,7 +20,7 @@ for path in ["src", "tests"]:
 project = "Yet Another Ninja Generator"
 copyright = "cuinixam"
 author = "cuinixam"
-release = "1.5.7"
+release = "1.5.8"
 
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
