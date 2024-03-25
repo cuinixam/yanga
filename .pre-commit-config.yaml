@@ -49,6 +49,7 @@ repos:
     rev: v2.2.6
     hooks:
       - id: codespell
+        exclude: "build_exe.spec"
   - repo: https://github.com/pre-commit/mirrors-mypy
     rev: v1.9.0
     hooks:

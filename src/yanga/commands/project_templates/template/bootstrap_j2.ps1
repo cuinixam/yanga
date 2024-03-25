@@ -16,13 +16,15 @@ if (Test-Path $bootstrapJsonPath) {
     $config = @{
         pythonVersion = $json.python_version
         scoopInstaller = $json.scoop_installer
-        scoopPythonJsonBaseUrl = $json.scoop_python_json_base_url
+        scoopMainBucketBaseUrl = $json.scoop_main_bucket_base_url
+        scoopPythonBucketBaseUrl = $json.scoop_python_bucket_base_url
     }
 } else {
     $config = @{
         pythonVersion = "{{ python_version }}"
         scoopInstaller = "{{ scoop_installer }}"
-        scoopPythonJsonBaseUrl = "{{ scoop_python_json_base_url }}"
+        scoopMainBucketBaseUrl = "{{ scoop_main_bucket_base_url }}"
+        scoopPythonBucketBaseUrl = "{{ scoop_python_bucket_base_url }}"
     }
 }
 
@@ -104,17 +106,21 @@ $scoopPath = (Get-Command scoop -ErrorAction SilentlyContinue).Source
 if ($scoopPath -eq $null) {
     Write-Output "Scoop not found. Trying to install scoop ..."
     Install-Scoop
-} else {
+}
+else {
     Write-Output "Found scoop under $scoopPath."
 }
 # Check if python is installed
 $pythonPath = (Get-Command $python -ErrorAction SilentlyContinue).Source
 if ($pythonPath -eq $null) {
     Write-Output "$python not found. Try to install $python via scoop ..."
+    # Install Python installer dependencies
+    Invoke-CommandLine "scoop install $($config.scoopMainBucketBaseUrl)/dark.json"
+    Invoke-CommandLine "scoop install $($config.scoopMainBucketBaseUrl)/lessmsi.json"
     # Install python
-    Invoke-CommandLine "scoop install $($config.scoopPythonJsonBaseUrl)/$python.json"
-    # Check if python is installed
-} else {
+    Invoke-CommandLine "scoop install $($config.scoopPythonBucketBaseUrl)/$python.json"
+}
+else {
     Write-Output "$python found in $pythonPath"
     # Extract the directory of python exe file and add it to PATH. It needs to be the first entry in PATH
     # such that this version is used when the user calls python and not python311
