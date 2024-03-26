@@ -4,5 +4,5 @@
   "scoop_installer": "https://raw.githubusercontent.com/ScoopInstaller/Install/master/install.ps1",
   "scoop_main_bucket_base_url": "https://raw.githubusercontent.com/ScoopInstaller/Main/master/bucket",
   "scoop_python_bucket_base_url": "https://raw.githubusercontent.com/ScoopInstaller/Versions/master/bucket",
-  "bootstrap_version": "0.6.0"
+  "bootstrap_version": "0.6.1"
 }

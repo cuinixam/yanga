@@ -266,7 +266,8 @@ class VirtualEnvironment(ABC):
             verify_ssl: Whether to verify SSL certificates when using pip.
 
         """
-        pip_ini_path = self.pip_path().parent / "pip.ini"
+        # The pip configuration file should be in the virtual environment directory %VIRTUAL_ENV%
+        pip_ini_path = self.pip_config_path()
         with open(pip_ini_path, "w") as pip_ini_file:
             match_host = re.match(r"https?://([^/]+)", index_url)
             pip_ini_file.write(f"[global]\nindex-url = {index_url}\n")
@@ -282,6 +283,12 @@ class VirtualEnvironment(ABC):
     def pip_path(self) -> Path:
         """
         Get the path to the pip executable within the virtual environment.
+        """
+
+    @abstractmethod
+    def pip_config_path(self) -> Path:
+        """
+        Get the path to the pip configuration file within the virtual environment.
         """
 
     @abstractmethod
@@ -306,6 +313,9 @@ class WindowsVirtualEnvironment(VirtualEnvironment):
     def pip_path(self) -> Path:
         return self.venv_dir.joinpath("Scripts/pip")
 
+    def pip_config_path(self) -> Path:
+        return self.venv_dir.joinpath("pip.ini")
+
     def run(self, args: List[str], capture_output: bool = True) -> None:
         SubprocessExecutor(
             [f"cmd /c {self.activate_script.as_posix()} && ", *args],
@@ -321,6 +331,9 @@ class UnixVirtualEnvironment(VirtualEnvironment):
 
     def pip_path(self) -> Path:
         return self.venv_dir.joinpath("bin/pip")
+
+    def pip_config_path(self) -> Path:
+        return self.venv_dir.joinpath("pip.conf")
 
     def run(self, args: List[str], capture_output: bool = True) -> None:
         # Create a temporary shell script
