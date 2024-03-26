@@ -2,6 +2,15 @@
 
 
 
+## v1.5.9 (2024-03-26)
+
+### Fix
+
+* fix: path to pip configuration file is wrong ([`25d6ac3`](https://github.com/cuinixam/yanga/commit/25d6ac3f15f4842fe4b35c5d7e9e175685501b1b))
+
+* fix: bootstrap python fails because of lessmsi ([`ccf194b`](https://github.com/cuinixam/yanga/commit/ccf194b16909c684990b1db74702ee79d429bdb0))
+
+
 ## v1.5.8 (2024-03-11)
 
 ### Fix
