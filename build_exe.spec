@@ -27,7 +27,7 @@ a = Analysis(
         ("src/yanga/commands/project_templates/", "yanga/commands/project_templates/"),
         ("src/yanga/gui/resources", "yanga/gui/resources"),
     ],
-    hiddenimports=["cookiecutter.extensions"] + hidden_module_paths,
+    hiddenimports=["shellingham.nt", "shellingham.posix", "cookiecutter.extensions"] + hidden_module_paths,
     hookspath=[],
     runtime_hooks=[],
     excludes=[],
