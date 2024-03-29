@@ -2,6 +2,7 @@ from pathlib import Path
 from typing import List, Optional
 
 from yanga.domain.component_analyzer import ComponentAnalyzer
+from yanga.domain.components import Component
 from yanga.domain.execution_context import (
     ExecutionContext,
     UserRequest,
@@ -27,6 +28,86 @@ from .cmake_backend import (
     CMakeVariable,
 )
 from .generator import CMakeGenerator
+
+
+class GTestComponentCMakeGenerator:
+    def __init__(self, execution_context: ExecutionContext, output_dir: Path):
+        self.execution_context = execution_context
+        self.output_dir = output_dir
+        self.cmake_build_dir = CMakePath(output_dir, "CMAKE_BUILD_DIR", Path("build"))
+
+    def generate(self, component: Component) -> List[CMakeElement]:
+        component_analyzer = ComponentAnalyzer([component], self.execution_context.create_artifacts_locator())
+        # Skip components without tests
+        if not component_analyzer.is_testable():
+            return []
+        elements: List[CMakeElement] = []
+        elements.append(CMakeComment(f"Component {component.name}"))
+        sources = component_analyzer.collect_sources() + component_analyzer.collect_test_sources()
+        component_test_executable_target = f"{component.name}"
+        elements.append(
+            CMakeAddExecutable(
+                component_test_executable_target,
+                [CMakePath(source) for source in sources],
+                ["GTest::gtest_main"],
+                [
+                    "-ggdb",  # Include detailed debug information to be able to debug the executable.
+                    "--coverage",  # Enable coverage tracking information to be generated.
+                ],
+                ["--coverage"],  # Enable coverage analysis.
+            )
+        )
+        command = CMakeCommand(
+            "${CMAKE_CTEST_COMMAND}",
+            [
+                "${CMAKE_CTEST_ARGUMENTS}",
+                "--output-junit",
+                f"{component.name}_junit.xml",
+                "||",
+                "${CMAKE_COMMAND}",
+                "-E",
+                "true",
+            ],
+        )
+        outputs = [self.cmake_build_dir.joinpath(f"{component.name}_junit.xml")]
+        elements.append(
+            CMakeCustomCommand(
+                "Run the test executable, generate JUnit report and return success independent of the test result",
+                outputs,
+                [component_test_executable_target],
+                [command],
+            )
+        )
+        elements.extend(
+            [
+                CMakeCustomTarget(
+                    UserRequest(
+                        UserRequestScope.COMPONENT,
+                        component_name=component.name,
+                        target=UserRequestTarget.TEST,
+                    ).target_name,
+                    f"Execute tests for {component.name}",
+                    [],
+                    outputs,  # type: ignore
+                    True,
+                ),
+                CMakeCustomTarget(
+                    UserRequest(
+                        UserRequestScope.COMPONENT,
+                        component_name=component.name,
+                        target=UserRequestTarget.BUILD,
+                    ).target_name,
+                    f"Execute tests for {component.name}",
+                    [],
+                    outputs,  # type: ignore
+                    True,
+                ),
+            ]
+        )
+        elements.append(CMakeContent(f"gtest_discover_tests({component_test_executable_target})"))
+        elements.append(CMakeEmptyLine())
+
+        return elements
 
 
 class GTestCMakeGenerator(CMakeGenerator):
@@ -82,75 +163,7 @@ class GTestCMakeGenerator(CMakeGenerator):
 
     def create_components_cmake_elements(self) -> List[CMakeElement]:
         elements: List[CMakeElement] = []
+        component_generator = GTestComponentCMakeGenerator(self.execution_context, self.output_dir)
         for component in self.execution_context.components:
-            component_analyzer = ComponentAnalyzer([component], self.execution_context.create_artifacts_locator())
-            # Skip components without tests
-            if not component_analyzer.is_testable():
-                continue
-            elements.append(CMakeComment(f"Component {component.name}"))
-            sources = component_analyzer.collect_sources() + component_analyzer.collect_test_sources()
-            component_test_executable_target = f"{component.name}"
-            elements.append(
-                CMakeAddExecutable(
-                    component_test_executable_target,
-                    [CMakePath(source) for source in sources],
-                    ["GTest::gtest_main"],
-                    [
-                        "-ggdb",  # Include detailed debug information to be able to debug the executable.
-                        "--coverage",  # Enable coverage tracking information to be generated.
-                    ],
-                    ["--coverage"],  # Enable coverage analysis.
-                )
-            )
-            command = CMakeCommand(
-                "${CMAKE_CTEST_COMMAND}",
-                [
-                    "${CMAKE_CTEST_ARGUMENTS}",
-                    "--output-junit",
-                    f"{component.name}_junit.xml",
-                    "||",
-                    "${CMAKE_COMMAND}",
-                    "-E",
-                    "true",
-                ],
-            )
-            outputs = [self.cmake_build_dir.joinpath(f"{component.name}_junit.xml")]
-            elements.append(
-                CMakeCustomCommand(
-                    "Run the test executable, generate JUnit report and return success independent of the test result",
-                    outputs,
-                    [component_test_executable_target],
-                    [command],
-                )
-            )
-            elements.extend(
-                [
-                    CMakeCustomTarget(
-                        UserRequest(
-                            UserRequestScope.COMPONENT,
-                            self.variant_name,
-                            component.name,
-                            UserRequestTarget.TEST,
-                        ).target_name,
-                        f"Execute tests for {component.name}",
-                        [],
-                        outputs,  # type: ignore
-                        True,
-                    ),
-                    CMakeCustomTarget(
-                        UserRequest(
-                            UserRequestScope.COMPONENT,
-                            self.variant_name,
-                            component.name,
-                            UserRequestTarget.BUILD,
-                        ).target_name,
-                        f"Execute tests for {component.name}",
-                        [],
-                        outputs,  # type: ignore
-                        True,
-                    ),
-                ]
-            )
-            elements.append(CMakeContent(f"gtest_discover_tests({component_test_executable_target})"))
-            elements.append(CMakeEmptyLine())
+            elements.extend(component_generator.generate(component))
         return elements
