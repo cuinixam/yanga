@@ -2,6 +2,13 @@
 
 
 
+## v1.6.0 (2024-03-29)
+
+### Feature
+
+* feat: use typer for handling command line ([`3cbd5c8`](https://github.com/cuinixam/yanga/commit/3cbd5c840261414851fabacf467cdb506b9860f8))
+
+
 ## v1.5.9 (2024-03-26)
 
 ### Fix
