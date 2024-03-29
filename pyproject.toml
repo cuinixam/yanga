@@ -35,6 +35,7 @@ customtkinter = "^5.2.0"
 pillow = "^10.1.0"
 kspl = "^1.0.0"
 pick = "^2.2.0"
+typer = "^0.11.1"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.0"

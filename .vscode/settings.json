@@ -24,8 +24,8 @@
   "peacock.color": "#fbed81",
   "editor.formatOnSave": true,
   "[python]": {
-    "editor.defaultFormatter": "ms-python.black-formatter"
+    "editor.defaultFormatter": "charliermarsh.ruff"
   },
   "python.analysis.typeCheckingMode": "basic",
-  "cSpell.words": ["yanga"]
+  "cSpell.words": ["yanga", "typer", "cookiecutter"]
 }
