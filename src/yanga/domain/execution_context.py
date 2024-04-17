@@ -19,6 +19,7 @@ class UserRequestTarget(Enum):
     COMPILE = auto()
     CLEAN = auto()
     TEST = auto()
+    MOCKUP = auto()
 
     def __str__(self) -> str:
         return self.name.lower()

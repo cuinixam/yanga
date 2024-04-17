@@ -134,7 +134,7 @@ class CMakePath:
         self.relative_path = relative_path
 
     def to_cmake_element(self) -> Optional[CMakeElement]:
-        return CMakeVariable(self.variable, self.to_string()) if self.variable else None
+        return CMakeVariable(self.variable, self.to_path().as_posix()) if self.variable else None
 
     def to_string(self) -> str:
         if self.variable:
@@ -181,7 +181,6 @@ class CMakeIncludeDirectories(CMakeElement):
 
 @dataclass
 class CMakeAddExecutable(CMakeElement):
-
     name: str
     sources: List[Union[str, CMakePath, CMakeObjectLibrary]]
     libraries: List[str] = field(default_factory=list)
@@ -292,7 +291,7 @@ class CMakeCustomCommand(CMakeElement):
         return "\n".join(str(line) for line in content)
 
     def _get_outputs(self) -> List[str]:
-        return [f"{self.tab_prefix}OUTPUT {output.to_string()}" for output in self.outputs]
+        return [f"{self.tab_prefix}OUTPUT {' '.join([output.to_string() for output in self.outputs])}"]
 
     def _get_commands(self) -> List[str]:
         return [self.tab_prefix + str(command) for command in self.commands]

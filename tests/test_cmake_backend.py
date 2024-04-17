@@ -98,28 +98,14 @@ def test_cmake_custom_command():
     depends: List[str | CMakePath] = ["input1", "input2"]
     commands = [CMakeCommand("my_command", ["arg1", "arg2"])]
     cmake_custom_command = CMakeCustomCommand("Generate outputs", outputs, depends, commands)
-    expected_string = (
-        "# Generate outputs\n"
-        "add_custom_command(\n"
-        "    OUTPUT output1\n"
-        "    OUTPUT output2\n"
-        "    DEPENDS input1 input2\n"
-        "    COMMAND my_command arg1 arg2\n"
-        ")"
-    )
+    expected_string = "# Generate outputs\n" "add_custom_command(\n" "    OUTPUT output1 output2\n" "    DEPENDS input1 input2\n" "    COMMAND my_command arg1 arg2\n" ")"
     assert cmake_custom_command.to_string() == expected_string
 
 
 def test_cmake_custom_target():
     commands = [CMakeCommand("my_target_command", ["arg1", "arg2"])]
     cmake_custom_target = CMakeCustomTarget("my_custom_target", "Build custom target", commands, ["depend1"], True)
-    expected_string = (
-        "# Build custom target\n"
-        "add_custom_target(my_custom_target ALL\n"
-        "    COMMAND my_target_command arg1 arg2\n"
-        "    DEPENDS depend1\n"
-        ")"
-    )
+    expected_string = "# Build custom target\n" "add_custom_target(my_custom_target ALL\n" "    COMMAND my_target_command arg1 arg2\n" "    DEPENDS depend1\n" ")"
     assert cmake_custom_target.to_string() == expected_string
 
 

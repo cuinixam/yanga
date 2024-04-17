@@ -36,6 +36,7 @@ pillow = "^10.1.0"
 kspl = "^1.0.0"
 pick = "^2.2.0"
 typer = "^0.11.1"
+hammocking = "^0.2.5"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.0"
@@ -80,7 +81,7 @@ match = "(?!main$)"
 prerelease = true
 
 [tool.pytest.ini_options]
-addopts = "-v -Wdefault --cov=yanga --cov-report=term-missing:skip-covered -s"
+addopts = "-vv -Wdefault --cov=yanga --cov-report=term-missing:skip-covered -s"
 pythonpath = ["src"]
 
 [tool.coverage.run]
