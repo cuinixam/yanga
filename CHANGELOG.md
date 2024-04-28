@@ -2,6 +2,17 @@
 
 
 
+## v1.7.0 (2024-04-28)
+
+### Feature
+
+* feat: integrate auto mocking for gtest ([`8b8540b`](https://github.com/cuinixam/yanga/commit/8b8540b262e5394612eb8bed7fcbacc847b49148))
+
+### Fix
+
+* fix: missing dependencies for autocompletion ([`a8f24ce`](https://github.com/cuinixam/yanga/commit/a8f24ce7730f5b4091436bdadeacaa3a1a5c6bbf))
+
+
 ## v1.6.0 (2024-03-29)
 
 ### Feature
