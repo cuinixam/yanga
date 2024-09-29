@@ -1,11 +1,12 @@
 import os
 from abc import ABC, abstractmethod
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from enum import Enum, auto
 from pathlib import Path
 from typing import List, Optional, Union
 
 from py_app_dev.core.subprocess import SubprocessExecutor
+from pypeline.domain.execution_context import ExecutionContext as _ExecutionContext
 
 from .artifacts import ProjectArtifactsLocator
 from .components import Component
@@ -60,18 +61,25 @@ class IncludeDirectoriesProvider(ABC):
 
 
 @dataclass
-class ExecutionContext:
-    project_root_dir: Path
-    variant_name: Optional[str]
-    user_request: UserRequest
-    components: List[Component] = field(default_factory=list)
-    user_config_files: List[Path] = field(default_factory=list)
-    config_file: Optional[Path] = None
-    # Keep track of all install directories, updated by any stage for the subsequent stages
-    install_dirs: List[Path] = field(default_factory=list)
-    # Keep track of all include directory providers
-    include_dirs_providers: List[IncludeDirectoriesProvider] = field(default_factory=list)
-    platform: Optional[PlatformConfig] = None
+class ExecutionContext(_ExecutionContext):
+    def __init__(
+        self,
+        project_root_dir: Path,
+        user_request: UserRequest,
+        variant_name: Optional[str] = None,
+        components: Optional[List[Component]] = None,
+        user_config_files: Optional[List[Path]] = None,
+        config_file: Optional[Path] = None,
+        platform: Optional[PlatformConfig] = None,
+    ) -> None:
+        super().__init__(project_root_dir)
+        self.user_request = user_request
+        self.variant_name = variant_name
+        self.components = components if components else []
+        self.user_config_files = user_config_files if user_config_files else []
+        self.config_file = config_file
+        self.platform = platform
+        self.include_dirs_providers: List[IncludeDirectoriesProvider] = []
 
     @property
     def include_directories(self) -> List[Path]:

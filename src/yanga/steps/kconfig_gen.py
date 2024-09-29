@@ -1,12 +1,12 @@
 from pathlib import Path
-from typing import List
+from typing import Any, Dict, List, Optional
 
 from kspl.generate import HeaderWriter
 from kspl.kconfig import KConfig
 from py_app_dev.core.logging import logger
+from pypeline.domain.pipeline import PipelineStep
 
 from yanga.domain.execution_context import ExecutionContext, IncludeDirectoriesProvider
-from yanga.domain.pipeline import PipelineStep
 
 
 class KConfigIncludeDirectoriesProvider(IncludeDirectoriesProvider):
@@ -17,11 +17,15 @@ class KConfigIncludeDirectoriesProvider(IncludeDirectoriesProvider):
         return [self.output_dir]
 
 
-class KConfigGen(PipelineStep):
-    def __init__(self, execution_context: ExecutionContext, output_dir: Path) -> None:
-        super().__init__(execution_context, output_dir)
+class KConfigGen(PipelineStep[ExecutionContext]):
+    def __init__(self, execution_context: ExecutionContext, group_name: str, config: Optional[Dict[str, Any]] = None) -> None:
+        super().__init__(execution_context, group_name, config)
         self.logger = logger.bind()
         self.input_files: List[Path] = []
+
+    @property
+    def output_dir(self) -> Path:
+        return self.execution_context.create_artifacts_locator().variant_build_dir / "kconfig"
 
     def get_name(self) -> str:
         return self.__class__.__name__

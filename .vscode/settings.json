@@ -27,5 +27,15 @@
     "editor.defaultFormatter": "charliermarsh.ruff"
   },
   "python.analysis.typeCheckingMode": "basic",
-  "cSpell.words": ["yanga", "typer", "cookiecutter", "hammocking"]
+  "cSpell.words": [
+    "yanga",
+    "typer",
+    "cookiecutter",
+    "hammocking",
+    "mashumaro",
+    "pypeline",
+    "slurper",
+    "subcomponent",
+    "subcomponents"
+  ]
 }

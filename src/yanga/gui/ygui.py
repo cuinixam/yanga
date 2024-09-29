@@ -10,6 +10,7 @@ from py_app_dev.mvp.event_manager import EventID, EventManager
 from py_app_dev.mvp.presenter import Presenter
 from py_app_dev.mvp.view import View
 
+from yanga.commands.run import RunCommand
 from yanga.domain.execution_context import (
     UserRequest,
     UserRequestScope,
@@ -17,7 +18,6 @@ from yanga.domain.execution_context import (
     UserVariantRequest,
 )
 from yanga.domain.project_slurper import YangaProjectSlurper
-from yanga.yrun import PipelineScheduler, PipelineStepsExecutor
 
 from .icons import Icons
 
@@ -150,9 +150,7 @@ class YangaView(View):
         position_in_grid += 1
 
         # Create the clean button
-        self.clean_button = customtkinter.CTkButton(
-            current_frame, text="Clean", command=self._clean_variant_button_pressed
-        )
+        self.clean_button = customtkinter.CTkButton(current_frame, text="Clean", command=self._clean_variant_button_pressed)
         self.clean_button.grid(row=position_in_grid, column=0, sticky="nsew", padx=10, pady=5)
         position_in_grid += 1
 
@@ -186,9 +184,7 @@ class YangaView(View):
         position_in_grid += 1
 
         # Create component build button
-        self.component_build_button = customtkinter.CTkButton(
-            current_frame, text="Build", command=self._component_build_button_pressed
-        )
+        self.component_build_button = customtkinter.CTkButton(current_frame, text="Build", command=self._component_build_button_pressed)
         self.component_build_button.grid(row=position_in_grid, column=0, sticky="nsew", padx=10, pady=5)
         position_in_grid += 1
 
@@ -381,20 +377,13 @@ class YangaPresenter(Presenter):
         self.command_running_flag = True
         self.running_user_request = user_request
         try:
-            if not self.project_slurper.pipeline:
-                raise UserNotificationException("No pipeline found in the configuration.")
-            # Schedule the steps to run
-            steps_references = PipelineScheduler(self.project_slurper.pipeline, self.project_dir).get_steps_to_run()
-            if not steps_references:
-                self.logger.info("No steps to run.")
-                return
-            PipelineStepsExecutor(
-                self.project_slurper,
-                user_request.variant_name,
-                self.selected_platform,
-                user_request,
-                steps_references,
-            ).run()
+            RunCommand.execute_pipeline_steps(
+                project_dir=self.project_dir,
+                project_slurper=self.project_slurper,
+                user_request=user_request,
+                variant_name=user_request.variant_name,
+                platform_name=self.selected_platform,
+            )
         except UserNotificationException as e:
             self.logger.error(e)
         finally:

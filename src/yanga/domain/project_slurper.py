@@ -3,7 +3,7 @@ from typing import Dict, List, Optional, TypeAlias
 
 from py_app_dev.core.exceptions import UserNotificationException
 from py_app_dev.core.logging import logger
-from py_app_dev.core.pipeline import PipelineConfig
+from pypeline.domain.pipeline import PipelineConfig
 
 from yanga.domain.artifacts import ProjectArtifactsLocator
 
@@ -18,9 +18,8 @@ class YangaProjectSlurper:
     def __init__(self, project_dir: Path) -> None:
         self.logger = logger.bind()
         self.project_dir = project_dir
-        self.user_configs: List[YangaUserConfig] = YangaConfigSlurper(
-            self.project_dir, [".git", ".github", ".vscode", "build", ".venv"]
-        ).slurp()
+        # TODO: Get rid of the exclude directories hardcoded list. Maybe use an ini file?
+        self.user_configs: List[YangaUserConfig] = YangaConfigSlurper(project_dir=self.project_dir, exclude_dirs=[".git", ".github", ".vscode", "build", ".venv"]).slurp()
         self.components_configs_pool: ComponentsConfigsPool = self._collect_components_configs(self.user_configs)
         self.pipeline: Optional[PipelineConfig] = self._find_pipeline_config(self.user_configs)
         self.variants: List[VariantConfig] = self._collect_variants(self.user_configs)
@@ -89,8 +88,6 @@ class YangaProjectSlurper:
         for user_config in user_configs:
             for component_config in user_config.components:
                 if components_config.get(component_config.name, None):
-                    # TODO: throw the UserNotificationException and mention the two files
-                    #  where the components are defined
                     raise UserNotificationException(
                         f"Component '{component_config.name}' is defined in multiple configuration files."
                         f"See {components_config[component_config.name].file} and {user_config.file}"
@@ -117,9 +114,7 @@ class YangaProjectSlurper:
                     if not subcomponent:
                         # TODO: throw the UserNotificationException and mention the file
                         # where the subcomponent was defined
-                        raise UserNotificationException(
-                            f"Component '{subcomponent_name}' not found in the configuration."
-                        )
+                        raise UserNotificationException(f"Component '{subcomponent_name}' not found in the configuration.")
                     component.components.append(subcomponent)
                     subcomponent.is_subcomponent = True
 

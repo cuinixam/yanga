@@ -10,7 +10,7 @@ from mashumaro import DataClassDictMixin
 from mashumaro.config import TO_DICT_ADD_OMIT_NONE_FLAG, BaseConfig
 from mashumaro.mixins.json import DataClassJSONMixin
 from py_app_dev.core.exceptions import UserNotificationException
-from py_app_dev.core.pipeline import PipelineConfig, PipelineStepConfig
+from pypeline.domain.pipeline import PipelineConfig, PipelineStepConfig
 from yaml.parser import ParserError
 from yaml.scanner import ScannerError
 
@@ -84,8 +84,8 @@ class YangaUserConfig(DataClassDictMixin):
     platforms: List[PlatformConfig] = field(default_factory=list)
     variants: List[VariantConfig] = field(default_factory=list)
     components: List[ComponentConfig] = field(default_factory=list)
-    # This field is intended to keep track of where configuration was loaded from and
-    # it is automatically added when configuration is loaded from file
+    # This field is intended to keep track of where the configuration was loaded from and
+    # it is automatically added when the configuration is loaded from the file
     file: Optional[Path] = None
 
     @classmethod

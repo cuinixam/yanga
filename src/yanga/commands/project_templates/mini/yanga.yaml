@@ -28,13 +28,13 @@ variants:
 pipeline:
   install:
     - step: CreateVEnv
-      module: yanga.steps.create_venv
+      module: pypeline.steps.create_venv
     - step: ScoopInstall
-      module: yanga.steps.scoop_install
+      module: pypeline.steps.scoop_install
       description: Install scoop dependencies
       timeout_sec: 120
     - step: WestInstall
-      module: yanga.steps.west_install
+      module: pypeline.steps.west_install
       description: Install west dependencies
   gen:
     - step: KConfigGen

@@ -1,15 +1,16 @@
 from argparse import ArgumentParser, Namespace
 from dataclasses import dataclass, field
+from pathlib import Path
 from typing import List, Optional
 
 from py_app_dev.core.cmd_line import Command, register_arguments_for_config_dataclass
 from py_app_dev.core.exceptions import UserNotificationException
 from py_app_dev.core.logging import logger, time_it
+from pypeline.pypeline import PipelineScheduler, PipelineStepsExecutor
 
 from yanga.domain.config import PlatformConfig, VariantConfig
-from yanga.domain.execution_context import UserRequest, UserRequestScope
+from yanga.domain.execution_context import ExecutionContext, UserRequest, UserRequestScope
 from yanga.domain.project_slurper import YangaProjectSlurper
-from yanga.yrun import PipelineScheduler, PipelineStepsExecutor
 
 from .base import CommandConfigBase, CommandConfigFactory, prompt_user_to_select_option
 
@@ -24,9 +25,7 @@ class RunCommandConfig(CommandConfigBase):
         default=None,
         metadata={"help": "SPL variant name. If none is provided, it will prompt to select one."},
     )
-    component_name: Optional[str] = field(
-        default=None, metadata={"help": "Restrict the scope to one specific component."}
-    )
+    component_name: Optional[str] = field(default=None, metadata={"help": "Restrict the scope to one specific component."})
     target: Optional[str] = field(default=None, metadata={"help": "Define a specific target to execute."})
     step: Optional[str] = field(
         default=None,
@@ -35,8 +34,7 @@ class RunCommandConfig(CommandConfigBase):
     single: bool = field(
         default=False,
         metadata={
-            "help": "If provided, only the provided step will run,"
-            " without running all previous steps in the pipeline.",
+            "help": "If provided, only the provided step will run," " without running all previous steps in the pipeline.",
             "action": "store_true",
         },
     )
@@ -74,54 +72,74 @@ class RunCommand(Command):
             return 0
         variant_name = self.determine_variant_name(config.variant_name, project_slurper.variants)
         platform_name = self.determine_platform_name(config.platform, project_slurper.platforms)
+        user_request = UserRequest(
+            scope=(UserRequestScope.COMPONENT if config.component_name else UserRequestScope.VARIANT),
+            variant_name=variant_name,
+            component_name=config.component_name,
+            target=config.target,
+        )
+        self.execute_pipeline_steps(
+            project_dir=config.project_dir,
+            project_slurper=project_slurper,
+            user_request=user_request,
+            variant_name=variant_name,
+            platform_name=platform_name,
+            step=config.step,
+            single=config.single,
+            force_run=config.force_run,
+        )
+        return 0
+
+    @staticmethod
+    def execute_pipeline_steps(
+        project_dir: Path,
+        project_slurper: YangaProjectSlurper,
+        user_request: UserRequest,
+        variant_name: Optional[str] = None,
+        platform_name: Optional[str] = None,
+        step: Optional[str] = None,
+        force_run: bool = False,
+        single: bool = False,
+    ) -> None:
         if not project_slurper.pipeline:
             raise UserNotificationException("No pipeline found in the configuration.")
         # Schedule the steps to run
-        steps_references = PipelineScheduler(project_slurper.pipeline, config.project_dir).get_steps_to_run(
-            config.step, config.single
-        )
+        steps_references = PipelineScheduler[ExecutionContext](project_slurper.pipeline, project_dir).get_steps_to_run(step, single)
         if not steps_references:
-            if config.step:
-                raise UserNotificationException(f"Step '{config.step}' not found in the pipeline.")
-            self.logger.info("No steps to run.")
-            return 0
-        user_request = UserRequest(
-            (UserRequestScope.COMPONENT if config.component_name else UserRequestScope.VARIANT),
-            variant_name,
-            config.component_name,
-            config.target,
+            if step:
+                raise UserNotificationException(f"Step '{step}' not found in the pipeline.")
+            logger.info("No steps to run.")
+            return
+        execution_context = ExecutionContext(
+            project_root_dir=project_dir,
+            variant_name=variant_name,
+            user_request=user_request,
+            components=(project_slurper.get_variant_components(variant_name) if variant_name else []),
+            user_config_files=project_slurper.user_config_files,
+            config_file=(project_slurper.get_variant_config_file(variant_name) if variant_name else None),
+            platform=project_slurper.get_platform(platform_name),
         )
-        PipelineStepsExecutor(
-            project_slurper,
-            variant_name,
-            platform_name,
-            user_request,
+        PipelineStepsExecutor[ExecutionContext](
+            execution_context,
             steps_references,
-            config.force_run,
+            force_run,
         ).run()
-        return 0
 
-    def determine_variant_name(
-        self, variant_name: Optional[str], variant_configs: List[VariantConfig]
-    ) -> Optional[str]:
+    def determine_variant_name(self, variant_name: Optional[str], variant_configs: List[VariantConfig]) -> Optional[str]:
         selected_variant_name: Optional[str]
         if not variant_name:
             if len(variant_configs) == 1:
                 selected_variant_name = variant_configs[0].name
                 self.logger.info(f"Only one variant found. Using '{selected_variant_name}'.")
             else:
-                selected_variant_name = prompt_user_to_select_option(
-                    [variant.name for variant in variant_configs], "Select variant: "
-                )
+                selected_variant_name = prompt_user_to_select_option([variant.name for variant in variant_configs], "Select variant: ")
         else:
             selected_variant_name = variant_name
         if not selected_variant_name:
             self.logger.warning("No variant selected. This might cause some steps to fail.")
         return selected_variant_name
 
-    def determine_platform_name(
-        self, platform_name: Optional[str], platform_configs: List[PlatformConfig]
-    ) -> Optional[str]:
+    def determine_platform_name(self, platform_name: Optional[str], platform_configs: List[PlatformConfig]) -> Optional[str]:
         selected_platform_name: Optional[str]
         if not platform_name:
             if len(platform_configs) == 1:
