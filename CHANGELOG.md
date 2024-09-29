@@ -2,6 +2,13 @@
 
 
 
+## v2.1.0 (2024-09-29)
+
+### Feature
+
+* feat: support user specific configuration files ([`1c0a711`](https://github.com/cuinixam/yanga/commit/1c0a711c1838fc3627d2b601450d3ff3c3bff703))
+
+
 ## v2.0.0 (2024-09-29)
 
 ### Breaking
