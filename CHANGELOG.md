@@ -2,6 +2,13 @@
 
 
 
+## v2.0.0 (2024-09-29)
+
+### Breaking
+
+* feat!: migrate to pypeline steps ([`ce65cc3`](https://github.com/cuinixam/yanga/commit/ce65cc3b8ca56bf0ce74e632af26fa989909068d))
+
+
 ## v1.7.0 (2024-04-28)
 
 ### Feature
