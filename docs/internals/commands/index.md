@@ -9,7 +9,7 @@ yanga init --help
 ```
 
 ```{eval-rst}
-.. autoclass:: yanga.commands.init::InitCommand
+.. autoclass:: yanga.commands.init::YangaInit
    :members:
    :undoc-members:
 ```

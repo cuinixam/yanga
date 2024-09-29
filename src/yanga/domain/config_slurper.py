@@ -1,7 +1,7 @@
 import os
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
-from typing import List, Set
+from typing import List, Optional, Set
 
 from .config import YangaUserConfig
 
@@ -45,19 +45,16 @@ def _is_excluded(dir_path: Path, exclude_paths: Set[Path]) -> bool:
 class YangaConfigSlurper:
     """Read all 'yanga.yaml' configuration files from the project."""
 
-    CONFIG_FILE = "yanga.yaml"
-
-    def __init__(self, project_dir: Path, exclude_dirs: List[str] | None = None) -> None:
+    def __init__(self, project_dir: Path, exclude_dirs: List[str] | None = None, configuration_file_name: Optional[str] = None) -> None:
         self.project_dir = project_dir
         self.exclude_dirs = exclude_dirs if exclude_dirs else []
+        self.configuration_file_name = configuration_file_name or "yanga.yaml"
 
     def slurp(self) -> List[YangaUserConfig]:
         user_configs = []
-        config_files = find_files(self.project_dir, self.CONFIG_FILE, self.exclude_dirs)
+        config_files = find_files(self.project_dir, self.configuration_file_name, self.exclude_dirs)
         with ThreadPoolExecutor() as executor:
-            future_to_file = {
-                executor.submit(self.parse_config_file, config_file): config_file for config_file in config_files
-            }
+            future_to_file = {executor.submit(self.parse_config_file, config_file): config_file for config_file in config_files}
             for future in as_completed(future_to_file):
                 user_configs.append(future.result())
         return user_configs

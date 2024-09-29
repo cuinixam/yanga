@@ -11,6 +11,7 @@ from pypeline.pypeline import PipelineScheduler, PipelineStepsExecutor
 from yanga.domain.config import PlatformConfig, VariantConfig
 from yanga.domain.execution_context import ExecutionContext, UserRequest, UserRequestScope
 from yanga.domain.project_slurper import YangaProjectSlurper
+from yanga.ini import YangaIni
 
 from .base import CommandConfigBase, CommandConfigFactory, prompt_user_to_select_option
 
@@ -66,7 +67,7 @@ class RunCommand(Command):
         return 0
 
     def do_run(self, config: RunCommandConfig) -> int:
-        project_slurper = YangaProjectSlurper(config.project_dir)
+        project_slurper = self.create_project_slurper(config.project_dir)
         if config.print:
             project_slurper.print_project_info()
             return 0
@@ -89,6 +90,11 @@ class RunCommand(Command):
             force_run=config.force_run,
         )
         return 0
+
+    @staticmethod
+    def create_project_slurper(project_dir: Path) -> YangaProjectSlurper:
+        ini_config = YangaIni.from_toml_or_ini(project_dir / "yanga.ini", project_dir / "pyproject.toml")
+        return YangaProjectSlurper(project_dir, ini_config.configuration_file_name)
 
     @staticmethod
     def execute_pipeline_steps(
