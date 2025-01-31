@@ -48,9 +48,9 @@
     },
     {
       "label": "generate docs",
-      "command": ".venv/bin/poetry run sphinx-build ${workspaceFolder}/docs ${workspaceFolder}/docs/_build",
+      "command": ".venv/bin/poetry run sphinx-build -E -a ${workspaceFolder}/docs ${workspaceFolder}/docs/_build",
       "windows": {
-        "command": ".venv/Scripts/poetry run sphinx-build ${workspaceFolder}/docs ${workspaceFolder}/docs/_build"
+        "command": ".venv/Scripts/poetry run sphinx-build -E -a ${workspaceFolder}/docs ${workspaceFolder}/docs/_build"
       },
       "type": "shell",
       "presentation": {

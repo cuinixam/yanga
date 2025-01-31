@@ -40,22 +40,20 @@ hammocking = "^0.2"
 pypeline-runner = "^1.0"
 
 [tool.poetry.group.dev.dependencies]
-pytest = "^8.0"
-pytest-cov = "^4.1"
-black = "^24.2.0"
-pre-commit = "^3.6.2"
-pyinstaller = "^6.4.0"
-ruff = "^0.3.0"
+pytest = "^8.3"
+pytest-cov = "^6.0"
+pre-commit = "^4.0"
+ruff = "^0.9"
 
 [tool.poetry.group.docs.dependencies]
 myst-parser = ">=0.16"
 sphinx = ">=4.0"
-sphinxcontrib-mermaid = "^0.8.1"
-mlx-traceability = "^10.0.0"
-sphinx-copybutton = "^0.5.2"
-sphinx-new-tab-link = "^0.2.2"
-sphinx-book-theme = "^1.1.2"
-sphinx-design = "^0.5.0"
+sphinxcontrib-mermaid = "^0.8"
+mlx-traceability = "^10.0"
+sphinx-copybutton = "^0.5"
+sphinx-new-tab-link = "^0.2"
+sphinx-book-theme = "^1.1"
+sphinx-design = "^0.5"
 
 [tool.semantic_release]
 version_toml = ["pyproject.toml:tool.poetry.version"]
@@ -138,9 +136,6 @@ exclude = [
     'setup.py',
     'template/**'
 ]
-
-[tool.black]
-line-length = 120
 
 [[tool.mypy.overrides]]
 module = "tests.*"
