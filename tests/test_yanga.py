@@ -18,6 +18,11 @@ def test_yanga_mini(tmp_path: Path) -> None:
     assert project_dir.joinpath("yanga.yaml").exists()
     build_script_path = project_dir / "bootstrap.ps1"
     assert build_script_path.exists()
+    # Patch the pyproject.toml to replace yanga version with the current directory
+    pyproject_toml = project_dir.joinpath("pyproject.toml")
+    new_dependency = f'yanga = {{path = "{Path(__file__).parent.parent.as_posix()}"}}'
+    pyproject_toml.write_text(pyproject_toml.read_text().replace('yanga = "*"', new_dependency))
+
     # Bootstrap the project
     SubprocessExecutor(["powershell", "-File", build_script_path.as_posix()]).execute()
     # Build the project

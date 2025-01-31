@@ -10,23 +10,21 @@ from py_app_dev.core.logging import logger
 T = TypeVar("T", bound=DataClassDictMixin)
 
 
-class CommandConfigFactory:
-    @staticmethod
-    def create_config(config_class: Type[T], namespace: Namespace) -> T:
-        """
-        Creates a configuration instance from an argparse Namespace for the given class.
+def create_config(config_class: Type[T], namespace: Namespace) -> T:
+    """
+    Creates a configuration instance from an argparse Namespace for the given class.
 
-        Parameters
-        ----------
-        - cls: The class type to instantiate, inheriting from DataClassDictMixin.
-        - namespace: The argparse Namespace containing configuration data.
+    Parameters
+    ----------
+    - cls: The class type to instantiate, inheriting from DataClassDictMixin.
+    - namespace: The argparse Namespace containing configuration data.
 
-        Returns
-        -------
-        An instance of cls populated with data from namespace.
+    Returns
+    -------
+    An instance of cls populated with data from namespace.
 
-        """
-        return config_class.from_dict(vars(namespace))
+    """
+    return config_class.from_dict(vars(namespace))
 
 
 @dataclass

@@ -13,7 +13,7 @@ from yanga.domain.execution_context import ExecutionContext, UserRequest, UserRe
 from yanga.domain.project_slurper import YangaProjectSlurper
 from yanga.ini import YangaIni
 
-from .base import CommandConfigBase, CommandConfigFactory, prompt_user_to_select_option
+from .base import CommandConfigBase, create_config, prompt_user_to_select_option
 
 
 @dataclass
@@ -35,7 +35,7 @@ class RunCommandConfig(CommandConfigBase):
     single: bool = field(
         default=False,
         metadata={
-            "help": "If provided, only the provided step will run," " without running all previous steps in the pipeline.",
+            "help": "If provided, only the provided step will run, without running all previous steps in the pipeline.",
             "action": "store_true",
         },
     )
@@ -63,7 +63,7 @@ class RunCommand(Command):
     @time_it("Run")
     def run(self, args: Namespace) -> int:
         self.logger.debug(f"Running {self.name} with args {args}")
-        self.do_run(CommandConfigFactory.create_config(RunCommandConfig, args))
+        self.do_run(create_config(RunCommandConfig, args))
         return 0
 
     def do_run(self, config: RunCommandConfig) -> int:

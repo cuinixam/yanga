@@ -5,7 +5,7 @@ from py_app_dev.core.logging import logger
 
 from yanga.gui.ygui import YangaGui
 
-from .base import CommandConfigBase, CommandConfigFactory
+from .base import CommandConfigBase, create_config
 
 
 class GuiCommand(Command):
@@ -15,7 +15,7 @@ class GuiCommand(Command):
 
     def run(self, args: Namespace) -> int:
         self.logger.info(f"Running {self.name} with args {args}")
-        config = CommandConfigFactory.create_config(CommandConfigBase, args)
+        config = create_config(CommandConfigBase, args)
         YangaGui(config.project_dir).run()
         return 0
 
