@@ -1,6 +1,14 @@
 # CHANGELOG
 
 
+## v2.2.1 (2025-02-03)
+
+### Bug Fixes
+
+- Missing dependency for creating windows executable
+  ([`2dedee2`](https://github.com/cuinixam/yanga/commit/2dedee225b06fa3368919b623a01ad984a945279))
+
+
 ## v2.2.0 (2025-02-03)
 
 ### Features
