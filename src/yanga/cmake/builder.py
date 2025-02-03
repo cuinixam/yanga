@@ -1,6 +1,6 @@
 from collections import OrderedDict
 from pathlib import Path
-from typing import List, Type
+from typing import List, Optional, Type
 
 from py_app_dev.core.exceptions import UserNotificationException
 from py_app_dev.core.logging import logger
@@ -21,7 +21,7 @@ from .generator import CMakeGenerator
 
 
 class CMakeGeneratorReference:
-    def __init__(self, group_name: str, _class: Type[CMakeGenerator]) -> None:
+    def __init__(self, group_name: Optional[str], _class: Type[CMakeGenerator]) -> None:
         self.group_name = group_name
         self._class = _class
 
@@ -45,10 +45,7 @@ class CMakeGeneratorsLoader:
         self._loader = GenericPipelineLoader[CMakeGenerator](self.pipeline_config, self.project_root_dir)
 
     def load_steps_references(self) -> List[CMakeGeneratorReference]:
-        return [
-            CMakeGeneratorReference(step_reference.group_name, step_reference._class)
-            for step_reference in self._loader.load_steps()
-        ]
+        return [CMakeGeneratorReference(step_reference.group_name, step_reference._class) for step_reference in self._loader.load_steps()]
 
 
 class CMakeBuildSystemGenerator:
@@ -83,11 +80,7 @@ class CMakeBuildSystemGenerator:
             cmake_file.append(
                 CMakeVariable(
                     "CMAKE_TOOLCHAIN_FILE",
-                    CMakePath(
-                        self.execution_context.create_artifacts_locator().locate_artifact(
-                            platform.toolchain_file, [platform.file]
-                        )
-                    ).to_string(),
+                    CMakePath(self.execution_context.create_artifacts_locator().locate_artifact(platform.toolchain_file, [platform.file])).to_string(),
                 )
             )
         cmake_file.append(CMakeProject(self.execution_context.variant_name or "MyProject"))

@@ -20,18 +20,15 @@ class CMakeRunner:
     @time_it("CMake configure")
     def configure(self, build_dir: Path) -> None:
         build_dir_str = build_dir.absolute().as_posix()
-        arguments = f" -S{build_dir_str}" f" -B{build_dir_str}" f" -G Ninja "
-        self.run_cmake(arguments)
+        self.run_cmake(["-S", build_dir_str, "-B", build_dir_str, "-G", "Ninja"])
 
     @time_it("CMake build")
     def build(self, build_dir: Path, target: str = "all") -> None:
         build_dir_str = build_dir.absolute().as_posix()
-        arguments = f" --build {build_dir_str}" f" --target {target} -- "
-        self.run_cmake(arguments)
+        self.run_cmake(["--build", build_dir_str, "--target", target, "--"])
 
-    def run_cmake(self, arguments: str) -> None:
+    def run_cmake(self, arguments: List[str]) -> None:
         # Add the install directories to the PATH
         env = os.environ.copy()
         env["PATH"] = ";".join([path.absolute().as_posix() for path in self.install_directories] + [env["PATH"]])
-        command = self.executable + " " + arguments
-        SubprocessExecutor([command], env=env).execute()
+        SubprocessExecutor([self.executable, *arguments], env=env).execute()

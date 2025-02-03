@@ -21,9 +21,7 @@ class CMakeAnalyzer:
 
     def assert_elements_of_type(self, element_type: Type[T], count: int) -> List[T]:
         elements = self.find_elements_of_type(element_type)
-        assert (
-            len(elements) == count
-        ), f"Expected {count} elements of type {element_type.__name__}, found {len(elements)}"
+        assert len(elements) == count, f"Expected {count} elements of type {element_type.__name__}, found {len(elements)}"
         return elements
 
 
@@ -31,3 +29,7 @@ def write_file(file: Path, content: str) -> Path:
     file.parent.mkdir(parents=True, exist_ok=True)
     file.write_text(content)
     return file
+
+
+def this_repository_root_dir() -> Path:
+    return Path(__file__).parent.parent.absolute()

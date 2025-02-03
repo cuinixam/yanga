@@ -4,7 +4,7 @@
   "project_dir_name": "{{ cookiecutter.project_slug }}",
   "project_description": "A simple generated Yanga project to get you started",
   "python_version": "3.10",
-  "python_package_manager": "poetry>=1.7.1",
+  "python_package_manager": "poetry>=2.0",
   "scoop_installer": "https://raw.githubusercontent.com/ScoopInstaller/Install/master/install.ps1",
   "scoop_main_bucket_base_url": "https://raw.githubusercontent.com/ScoopInstaller/Main/master/bucket",
   "scoop_python_bucket_base_url": "https://raw.githubusercontent.com/ScoopInstaller/Versions/master/bucket",

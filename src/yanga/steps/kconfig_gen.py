@@ -18,7 +18,7 @@ class KConfigIncludeDirectoriesProvider(IncludeDirectoriesProvider):
 
 
 class KConfigGen(PipelineStep[ExecutionContext]):
-    def __init__(self, execution_context: ExecutionContext, group_name: str, config: Optional[Dict[str, Any]] = None) -> None:
+    def __init__(self, execution_context: ExecutionContext, group_name: Optional[str] = None, config: Optional[Dict[str, Any]] = None) -> None:
         super().__init__(execution_context, group_name, config)
         self.logger = logger.bind()
         self.input_files: List[Path] = []
