@@ -1,4 +1,5 @@
 from pathlib import Path
+from typing import List
 from unittest.mock import Mock, patch
 
 import pytest
@@ -8,6 +9,7 @@ from yanga.cmake.cmake_backend import (
     CMakeAddExecutable,
     CMakeCustomTarget,
     CMakeInclude,
+    CMakeObjectLibrary,
     CMakeVariable,
 )
 from yanga.cmake.gtest import GTestCMakeGenerator
@@ -28,6 +30,7 @@ def locate_artifact():
 
 @pytest.fixture
 def env(locate_artifact: Mock) -> ExecutionContext:
+    assert locate_artifact, "Fixture locate_artifact is not explicitly used in this fixture, but is required by the fixture chain."
     env = Mock(spec=ExecutionContext)
     env.variant_name = "mock_variant"
     env.components = [
@@ -99,3 +102,37 @@ def test_cmake_build_components_file(
 
 def test_get_include_directories(gtest_cmake_generator: GTestCMakeGenerator) -> None:
     assert len(gtest_cmake_generator.get_include_directories().paths) == 5
+
+
+def test_automock_enabled_by_default(env: ExecutionContext, output_dir: Path) -> None:
+    # Run IUT
+    elements = GTestCMakeGenerator(env, output_dir).generate()
+
+    cmake_analyzer = CMakeAnalyzer(elements)
+    custom_targets: List[CMakeCustomTarget] = cmake_analyzer.assert_elements_of_type(CMakeCustomTarget, 3)
+    assert [target.name for target in custom_targets] == ["CompA_mockup", "CompA_test", "CompA_build"]
+    # Expect the partial link library required to find the symbols to be mocked
+    object_library = cmake_analyzer.assert_element_of_type(CMakeObjectLibrary)
+    assert object_library.name == "CompA_PC"
+    executable = cmake_analyzer.assert_element_of_type(CMakeAddExecutable)
+    assert [str(source) for source in executable.sources] == ["source.cpp", "test_source.cpp", f"{output_dir.as_posix()}/mockup_CompA.cc"]
+
+
+def test_automock_disabled_generates_no_mock_targets(env: ExecutionContext, output_dir: Path) -> None:
+    """
+    Verify that when automock is explicitly disabled, no partial link library and no mockup-related custom targets are generated.
+    """
+    # Run IUT
+    elements = GTestCMakeGenerator(env, output_dir, {"automock": False}).generate()
+
+    cmake_analyzer = CMakeAnalyzer(elements)
+
+    # No mockup-related custom targets should be generated.
+    custom_targets: List[CMakeCustomTarget] = cmake_analyzer.assert_elements_of_type(CMakeCustomTarget, 2)
+    assert [target.name for target in custom_targets] == ["CompA_test", "CompA_build"]
+
+    # No partial link library should be generated.
+    cmake_analyzer.assert_elements_of_type(CMakeObjectLibrary, 0)
+
+    executable = cmake_analyzer.assert_element_of_type(CMakeAddExecutable)
+    assert [str(source) for source in executable.sources] == ["source.cpp", "test_source.cpp"]

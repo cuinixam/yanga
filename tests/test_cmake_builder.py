@@ -26,7 +26,7 @@ def test_create_variant_cmake_file(env: ExecutionContext) -> None:
         Path(env.project_root_dir, "tools/my_cmake_generator.py"),
         """
 from pathlib import Path
-from typing import List
+from typing import Dict, List
 
 from yanga.domain.execution_context import (
     ExecutionContext,
@@ -40,8 +40,8 @@ from yanga.cmake.generator import CMakeGenerator
 
 
 class MyCMakeGenerator(CMakeGenerator):
-    def __init__(self, execution_context: ExecutionContext, output_dir: Path) -> None:
-        super().__init__(execution_context, output_dir)
+    def __init__(self, execution_context: ExecutionContext, output_dir: Path, config: Dict) -> None:
+        super().__init__(execution_context, output_dir, config)
 
     def generate(self) -> List[CMakeElement]:
         elements: List[CMakeElement] = []
