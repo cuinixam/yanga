@@ -1,6 +1,14 @@
 # CHANGELOG
 
 
+## v2.2.0 (2025-02-03)
+
+### Features
+
+- Make automocking feature configurable
+  ([`aa67e13`](https://github.com/cuinixam/yanga/commit/aa67e13c7e401486e9ad778ad24eae4b08dca214))
+
+
 ## v2.1.1 (2025-02-03)
 
 ### Bug Fixes
