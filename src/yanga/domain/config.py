@@ -10,7 +10,8 @@ from mashumaro import DataClassDictMixin
 from mashumaro.config import TO_DICT_ADD_OMIT_NONE_FLAG, BaseConfig
 from mashumaro.mixins.json import DataClassJSONMixin
 from py_app_dev.core.exceptions import UserNotificationException
-from pypeline.domain.pipeline import PipelineConfig, PipelineStepConfig
+from py_app_dev.core.pipeline import PipelineConfig as GenericPipelineConfig
+from pypeline.domain.pipeline import PipelineConfig
 from yaml.parser import ParserError
 from yaml.scanner import ScannerError
 
@@ -24,7 +25,7 @@ class PlatformConfig(DataClassDictMixin):
     #: Toolchain file
     toolchain_file: Optional[str] = None
     #: Build system cmake generators
-    cmake_generators: List[PipelineStepConfig] = field(default_factory=list)
+    cmake_generators: GenericPipelineConfig = field(default_factory=list)
     # This field is intended to keep track of where configuration was loaded from and
     # it is automatically added when configuration is loaded from file
     file: Optional[Path] = None

@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import List, Optional
+from typing import Any, Dict, List, Optional
 
 from yanga.domain.component_analyzer import ComponentAnalyzer
 from yanga.domain.execution_context import (
@@ -25,8 +25,8 @@ from .generator import CMakeGenerator
 class CreateExecutableCMakeGenerator(CMakeGenerator):
     """Generates CMake elements to build an executable for a variant."""
 
-    def __init__(self, execution_context: ExecutionContext, output_dir: Path) -> None:
-        super().__init__(execution_context, output_dir)
+    def __init__(self, execution_context: ExecutionContext, output_dir: Path, config: Optional[Dict[str, Any]] = None) -> None:
+        super().__init__(execution_context, output_dir, config)
 
     @property
     def variant_name(self) -> Optional[str]:
@@ -46,9 +46,7 @@ class CreateExecutableCMakeGenerator(CMakeGenerator):
         variant_executable = CMakeAddExecutable(
             "${PROJECT_NAME}",
             sources=[],
-            libraries=[
-                CMakeObjectLibrary(component.name).target_name for component in self.execution_context.components
-            ],
+            libraries=[CMakeObjectLibrary(component.name).target_name for component in self.execution_context.components],
         )
 
         elements.append(variant_executable)

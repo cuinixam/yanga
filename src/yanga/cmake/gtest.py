@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import List, Optional
+from typing import Any, Dict, List, Optional
 
 from yanga.domain.component_analyzer import ComponentAnalyzer
 from yanga.domain.components import Component
@@ -252,8 +252,8 @@ class GTestComponentCMakeGenerator:
 class GTestCMakeGenerator(CMakeGenerator):
     """Generates CMake elements to build an executable for a variant."""
 
-    def __init__(self, execution_context: ExecutionContext, output_dir: Path) -> None:
-        super().__init__(execution_context, output_dir)
+    def __init__(self, execution_context: ExecutionContext, output_dir: Path, config: Optional[Dict[str, Any]] = None) -> None:
+        super().__init__(execution_context, output_dir, config)
         self.artifacts_locator = GTestCMakeArtifactsLocator(output_dir, execution_context)
 
     @property

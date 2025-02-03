@@ -1,11 +1,9 @@
-from collections import OrderedDict
 from pathlib import Path
 from typing import List, Optional, Type
 
 from py_app_dev.core.exceptions import UserNotificationException
 from py_app_dev.core.logging import logger
-from py_app_dev.core.pipeline import PipelineConfig
-from py_app_dev.core.pipeline import PipelineLoader as GenericPipelineLoader
+from py_app_dev.core.pipeline import PipelineLoader
 
 from yanga.domain.execution_context import ExecutionContext
 
@@ -28,24 +26,6 @@ class CMakeGeneratorReference:
     @property
     def name(self) -> str:
         return self._class.__name__
-
-
-class CMakeGeneratorsLoader:
-    """
-    Loads CMake generators from the configuration.
-
-    The steps are not instantiated, only the references are returned (lazy load).
-    The loader needs to know the project root directory to be able to find the
-    user custom local steps.
-    """
-
-    def __init__(self, pipeline_config: PipelineConfig, project_root_dir: Path) -> None:
-        self.pipeline_config = pipeline_config
-        self.project_root_dir = project_root_dir
-        self._loader = GenericPipelineLoader[CMakeGenerator](self.pipeline_config, self.project_root_dir)
-
-    def load_steps_references(self) -> List[CMakeGeneratorReference]:
-        return [CMakeGeneratorReference(step_reference.group_name, step_reference._class) for step_reference in self._loader.load_steps()]
 
 
 class CMakeBuildSystemGenerator:
@@ -92,12 +72,9 @@ class CMakeBuildSystemGenerator:
         platform = self.execution_context.platform
         if platform:
             try:
-                steps_references = CMakeGeneratorsLoader(
-                    OrderedDict({"generators": platform.cmake_generators}),
-                    self.execution_context.project_root_dir,
-                ).load_steps_references()
+                steps_references = PipelineLoader[CMakeGenerator](platform.cmake_generators, self.execution_context.project_root_dir).load_steps()
                 for step_reference in steps_references:
-                    step = step_reference._class(self.execution_context, self.output_dir)
+                    step = step_reference._class(self.execution_context, self.output_dir, step_reference.config)
                     cmake_file.extend(step.generate())
             except FileNotFoundError as e:
                 raise UserNotificationException(e) from e
