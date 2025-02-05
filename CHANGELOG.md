@@ -1,6 +1,14 @@
 # CHANGELOG
 
 
+## v2.2.2 (2025-02-05)
+
+### Bug Fixes
+
+- Example project cmake file include fails
+  ([`1fef006`](https://github.com/cuinixam/yanga/commit/1fef006f008b178d2ce8a3fd2e50fdc9eaffde01))
+
+
 ## v2.2.1 (2025-02-03)
 
 ### Bug Fixes
