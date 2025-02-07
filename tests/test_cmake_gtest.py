@@ -7,6 +7,7 @@ import pytest
 from tests.utils import CMakeAnalyzer
 from yanga.cmake.cmake_backend import (
     CMakeAddExecutable,
+    CMakeCustomCommand,
     CMakeCustomTarget,
     CMakeInclude,
     CMakeObjectLibrary,
@@ -116,6 +117,10 @@ def test_automock_enabled_by_default(env: ExecutionContext, output_dir: Path) ->
     assert object_library.name == "CompA_PC"
     executable = cmake_analyzer.assert_element_of_type(CMakeAddExecutable)
     assert [str(source) for source in executable.sources] == ["source.cpp", "test_source.cpp", f"{output_dir.as_posix()}/mockup_CompA.cc"]
+    custom_command = cmake_analyzer.assert_element_of_type(CMakeCustomCommand, lambda cmd: cmd.description.startswith("Run the test executable"))
+    assert len(custom_command.commands) == 1
+    assert custom_command.commands[0].command == "CompA"
+    assert custom_command.commands[0].arguments == ["--gtest_output=xml:CompA_junit.xml", "||", "${CMAKE_COMMAND}", "-E", "true"]
 
 
 def test_automock_disabled_generates_no_mock_targets(env: ExecutionContext, output_dir: Path) -> None:

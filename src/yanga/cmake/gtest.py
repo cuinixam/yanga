@@ -244,11 +244,9 @@ class GTestComponentCMakeGenerator:
 
     def run_executable(self, component_name: str, component_executable_name: str) -> CMakeCustomCommand:
         command = CMakeCommand(
-            "${CMAKE_CTEST_COMMAND}",
+            component_executable_name,
             [
-                "${CMAKE_CTEST_ARGUMENTS}",
-                "--output-junit",
-                f"{component_name}_junit.xml",
+                f"--gtest_output=xml:{component_name}_junit.xml",
                 "||",
                 "${CMAKE_COMMAND}",
                 "-E",
