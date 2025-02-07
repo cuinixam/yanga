@@ -1,6 +1,19 @@
 # CHANGELOG
 
 
+## v2.3.0 (2025-02-07)
+
+### Bug Fixes
+
+- Component junit contains tests from other components
+  ([`7112082`](https://github.com/cuinixam/yanga/commit/7112082875e5f60d243053fa7247b7e65a40ac42))
+
+### Features
+
+- Update bootstrap and refactor init command
+  ([`dbd59ba`](https://github.com/cuinixam/yanga/commit/dbd59ba1df7ee1d09a10d49e874f5d27cfafa9eb))
+
+
 ## v2.2.2 (2025-02-05)
 
 ### Bug Fixes
