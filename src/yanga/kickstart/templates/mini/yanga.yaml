@@ -29,6 +29,8 @@ pipeline:
   install:
     - step: CreateVEnv
       module: pypeline.steps.create_venv
+      config:
+        bootstrap_script: .bootstrap/bootstrap.py
     - step: ScoopInstall
       module: pypeline.steps.scoop_install
       description: Install scoop dependencies

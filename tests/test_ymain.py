@@ -2,6 +2,7 @@ import sys
 from pathlib import Path
 
 import pytest
+from py_app_dev.core.subprocess import SubprocessExecutor
 from typer.testing import CliRunner
 
 from yanga.ymain import app
@@ -17,6 +18,11 @@ def test_run(tmp_path: Path) -> None:
         ["init", "--project-dir", project_dir.as_posix()],
     )
     assert result.exit_code == 0
+    build_script_path = project_dir / "bootstrap.ps1"
+    assert build_script_path.exists()
+    # Bootstrap the project
+    SubprocessExecutor(["powershell", "-File", build_script_path.as_posix()]).execute()
+    # Build the project
     result = runner.invoke(
         app,
         ["run", "--project-dir", project_dir.as_posix(), "--platform", "gtest", "--variant-name", "EnglishVariant"],

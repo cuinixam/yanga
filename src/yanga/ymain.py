@@ -7,13 +7,13 @@ from py_app_dev.core.exceptions import UserNotificationException
 from py_app_dev.core.logging import logger, setup_logger, time_it
 
 from yanga import __version__
-from yanga.commands.init import YangaInit
 from yanga.commands.run import RunCommand, RunCommandConfig
 from yanga.gui import YangaGui
+from yanga.kickstart.create import KickstartProject
 
 package_name = "yanga"
 
-app = typer.Typer(name=package_name, help="YANGA command line interface.", no_args_is_help=True)
+app = typer.Typer(name=package_name, help="YANGA command line interface.", no_args_is_help=True, add_completion=False)
 
 
 @app.callback(invoke_without_command=True)
@@ -29,9 +29,9 @@ def version(
 @time_it("init")
 def init(
     project_dir: Path = typer.Option(Path.cwd().absolute(), help="The project directory"),  # noqa: B008
-    bootstrap: bool = typer.Option(False, help="Initialize only the bootstrap files."),
+    force: bool = typer.Option(False, help="Force the initialization of the project even if the directory is not empty."),
 ) -> None:
-    YangaInit(project_dir, bootstrap).run()
+    KickstartProject(project_dir, force).run()
 
 
 @app.command()

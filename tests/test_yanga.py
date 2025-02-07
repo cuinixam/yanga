@@ -5,16 +5,16 @@ import pytest
 from py_app_dev.core.subprocess import SubprocessExecutor
 from pypeline.steps.scoop_install import ScoopInstall
 
-from yanga.commands.init import YangaInit
 from yanga.commands.run import RunCommand, RunCommandConfig
 from yanga.domain.execution_context import ExecutionContext, UserVariantRequest
+from yanga.kickstart.create import KickstartProject
 
 
 @pytest.fixture
 def mini_project(tmp_path: Path) -> Path:
     project_dir = tmp_path.joinpath("mini")
     # Create example project
-    YangaInit(project_dir).run()
+    KickstartProject(project_dir).run()
     assert project_dir.joinpath("yanga.yaml").exists()
     return project_dir
 

@@ -18,12 +18,12 @@ class CMakeAnalyzer:
         """Helper method to assert and return elements based on type and optional filter."""
         elements = self.find_elements_of_type(element_type)
 
-        assert elements, f"No element of type {element_type.__name__} found"
+        if expected_count != 0:
+            assert elements, f"No element of type {element_type.__name__} found"
 
         filtered_elements = elements
         if filter_fn:
             filtered_elements = [elem for elem in elements if filter_fn(elem)]
-            assert filtered_elements, f"Found {len(elements)} elements of type {element_type.__name__}, but none met the filter criteria"
 
         assert len(filtered_elements) == expected_count, (
             f"Expected {expected_count} elements of type {element_type.__name__} that met the criteria, but found {len(filtered_elements)}"

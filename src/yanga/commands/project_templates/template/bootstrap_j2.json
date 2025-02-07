@@ -1,8 +1,0 @@
-{
-  "python_version": "{{ python_version }}",
-  "python_package_manager": "{{ python_package_manager }}",
-  "scoop_installer": "{{ scoop_installer }}",
-  "scoop_main_bucket_base_url": "{{ scoop_main_bucket_base_url }}",
-  "scoop_python_bucket_base_url": "{{ scoop_python_bucket_base_url }}",
-  "bootstrap_version": "{{ bootstrap_version }}"
-}

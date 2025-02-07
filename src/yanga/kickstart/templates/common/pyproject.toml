@@ -1,12 +1,12 @@
 [tool.poetry]
-name = "{{ cookiecutter.project_name }}"
+name = "Hello Yanga"
 version = "0.0.1"
-description = "{{ cookiecutter.project_description }}"
+description = "A simple generated Yanga project to get you started"
 authors = ["Your Name"]
 package-mode = false
 
 [tool.poetry.dependencies]
-python = ">={{ cookiecutter.python_version }},<3.13"
+python = ">=3.11,<3.13"
 yanga = "^2.1"
 py-app-dev = "^2.5"
 west = "*"
