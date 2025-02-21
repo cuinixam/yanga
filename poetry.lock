@@ -1561,14 +1561,14 @@ diagrams = ["jinja2", "railroad-diagrams"]
 
 [[package]]
 name = "pypeline-runner"
-version = "1.6.0"
+version = "1.8.1"
 description = "Configure and execute pipelines with Python (similar to GitHub workflows or Jenkins pipelines)."
 optional = false
 python-versions = "<4.0,>=3.10"
 groups = ["main"]
 files = [
-    {file = "pypeline_runner-1.6.0-py3-none-any.whl", hash = "sha256:f6b0ae852c5c9a3c8003b129f34fba1db753160a9b5a56433b041a615466af89"},
-    {file = "pypeline_runner-1.6.0.tar.gz", hash = "sha256:463338560150f6eea2995345fe6b3b8059b518888ef0ffa20c7abdcdbba1fac0"},
+    {file = "pypeline_runner-1.8.1-py3-none-any.whl", hash = "sha256:c94650cc4873c2786f3046e5337b78757de725f36d926d80b3262b5f419c0a27"},
+    {file = "pypeline_runner-1.8.1.tar.gz", hash = "sha256:424fbd13277ce9dde57557fb93168a3d2541613b976abe20cf1da32f847b47ad"},
 ]
 
 [package.dependencies]

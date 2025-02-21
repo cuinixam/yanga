@@ -43,8 +43,8 @@ class GenerateBuildSystemFiles(PipelineStep[ExecutionContext]):
 class ExecuteBuild(PipelineStep[ExecutionContext]):
     """This step is always executed. The dependencies are handled by the build system itself."""
 
-    def __init__(self, execution_context: ExecutionContext, output_dir: Path, config: Optional[Dict[str, Any]] = None) -> None:
-        super().__init__(execution_context, output_dir, config)
+    def __init__(self, execution_context: ExecutionContext, group_name: Optional[str], config: Optional[Dict[str, Any]] = None) -> None:
+        super().__init__(execution_context, group_name, config)
         self.logger = logger.bind()
 
     @property
