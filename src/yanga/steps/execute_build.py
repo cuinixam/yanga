@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any, Optional
 
 from py_app_dev.core.logging import logger
 from pypeline.domain.pipeline import PipelineStep
@@ -10,10 +10,10 @@ from yanga.domain.execution_context import ExecutionContext
 
 
 class GenerateBuildSystemFiles(PipelineStep[ExecutionContext]):
-    def __init__(self, execution_context: ExecutionContext, output_dir: Path, config: Optional[Dict[str, Any]] = None) -> None:
+    def __init__(self, execution_context: ExecutionContext, output_dir: Path, config: Optional[dict[str, Any]] = None) -> None:
         super().__init__(execution_context, output_dir, config)
         self.logger = logger.bind()
-        self.generated_files: List[Path] = []
+        self.generated_files: list[Path] = []
 
     @property
     def output_dir(self) -> Path:
@@ -30,10 +30,10 @@ class GenerateBuildSystemFiles(PipelineStep[ExecutionContext]):
         self.generated_files = [file.path for file in generated_files]
         return 0
 
-    def get_inputs(self) -> List[Path]:
+    def get_inputs(self) -> list[Path]:
         return self.execution_context.user_config_files
 
-    def get_outputs(self) -> List[Path]:
+    def get_outputs(self) -> list[Path]:
         return self.generated_files
 
     def update_execution_context(self) -> None:
@@ -41,9 +41,9 @@ class GenerateBuildSystemFiles(PipelineStep[ExecutionContext]):
 
 
 class ExecuteBuild(PipelineStep[ExecutionContext]):
-    """This step is always executed. The dependencies are handled by the build system itself."""
+    """The step is always executed. The dependencies are handled by the build system itself."""
 
-    def __init__(self, execution_context: ExecutionContext, group_name: Optional[str], config: Optional[Dict[str, Any]] = None) -> None:
+    def __init__(self, execution_context: ExecutionContext, group_name: Optional[str], config: Optional[dict[str, Any]] = None) -> None:
         super().__init__(execution_context, group_name, config)
         self.logger = logger.bind()
 
@@ -59,10 +59,10 @@ class ExecuteBuild(PipelineStep[ExecutionContext]):
         CMakeRunner(self.execution_context.install_dirs).run(self.output_dir, self.execution_context.user_request.target_name)
         return 0
 
-    def get_inputs(self) -> List[Path]:
+    def get_inputs(self) -> list[Path]:
         return []
 
-    def get_outputs(self) -> List[Path]:
+    def get_outputs(self) -> list[Path]:
         return []
 
     def update_execution_context(self) -> None:

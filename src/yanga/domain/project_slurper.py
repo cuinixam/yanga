@@ -11,25 +11,25 @@ from .components import Component, ComponentType
 from .config import ComponentConfig, PlatformConfig, VariantConfig, YangaUserConfig
 from .config_slurper import YangaConfigSlurper
 
-ComponentsConfigsPool: TypeAlias = Dict[str, ComponentConfig]
+ComponentsConfigsPool: TypeAlias = dict[str, ComponentConfig]
 
 
 class YangaProjectSlurper:
-    def __init__(self, project_dir: Path, configuration_file_name: Optional[str] = None, exclude_dirs: Optional[List[str]] = None) -> None:
+    def __init__(self, project_dir: Path, configuration_file_name: Optional[str] = None, exclude_dirs: Optional[list[str]] = None) -> None:
         self.logger = logger.bind()
         self.project_dir = project_dir
         exclude = exclude_dirs if exclude_dirs else []
         # Merge the exclude directories with the hardcoded ones
         exclude = list({*exclude, ".git", ".github", ".vscode", "build", ".venv"})
         # TODO: Get rid of the exclude directories hardcoded list. Maybe use an ini file?
-        self.user_configs: List[YangaUserConfig] = YangaConfigSlurper(project_dir=self.project_dir, exclude_dirs=exclude, configuration_file_name=configuration_file_name).slurp()
+        self.user_configs: list[YangaUserConfig] = YangaConfigSlurper(project_dir=self.project_dir, exclude_dirs=exclude, configuration_file_name=configuration_file_name).slurp()
         self.components_configs_pool: ComponentsConfigsPool = self._collect_components_configs(self.user_configs)
         self.pipeline: Optional[PipelineConfig] = self._find_pipeline_config(self.user_configs)
-        self.variants: List[VariantConfig] = self._collect_variants(self.user_configs)
-        self.platforms: List[PlatformConfig] = self._collect_platforms(self.user_configs)
+        self.variants: list[VariantConfig] = self._collect_variants(self.user_configs)
+        self.platforms: list[PlatformConfig] = self._collect_platforms(self.user_configs)
 
     @property
-    def user_config_files(self) -> List[Path]:
+    def user_config_files(self) -> list[Path]:
         return [user_config.file for user_config in self.user_configs if user_config.file]
 
     def get_variant_config(self, variant_name: str) -> VariantConfig:
@@ -44,7 +44,7 @@ class YangaProjectSlurper:
         artifacts_locator = ProjectArtifactsLocator(self.project_dir, variant_name, None)
         return artifacts_locator.locate_artifact(variant.config_file, [variant.file]) if variant.config_file else None
 
-    def get_variant_components(self, variant_name: str) -> List[Component]:
+    def get_variant_components(self, variant_name: str) -> list[Component]:
         return self._collect_variant_components(self.get_variant_config(variant_name))
 
     def get_platform(self, platform_name: Optional[str]) -> Optional[PlatformConfig]:
@@ -55,7 +55,7 @@ class YangaProjectSlurper:
             raise UserNotificationException(f"Platform '{platform_name}' not found in the configuration.")
         return platform
 
-    def _collect_variant_components(self, variant: VariantConfig) -> List[Component]:
+    def _collect_variant_components(self, variant: VariantConfig) -> list[Component]:
         """
         "Collect all components for the given variant.
         Look for components in the component pool and add them to the list.
@@ -86,14 +86,13 @@ class YangaProjectSlurper:
             build_component.test_sources = component_config.test_sources
         return build_component
 
-    def _collect_components_configs(self, user_configs: List[YangaUserConfig]) -> ComponentsConfigsPool:
+    def _collect_components_configs(self, user_configs: list[YangaUserConfig]) -> ComponentsConfigsPool:
         components_config: ComponentsConfigsPool = {}
         for user_config in user_configs:
             for component_config in user_config.components:
                 if components_config.get(component_config.name, None):
                     raise UserNotificationException(
-                        f"Component '{component_config.name}' is defined in multiple configuration files."
-                        f"See {components_config[component_config.name].file} and {user_config.file}"
+                        f"Component '{component_config.name}' is defined in multiple configuration files.See {components_config[component_config.name].file} and {user_config.file}"
                     )
                 # TODO: shall the project slurper be responsible for updating the source file for the configuration?
                 component_config.file = user_config.file
@@ -102,7 +101,7 @@ class YangaProjectSlurper:
 
     def _resolve_subcomponents(
         self,
-        components: List[Component],
+        components: list[Component],
         components_configs_pool: ComponentsConfigsPool,
     ) -> None:
         """Resolve subcomponents for each component."""
@@ -121,13 +120,13 @@ class YangaProjectSlurper:
                     component.components.append(subcomponent)
                     subcomponent.is_subcomponent = True
 
-    def _find_pipeline_config(self, user_configs: List[YangaUserConfig]) -> Optional[PipelineConfig]:
+    def _find_pipeline_config(self, user_configs: list[YangaUserConfig]) -> Optional[PipelineConfig]:
         return next(
             (user_config.pipeline for user_config in user_configs if user_config.pipeline),
             None,
         )
 
-    def _collect_variants(self, user_configs: List[YangaUserConfig]) -> List[VariantConfig]:
+    def _collect_variants(self, user_configs: list[YangaUserConfig]) -> list[VariantConfig]:
         variants = []
         for user_config in user_configs:
             for variant in user_config.variants:
@@ -135,8 +134,8 @@ class YangaProjectSlurper:
                 variants.append(variant)
         return variants
 
-    def _collect_platforms(self, user_configs: List[YangaUserConfig]) -> List[PlatformConfig]:
-        platforms: List[PlatformConfig] = []
+    def _collect_platforms(self, user_configs: list[YangaUserConfig]) -> list[PlatformConfig]:
+        platforms: list[PlatformConfig] = []
         for user_config in user_configs:
             for platform in user_config.platforms:
                 # TODO: shall the project slurper be responsible for updating the source file for the configuration?

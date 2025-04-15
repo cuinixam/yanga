@@ -1,12 +1,13 @@
-[tool.poetry]
+[project]
 name = "yanga"
 version = "2.3.0"
 description = "Yet another ninja generator to build C/CPP projects."
-authors = ["cuinixam <me@cuinixam.com>"]
-license = "MIT"
 readme = "README.md"
-repository = "https://github.com/cuinixam/yanga"
-documentation = "https://yanga.readthedocs.io"
+license = {text = "MIT"}
+authors = [
+    {name = "cuinixam", email = "me@cuinixam.me"},
+]
+
 classifiers = [
     "Development Status :: 2 - Pre-Alpha",
     "Intended Audience :: Developers",
@@ -14,71 +15,90 @@ classifiers = [
     "Operating System :: OS Independent",
     "Topic :: Software Development :: Libraries",
 ]
-packages = [
-    { include = "yanga", from = "src" },
+requires-python = "<3.13,<4.0,>=3.10"
+dependencies = [
+    "mashumaro<4.0,>=3.5",
+    "loguru<1.0,>=0.7",
+    "cookiecutter<3.0,>=2.1",
+    "py-app-dev<3.0,>=2.5",
+    "customtkinter<6.0,>=5.2",
+    "pillow<11.0,>=10.1",
+    "kspl<2.0,>=1.0",
+    "pick<3.0,>=2.2",
+    "typer<1.0,>=0.12",
+    "hammocking<1.0,>=0.2",
+    "pypeline-runner<2.0,>=1.0",
 ]
 
-[tool.poetry.scripts]
+[project.urls]
+"Bug Tracker" = "https://github.com/cuinixam/yanga/issues"
+Changelog = "https://github.com/cuinixam/yanga/blob/main/CHANGELOG.md"
+repository = "https://github.com/cuinixam/yanga"
+documentation = "https://yanga.readthedocs.io"
+
+[project.scripts]
 yanga = "yanga.ymain:main"
 
-[tool.poetry.urls]
-"Bug Tracker" = "https://github.com/cuinixam/yanga/issues"
-"Changelog" = "https://github.com/cuinixam/yanga/blob/main/CHANGELOG.md"
-
-[tool.poetry.dependencies]
-python = "^3.10,<3.13"
-mashumaro = "^3.5"
-loguru = "^0.7"
-cookiecutter = "^2.1"
-py-app-dev = "^2.5"
-customtkinter = "^5.2"
-pillow = "^10.1"
-kspl = "^1.0"
-pick = "^2.2"
-typer = "^0.12"
-hammocking = "^0.2"
-pypeline-runner = "^1.0"
-
-[tool.poetry.group.dev.dependencies]
-pytest = "^8.3"
-pytest-cov = "^6.0"
-pre-commit = "^4.0"
-ruff = "^0.9"
-pyinstaller = "^6.11"
-
-[tool.poetry.group.docs.dependencies]
-myst-parser = ">=0.16"
-sphinx = ">=4.0"
-sphinxcontrib-mermaid = "^0.8"
-mlx-traceability = "^10.0"
-sphinx-copybutton = "^0.5"
-sphinx-new-tab-link = "^0.2"
-sphinx-book-theme = "^1.1"
-sphinx-design = "^0.5"
-
-[tool.semantic_release]
-version_toml = ["pyproject.toml:tool.poetry.version"]
-version_variables = [
-    "src/yanga/__init__.py:__version__",
-    "docs/conf.py:release",
-]
-build_command = "pip install poetry && poetry build"
-
-[tool.semantic_release.changelog]
-exclude_commit_patterns = [
-    "chore*",
-    "ci*",
+[dependency-groups]
+dev = [
+  "pytest<9.0,>=8.3",
+  "pytest-cov<7.0,>=6.0",
+  "pypeline-runner>=1,<2",
+  "pre-commit<5.0,>=4.0",
+  "ruff<1.0,>=0.9",
+  "wrapt>=1,<2",
+  "pyinstaller<7.0,>=6.11",
+  # docs
+  "myst-parser>=4.0,<5",
+  "sphinx>=8.0,<9",
+  "sphinxcontrib-mermaid>=1.0,<2",
+  "mlx-traceability>=11.0,<12",
+  "sphinx-copybutton>=0,<1",
+  "sphinx-new-tab-link>=0,<1",
+  "sphinx-book-theme>=1.1,<2",
+  "sphinx-design>=0,<1"
 ]
 
-[tool.semantic_release.changelog.environment]
-keep_trailing_newline = true
+[tool.ruff]
+target-version = "py39"
+line-length = 180
+lint.select = [
+  "B",   # flake8-bugbear
+  "D",   # flake8-docstrings
+  "C4",  # flake8-comprehensions
+  "S",   # flake8-bandit
+  "F",   # pyflake
+  "E",   # pycodestyle
+  "W",   # pycodestyle
+  "UP",  # pyupgrade
+  "I",   # isort
+  "RUF", # ruff specific
+]
+lint.ignore = [
+  "D203", # 1 blank line required before class docstring
+  "D212", # Multi-line docstring summary should start at the first line
+  "D100", # Missing docstring in public module
+  "D101", # Missing docstring in public class
+  "D102", # Missing docstring in public method
+  "D103", # Missing docstring in public function
+  "D104", # Missing docstring in public package
+  "D105", # Missing docstring in magic method
+  "D106", # Missing docstring in public nested class
+  "D107", # Missing docstring in `__init__`
+  "D401", # First line of docstring should be in imperative mood
+]
+lint.per-file-ignores."bootstrap.py" = [ "UP006", "UP035", "S603", "D200", "D205", "D417" ]
+lint.per-file-ignores."conftest.py" = [ "D100" ]
+lint.per-file-ignores."setup.py" = [ "D100" ]
+lint.per-file-ignores."tests/**/*" = [
+  "D100",
+  "D101",
+  "D102",
+  "D103",
+  "D104",
+  "S101",
+]
 
-[tool.semantic_release.branches.main]
-match = "main"
-
-[tool.semantic_release.branches.noop]
-match = "(?!main$)"
-prerelease = true
 
 [tool.pytest.ini_options]
 addopts = "-vv -Wdefault --cov=yanga --cov-report=term-missing:skip-covered --cov-branch -s"
@@ -89,38 +109,13 @@ branch = true
 
 [tool.coverage.report]
 exclude_lines = [
-    "pragma: no cover",
-    "@overload",
-    "if TYPE_CHECKING",
-    "raise NotImplementedError",
-    'if __name__ == "__main__":',
+  "pragma: no cover",
+  "@overload",
+  "if TYPE_CHECKING",
+  "raise NotImplementedError",
+  'if __name__ == "__main__":',
 ]
 
-[tool.ruff]
-target-version = "py38"
-line-length = 180
-lint.select = [
-    "B",   # flake8-bugbear
-    "C4",  # flake8-comprehensions
-    "S",   # flake8-bandit
-    "F",   # pyflake
-    "E",   # pycodestyle
-    "W",   # pycodestyle
-    "UP",  # pyupgrade
-    "I",   # isort
-    "RUF", # ruff specific
-]
-exclude = [
-    "bootstrap.py"
-]
-
-[tool.ruff.lint.per-file-ignores]
-"tests/**/*" = [
-    "S101",
-]
-
-[tool.ruff.lint.isort]
-known-first-party = ["yanga", "tests"]
 
 [tool.mypy]
 check_untyped_defs = true
@@ -137,6 +132,7 @@ exclude = [
     'setup.py',
     'template/**'
 ]
+disable_error_code = ["import-untyped"]
 
 [[tool.mypy.overrides]]
 module = "tests.*"
@@ -150,9 +146,41 @@ ignore_errors = true
 module = "bootstrap.*"
 ignore_errors = true
 
+[tool.semantic_release]
+version_toml = [ "pyproject.toml:project.version" ]
+version_variables = [
+    "src/yanga/__init__.py:__version__",
+    "docs/conf.py:release",
+]
+build_command = """
+pip install uv
+uv lock
+git add uv.lock
+uv build
+"""
+
+[tool.semantic_release.changelog]
+exclude_commit_patterns = [
+  '''chore(?:\([^)]*?\))?: .+''',
+  '''ci(?:\([^)]*?\))?: .+''',
+  '''refactor(?:\([^)]*?\))?: .+''',
+  '''style(?:\([^)]*?\))?: .+''',
+  '''test(?:\([^)]*?\))?: .+''',
+  '''build\((?!deps\): .+)''',
+  '''Merged? .*''',
+  '''Initial [Cc]ommit.*''', # codespell:ignore
+]
+
+[tool.semantic_release.changelog.environment]
+keep_trailing_newline = true
+
+[tool.semantic_release.branches.main]
+match = "main"
+
+[tool.semantic_release.branches.noop]
+match = "(?!main$)"
+prerelease = true
+
 [tool.codespell]
 skip = "build_exe.spec"
 
-[build-system]
-requires = ["poetry-core>=1.0.0"]
-build-backend = "poetry.core.masonry.api"

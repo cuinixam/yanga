@@ -1,5 +1,4 @@
 from pathlib import Path
-from typing import List
 from unittest.mock import Mock, patch
 
 import pytest
@@ -110,7 +109,7 @@ def test_automock_enabled_by_default(env: ExecutionContext, output_dir: Path) ->
     elements = GTestCMakeGenerator(env, output_dir).generate()
 
     cmake_analyzer = CMakeAnalyzer(elements)
-    custom_targets: List[CMakeCustomTarget] = cmake_analyzer.assert_elements_of_type(CMakeCustomTarget, 3)
+    custom_targets: list[CMakeCustomTarget] = cmake_analyzer.assert_elements_of_type(CMakeCustomTarget, 3)
     assert [target.name for target in custom_targets] == ["CompA_mockup", "CompA_test", "CompA_build"]
     # Expect the partial link library required to find the symbols to be mocked
     object_library = cmake_analyzer.assert_element_of_type(CMakeObjectLibrary)
@@ -124,16 +123,14 @@ def test_automock_enabled_by_default(env: ExecutionContext, output_dir: Path) ->
 
 
 def test_automock_disabled_generates_no_mock_targets(env: ExecutionContext, output_dir: Path) -> None:
-    """
-    Verify that when automock is explicitly disabled, no partial link library and no mockup-related custom targets are generated.
-    """
+    """Verify that when automock is explicitly disabled, no partial link library and no mockup-related custom targets are generated."""
     # Run IUT
     elements = GTestCMakeGenerator(env, output_dir, {"automock": False}).generate()
 
     cmake_analyzer = CMakeAnalyzer(elements)
 
     # No mockup-related custom targets should be generated.
-    custom_targets: List[CMakeCustomTarget] = cmake_analyzer.assert_elements_of_type(CMakeCustomTarget, 2)
+    custom_targets: list[CMakeCustomTarget] = cmake_analyzer.assert_elements_of_type(CMakeCustomTarget, 2)
     assert [target.name for target in custom_targets] == ["CompA_test", "CompA_build"]
 
     # No partial link library should be generated.

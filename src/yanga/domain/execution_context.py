@@ -3,7 +3,7 @@ from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from enum import Enum, auto
 from pathlib import Path
-from typing import List, Optional, Union
+from typing import Optional, Union
 
 from py_app_dev.core.subprocess import SubprocessExecutor
 from pypeline.domain.execution_context import ExecutionContext as _ExecutionContext
@@ -57,7 +57,7 @@ class UserVariantRequest(UserRequest):
 
 class IncludeDirectoriesProvider(ABC):
     @abstractmethod
-    def get_include_directories(self) -> List[Path]: ...
+    def get_include_directories(self) -> list[Path]: ...
 
 
 @dataclass
@@ -67,8 +67,8 @@ class ExecutionContext(_ExecutionContext):
         project_root_dir: Path,
         user_request: UserRequest,
         variant_name: Optional[str] = None,
-        components: Optional[List[Component]] = None,
-        user_config_files: Optional[List[Path]] = None,
+        components: Optional[list[Component]] = None,
+        user_config_files: Optional[list[Path]] = None,
         config_file: Optional[Path] = None,
         platform: Optional[PlatformConfig] = None,
     ) -> None:
@@ -79,22 +79,22 @@ class ExecutionContext(_ExecutionContext):
         self.user_config_files = user_config_files if user_config_files else []
         self.config_file = config_file
         self.platform = platform
-        self.include_dirs_providers: List[IncludeDirectoriesProvider] = []
+        self.include_dirs_providers: list[IncludeDirectoriesProvider] = []
 
     @property
-    def include_directories(self) -> List[Path]:
+    def include_directories(self) -> list[Path]:
         include_dirs = []
         for provider in self.include_dirs_providers:
             include_dirs.extend(provider.get_include_directories())
         return include_dirs
 
-    def add_install_dirs(self, install_dirs: List[Path]) -> None:
+    def add_install_dirs(self, install_dirs: list[Path]) -> None:
         self.install_dirs.extend(install_dirs)
 
     def add_include_dirs_provider(self, provider: IncludeDirectoriesProvider) -> None:
         self.include_dirs_providers.append(provider)
 
-    def create_process_executor(self, command: List[str | Path], cwd: Optional[Path] = None) -> SubprocessExecutor:
+    def create_process_executor(self, command: list[str | Path], cwd: Optional[Path] = None) -> SubprocessExecutor:
         # Add the install directories to the PATH
         env = os.environ.copy()
         env["PATH"] = os.pathsep.join([path.absolute().as_posix() for path in self.install_dirs] + [env["PATH"]])

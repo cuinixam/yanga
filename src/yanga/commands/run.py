@@ -1,7 +1,7 @@
 from argparse import ArgumentParser, Namespace
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import List, Optional
+from typing import Optional
 
 from py_app_dev.core.cmd_line import Command, register_arguments_for_config_dataclass
 from py_app_dev.core.exceptions import UserNotificationException
@@ -131,7 +131,7 @@ class RunCommand(Command):
             force_run,
         ).run()
 
-    def determine_variant_name(self, variant_name: Optional[str], variant_configs: List[VariantConfig]) -> Optional[str]:
+    def determine_variant_name(self, variant_name: Optional[str], variant_configs: list[VariantConfig]) -> Optional[str]:
         selected_variant_name: Optional[str]
         if not variant_name:
             if len(variant_configs) == 1:
@@ -145,7 +145,7 @@ class RunCommand(Command):
             self.logger.warning("No variant selected. This might cause some steps to fail.")
         return selected_variant_name
 
-    def determine_platform_name(self, platform_name: Optional[str], platform_configs: List[PlatformConfig]) -> Optional[str]:
+    def determine_platform_name(self, platform_name: Optional[str], platform_configs: list[PlatformConfig]) -> Optional[str]:
         selected_platform_name: Optional[str]
         if not platform_name:
             if len(platform_configs) == 1:

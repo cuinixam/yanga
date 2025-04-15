@@ -2,7 +2,7 @@ import configparser
 import sys
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any, Optional
 
 from mashumaro import DataClassDictMixin
 
@@ -17,12 +17,12 @@ class YangaIni(DataClassDictMixin):
     #: Custom name for the YANGA configuration files. Default is 'yanga.yaml'
     configuration_file_name: Optional[str] = None
     #: Exclude directories from parsing
-    exclude_dirs: List[str] = field(default_factory=list)
+    exclude_dirs: list[str] = field(default_factory=list)
 
     @classmethod
     def from_toml_or_ini(cls, ini_file: Optional[Path], pyproject_toml: Optional[Path]) -> "YangaIni":
         # Initialize an empty dictionary to hold configurations
-        config_data: Dict[str, Any] = {}
+        config_data: dict[str, Any] = {}
 
         # Load configurations from the INI file if provided
         if ini_file and ini_file.is_file():
@@ -37,9 +37,9 @@ class YangaIni(DataClassDictMixin):
         return cls.from_dict(config_data)
 
     @staticmethod
-    def load_ini_config(ini_file: Path) -> Dict[str, Any]:
+    def load_ini_config(ini_file: Path) -> dict[str, Any]:
         """Read the ini file and return the configuration as a dictionary."""
-        config: Dict[str, Any] = {}
+        config: dict[str, Any] = {}
         parser = configparser.ConfigParser()
         parser.read(ini_file)
         for section in parser.sections():
@@ -51,7 +51,7 @@ class YangaIni(DataClassDictMixin):
         return config
 
     @staticmethod
-    def load_toml_config(pyproject_toml: Path) -> Dict[str, Any]:
+    def load_toml_config(pyproject_toml: Path) -> dict[str, Any]:
         """Read the pyproject.toml file and return the configuration as a dictionary."""
         config = {}
         with pyproject_toml.open("rb") as f:

@@ -1,5 +1,4 @@
 from pathlib import Path
-from typing import List
 
 from py_app_dev.core.logging import logger
 
@@ -14,8 +13,8 @@ class MyStage(Stage):
     def get_name(self) -> str:
         return "my_stage"
 
-    def get_inputs(self) -> List[Path]:
+    def get_inputs(self) -> list[Path]:
         return []
 
-    def get_outputs(self) -> List[Path]:
+    def get_outputs(self) -> list[Path]:
         return []

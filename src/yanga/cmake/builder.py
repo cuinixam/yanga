@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import List, Optional, Type
+from typing import Optional
 
 from py_app_dev.core.exceptions import UserNotificationException
 from py_app_dev.core.logging import logger
@@ -19,7 +19,7 @@ from .generator import CMakeGenerator
 
 
 class CMakeGeneratorReference:
-    def __init__(self, group_name: Optional[str], _class: Type[CMakeGenerator]) -> None:
+    def __init__(self, group_name: Optional[str], _class: type[CMakeGenerator]) -> None:
         self.group_name = group_name
         self._class = _class
 
@@ -44,7 +44,7 @@ class CMakeBuildSystemGenerator:
     def variant_cmake_file(self) -> CMakePath:
         return self.cmake_current_list_dir.joinpath("variant.cmake")
 
-    def generate(self) -> List[CMakeFile]:
+    def generate(self) -> list[CMakeFile]:
         files = []
         cmake_lists_file = self.create_cmake_lists()
         files.append(cmake_lists_file)

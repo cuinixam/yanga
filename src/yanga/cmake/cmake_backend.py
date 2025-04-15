@@ -2,10 +2,10 @@ from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 from enum import Enum, auto
 from pathlib import Path
-from typing import Any, List, Optional, Union
+from typing import Any, Optional, Union
 
 
-def make_list_unique(seq: List[Any]) -> List[Any]:
+def make_list_unique(seq: list[Any]) -> list[Any]:
     return list(dict.fromkeys(seq))
 
 
@@ -69,7 +69,7 @@ class CMakeLibrary(CMakeElement):
     def __init__(
         self,
         name: str,
-        files: List[Path] | None = None,
+        files: list[Path] | None = None,
         type: LibraryType = LibraryType.OBJECT,
     ) -> None:
         self.name = name
@@ -88,7 +88,7 @@ class CMakeLibrary(CMakeElement):
 
 
 class CMakeObjectLibrary(CMakeLibrary):
-    def __init__(self, name: str, files: List[Path] | None = None) -> None:
+    def __init__(self, name: str, files: list[Path] | None = None) -> None:
         super().__init__(name, files, LibraryType.OBJECT)
 
 
@@ -161,14 +161,14 @@ class CMakeInclude(CMakeElement):
 
 
 class CMakeIncludeDirectories(CMakeElement):
-    def __init__(self, paths: List[CMakePath]) -> None:
+    def __init__(self, paths: list[CMakePath]) -> None:
         super().__init__()
         self.paths = paths
 
     def to_string(self) -> str:
         return "\n".join(["include_directories(", *self._add_tabulated_paths(self.paths), ")"])
 
-    def _add_tabulated_paths(self, paths: List[CMakePath]) -> List[str]:
+    def _add_tabulated_paths(self, paths: list[CMakePath]) -> list[str]:
         return [self._add_tabulated_path(path) for path in paths]
 
     def _add_tabulated_path(self, path: CMakePath) -> str:
@@ -178,10 +178,10 @@ class CMakeIncludeDirectories(CMakeElement):
 @dataclass
 class CMakeAddExecutable(CMakeElement):
     name: str
-    sources: List[Union[str, CMakePath, CMakeObjectLibrary]]
-    libraries: List[str] = field(default_factory=list)
-    compile_options: List[str] = field(default_factory=list)
-    link_options: List[str] = field(default_factory=list)
+    sources: list[Union[str, CMakePath, CMakeObjectLibrary]]
+    libraries: list[str] = field(default_factory=list)
+    compile_options: list[str] = field(default_factory=list)
+    link_options: list[str] = field(default_factory=list)
     exclude_from_all: bool = False
 
     def to_string(self) -> str:
@@ -205,7 +205,7 @@ class CMakeAddExecutable(CMakeElement):
     def _add_target_link_libraries(self) -> str:
         return "target_link_libraries(" + " ".join([self.name, *self.libraries]) + ")"
 
-    def _get_sources(self) -> List[str]:
+    def _get_sources(self) -> list[str]:
         return [self._get_source(source) for source in self.sources]
 
     def _get_source(self, source: str | CMakePath | CMakeObjectLibrary) -> str:
@@ -229,7 +229,7 @@ class CMakeAddExecutable(CMakeElement):
 
 
 class CMakeCommand(CMakeElement):
-    def __init__(self, command: str | CMakePath, arguments: List[str | CMakePath]) -> None:
+    def __init__(self, command: str | CMakePath, arguments: list[str | CMakePath]) -> None:
         super().__init__()
         self.command = command
         self.arguments = arguments
@@ -239,7 +239,7 @@ class CMakeCommand(CMakeElement):
 
 
 class CMakeExecuteProcess(CMakeElement):
-    def __init__(self, description: str, commands: List[CMakeCommand]) -> None:
+    def __init__(self, description: str, commands: list[CMakeCommand]) -> None:
         super().__init__()
         self.description = description
         self.commands = commands
@@ -258,12 +258,12 @@ class CMakeExecuteProcess(CMakeElement):
         )
         return "\n".join(str(line) for line in content)
 
-    def _get_commands(self) -> List[str]:
+    def _get_commands(self) -> list[str]:
         return [self.tab_prefix + str(command) for command in self.commands]
 
 
 class CMakeDepends(CMakeElement):
-    def __init__(self, depends: List[str | CMakePath]) -> None:
+    def __init__(self, depends: list[str | CMakePath]) -> None:
         super().__init__()
         self.depends = depends
 
@@ -274,9 +274,9 @@ class CMakeDepends(CMakeElement):
 @dataclass
 class CMakeCustomCommand(CMakeElement):
     description: str
-    outputs: List[CMakePath]
-    depends: List[str | CMakePath]
-    commands: List[CMakeCommand]
+    outputs: list[CMakePath]
+    depends: list[str | CMakePath]
+    commands: list[CMakeCommand]
 
     def to_string(self) -> str:
         content = [CMakeComment(self.description), "add_custom_command("]
@@ -286,10 +286,10 @@ class CMakeCustomCommand(CMakeElement):
         content.append(")")
         return "\n".join(str(line) for line in content)
 
-    def _get_outputs(self) -> List[str]:
+    def _get_outputs(self) -> list[str]:
         return [f"{self.tab_prefix}OUTPUT {' '.join([output.to_string() for output in self.outputs])}"]
 
-    def _get_commands(self) -> List[str]:
+    def _get_commands(self) -> list[str]:
         return [self.tab_prefix + str(command) for command in self.commands]
 
 
@@ -299,8 +299,8 @@ class CMakeCustomTarget(CMakeElement):
         self,
         name: str,
         description: str,
-        commands: List[CMakeCommand],
-        depends: Optional[List[str | CMakePath]] = None,
+        commands: list[CMakeCommand],
+        depends: Optional[list[str | CMakePath]] = None,
         default_target: bool = False,
     ) -> None:
         super().__init__()
@@ -322,13 +322,14 @@ class CMakeCustomTarget(CMakeElement):
         content.append(")")
         return "\n".join(str(line) for line in content)
 
-    def _get_commands(self) -> List[str]:
+    def _get_commands(self) -> list[str]:
         return [self.tab_prefix + str(command) for command in self.commands]
 
 
 class CMakeAddSubdirectory(CMakeElement):
     """
-    add_subdirectory(source_dir [binary_dir] [EXCLUDE_FROM_ALL] [SYSTEM])
+    Add_subdirectory(source_dir [binary_dir] [EXCLUDE_FROM_ALL] [SYSTEM]).
+
     https://cmake.org/cmake/help/latest/command/add_subdirectory.html#add-subdirectory
     """
 
@@ -345,7 +346,7 @@ class CMakeAddSubdirectory(CMakeElement):
 
 
 class CMakeListAppend(CMakeElement):
-    def __init__(self, variable: str, values: List[str]) -> None:
+    def __init__(self, variable: str, values: list[str]) -> None:
         super().__init__()
         self.variable = variable
         self.values = values
@@ -360,7 +361,7 @@ class CMakeListAppend(CMakeElement):
 class CMakeFile:
     def __init__(self, path: Path) -> None:
         self.path = path
-        self.content: List[CMakeElement] = []
+        self.content: list[CMakeElement] = []
 
     def to_string(self) -> str:
         return "\n".join(str(elem) for elem in self.content)
@@ -377,7 +378,7 @@ class CMakeFile:
             self.content.append(content)
         return self
 
-    def extend(self, content: List[CMakeElement]) -> "CMakeFile":
+    def extend(self, content: list[CMakeElement]) -> "CMakeFile":
         for element in content:
             self.append(element)
         return self

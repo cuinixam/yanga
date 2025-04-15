@@ -3,7 +3,7 @@ import json
 import traceback
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any, ClassVar, Dict, List, Optional
+from typing import Any, ClassVar, Optional
 
 import yaml
 from mashumaro import DataClassDictMixin
@@ -36,9 +36,9 @@ class VariantBom(DataClassDictMixin):
     #: Base variant name
     inherit: Optional[str] = None
     #: Components
-    components: List[str] = field(default_factory=list)
+    components: list[str] = field(default_factory=list)
     #: Component sources
-    sources: List[str] = field(default_factory=list)
+    sources: list[str] = field(default_factory=list)
 
 
 @dataclass
@@ -65,15 +65,15 @@ class ComponentConfig(DataClassDictMixin):
     #: Description
     description: Optional[str] = None
     #: Subcomponents
-    components: List[str] = field(default_factory=list)
+    components: list[str] = field(default_factory=list)
     #: Component sources
-    sources: List[str] = field(default_factory=list)
+    sources: list[str] = field(default_factory=list)
     #: Component test sources
-    test_sources: List[str] = field(default_factory=list)
+    test_sources: list[str] = field(default_factory=list)
     #: Component include directories
-    include_directories: List[str] = field(default_factory=list)
+    include_directories: list[str] = field(default_factory=list)
     #: Component variants
-    variants: List[VariantConfig] = field(default_factory=list)
+    variants: list[VariantConfig] = field(default_factory=list)
     # This field is intended to keep track of where configuration was loaded from and
     # it is automatically added when configuration is loaded from file
     file: Optional[Path] = None
@@ -82,9 +82,9 @@ class ComponentConfig(DataClassDictMixin):
 @dataclass
 class YangaUserConfig(DataClassDictMixin):
     pipeline: Optional[PipelineConfig] = None
-    platforms: List[PlatformConfig] = field(default_factory=list)
-    variants: List[VariantConfig] = field(default_factory=list)
-    components: List[ComponentConfig] = field(default_factory=list)
+    platforms: list[PlatformConfig] = field(default_factory=list)
+    variants: list[VariantConfig] = field(default_factory=list)
+    components: list[ComponentConfig] = field(default_factory=list)
     # This field is intended to keep track of where the configuration was loaded from and
     # it is automatically added when the configuration is loaded from the file
     file: Optional[Path] = None
@@ -95,7 +95,7 @@ class YangaUserConfig(DataClassDictMixin):
         return cls.from_dict(config_dict)
 
     @staticmethod
-    def parse_to_dict(config_file: Path) -> Dict[str, Any]:
+    def parse_to_dict(config_file: Path) -> dict[str, Any]:
         try:
             with open(config_file) as fs:
                 config_dict = yaml.safe_load(fs)
@@ -110,7 +110,7 @@ class YangaUserConfig(DataClassDictMixin):
 
 class BaseConfigJSONMixin(DataClassJSONMixin):
     class Config(BaseConfig):
-        code_generation_options: ClassVar[List[str]] = [TO_DICT_ADD_OMIT_NONE_FLAG]
+        code_generation_options: ClassVar[list[str]] = [TO_DICT_ADD_OMIT_NONE_FLAG]
 
     @classmethod
     def from_json_file(cls, file_path: Path) -> "BaseConfigJSONMixin":

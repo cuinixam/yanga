@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any, Optional
 
 from kspl.generate import HeaderWriter
 from kspl.kconfig import KConfig
@@ -13,15 +13,15 @@ class KConfigIncludeDirectoriesProvider(IncludeDirectoriesProvider):
     def __init__(self, output_dir: Path) -> None:
         self.output_dir = output_dir
 
-    def get_include_directories(self) -> List[Path]:
+    def get_include_directories(self) -> list[Path]:
         return [self.output_dir]
 
 
 class KConfigGen(PipelineStep[ExecutionContext]):
-    def __init__(self, execution_context: ExecutionContext, group_name: Optional[str] = None, config: Optional[Dict[str, Any]] = None) -> None:
+    def __init__(self, execution_context: ExecutionContext, group_name: Optional[str] = None, config: Optional[dict[str, Any]] = None) -> None:
         super().__init__(execution_context, group_name, config)
         self.logger = logger.bind()
-        self.input_files: List[Path] = []
+        self.input_files: list[Path] = []
 
     @property
     def output_dir(self) -> Path:
@@ -49,13 +49,13 @@ class KConfigGen(PipelineStep[ExecutionContext]):
         HeaderWriter(self.header_file).write(config)
         return 0
 
-    def get_inputs(self) -> List[Path]:
+    def get_inputs(self) -> list[Path]:
         # TODO: Use as input only the user config file where variant configuration is defined.
         # Now all the user config files are used as inputs, which will trigger the generation
         # if any of the file has changed.
         return self.execution_context.user_config_files + self.input_files
 
-    def get_outputs(self) -> List[Path]:
+    def get_outputs(self) -> list[Path]:
         return [self.header_file]
 
     def update_execution_context(self) -> None:

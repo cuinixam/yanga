@@ -1,12 +1,12 @@
 import os
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
-from typing import List, Optional, Set
+from typing import Optional
 
 from .config import YangaUserConfig
 
 
-def find_files(start_dir: Path, search_pattern: str, exclude_dirs: List[str] | None = None) -> Set[Path]:
+def find_files(start_dir: Path, search_pattern: str, exclude_dirs: list[str] | None = None) -> set[Path]:
     """
     Find files matching the search_pattern within start_dir, excluding the directories in exclude_dirs.
 
@@ -14,11 +14,11 @@ def find_files(start_dir: Path, search_pattern: str, exclude_dirs: List[str] | N
     ----
         start_dir (Path): The directory to start the search from.
         search_pattern (str): The pattern of file names to search for.
-        exclude_dirs (List[str]): A list of relative paths to exclude from the search.
+        exclude_dirs (list[str]): A list of relative paths to exclude from the search.
 
     Returns:
     -------
-        Set[Path]: A set of Paths to the files found.
+        set[Path]: A set of Paths to the files found.
 
     """
     start_dir = start_dir.resolve()
@@ -37,7 +37,7 @@ def find_files(start_dir: Path, search_pattern: str, exclude_dirs: List[str] | N
     return found_files
 
 
-def _is_excluded(dir_path: Path, exclude_paths: Set[Path]) -> bool:
+def _is_excluded(dir_path: Path, exclude_paths: set[Path]) -> bool:
     """Check if the directory is in the exclude paths set."""
     return any(dir_path == exclude_path or dir_path.is_relative_to(exclude_path) for exclude_path in exclude_paths)
 
@@ -45,12 +45,12 @@ def _is_excluded(dir_path: Path, exclude_paths: Set[Path]) -> bool:
 class YangaConfigSlurper:
     """Read all 'yanga.yaml' configuration files from the project."""
 
-    def __init__(self, project_dir: Path, exclude_dirs: List[str] | None = None, configuration_file_name: Optional[str] = None) -> None:
+    def __init__(self, project_dir: Path, exclude_dirs: list[str] | None = None, configuration_file_name: Optional[str] = None) -> None:
         self.project_dir = project_dir
         self.exclude_dirs = exclude_dirs if exclude_dirs else []
         self.configuration_file_name = configuration_file_name or "yanga.yaml"
 
-    def slurp(self) -> List[YangaUserConfig]:
+    def slurp(self) -> list[YangaUserConfig]:
         user_configs = []
         config_files = find_files(self.project_dir, self.configuration_file_name, self.exclude_dirs)
         with ThreadPoolExecutor() as executor:

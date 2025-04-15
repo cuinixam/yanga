@@ -1,5 +1,4 @@
 from pathlib import Path
-from typing import List
 
 from yanga.cmake.cmake_backend import (
     CMakeAddExecutable,
@@ -95,17 +94,17 @@ def test_cmake_add_subdirectory():
 
 def test_cmake_custom_command():
     outputs = [CMakePath(Path("output1")), CMakePath(Path("output2"))]
-    depends: List[str | CMakePath] = ["input1", "input2"]
+    depends: list[str | CMakePath] = ["input1", "input2"]
     commands = [CMakeCommand("my_command", ["arg1", "arg2"])]
     cmake_custom_command = CMakeCustomCommand("Generate outputs", outputs, depends, commands)
-    expected_string = "# Generate outputs\n" "add_custom_command(\n" "    OUTPUT output1 output2\n" "    DEPENDS input1 input2\n" "    COMMAND my_command arg1 arg2\n" ")"
+    expected_string = "# Generate outputs\nadd_custom_command(\n    OUTPUT output1 output2\n    DEPENDS input1 input2\n    COMMAND my_command arg1 arg2\n)"
     assert cmake_custom_command.to_string() == expected_string
 
 
 def test_cmake_custom_target():
     commands = [CMakeCommand("my_target_command", ["arg1", "arg2"])]
     cmake_custom_target = CMakeCustomTarget("my_custom_target", "Build custom target", commands, ["depend1"], True)
-    expected_string = "# Build custom target\n" "add_custom_target(my_custom_target ALL\n" "    COMMAND my_target_command arg1 arg2\n" "    DEPENDS depend1\n" ")"
+    expected_string = "# Build custom target\nadd_custom_target(my_custom_target ALL\n    COMMAND my_target_command arg1 arg2\n    DEPENDS depend1\n)"
     assert cmake_custom_target.to_string() == expected_string
 
 
@@ -113,7 +112,7 @@ def test_cmake_file():
     cmake_file = CMakeFile(Path("CMakeLists.txt"))
     cmake_file.append(CMakeProject("TestProject"))
     cmake_file.append(CMakeMinimumVersion("3.15"))
-    expected_string = "project(TestProject)\n" "cmake_minimum_required(VERSION 3.15)"
+    expected_string = "project(TestProject)\ncmake_minimum_required(VERSION 3.15)"
     assert cmake_file.to_string() == expected_string
 
 
