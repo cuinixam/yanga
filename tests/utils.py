@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import Callable, List, Optional, Type, TypeVar
+from typing import Callable, Optional, TypeVar
 
 from yanga.cmake.cmake_backend import CMakeElement
 
@@ -7,14 +7,14 @@ T = TypeVar("T", bound=CMakeElement)
 
 
 class CMakeAnalyzer:
-    def __init__(self, elements: List[CMakeElement]):
+    def __init__(self, elements: list[CMakeElement]):
         self.elements = elements
 
-    def find_elements_of_type(self, element_type: Type[T]) -> List[T]:
+    def find_elements_of_type(self, element_type: type[T]) -> list[T]:
         """Find all elements of a specific type."""
         return [elem for elem in self.elements if isinstance(elem, element_type)]
 
-    def _assert_elements(self, element_type: Type[T], expected_count: int, filter_fn: Optional[Callable[[T], bool]] = None) -> List[T]:
+    def _assert_elements(self, element_type: type[T], expected_count: int, filter_fn: Optional[Callable[[T], bool]] = None) -> list[T]:
         """Helper method to assert and return elements based on type and optional filter."""
         elements = self.find_elements_of_type(element_type)
 
@@ -31,11 +31,11 @@ class CMakeAnalyzer:
 
         return filtered_elements
 
-    def assert_element_of_type(self, element_type: Type[T], filter_fn: Optional[Callable[[T], bool]] = None) -> T:
+    def assert_element_of_type(self, element_type: type[T], filter_fn: Optional[Callable[[T], bool]] = None) -> T:
         """Assert that exactly one element of the given type exists, optionally needs to meet filter condition."""
         return self._assert_elements(element_type, 1, filter_fn)[0]
 
-    def assert_elements_of_type(self, element_type: Type[T], count: int, filter_fn: Optional[Callable[[T], bool]] = None) -> List[T]:
+    def assert_elements_of_type(self, element_type: type[T], count: int, filter_fn: Optional[Callable[[T], bool]] = None) -> list[T]:
         """Assert that exactly `count` elements of the given type exist, optionally needs to meet filter condition."""
         return self._assert_elements(element_type, count, filter_fn)
 

@@ -1,6 +1,6 @@
 from enum import auto
 from pathlib import Path
-from typing import List, Optional
+from typing import Optional
 
 import customtkinter
 from py_app_dev.core.exceptions import UserNotificationException
@@ -37,9 +37,9 @@ class YangaView(View):
     def __init__(self, event_manager: EventManager) -> None:
         self.event_manager = event_manager
         self.root = customtkinter.CTk()
-        self.platforms: List[str] = []
-        self.variants: List[str] = []
-        self.components: List[str] = []
+        self.platforms: list[str] = []
+        self.variants: list[str] = []
+        self.components: list[str] = []
 
     @property
     def selected_variant(self) -> str:
@@ -197,13 +197,13 @@ class YangaView(View):
 
         return components_frame
 
-    def update_platforms(self, platforms: List[str]) -> None:
+    def update_platforms(self, platforms: list[str]) -> None:
         self.platform_selection.configure(values=platforms)
 
     def update_current_platform(self, platform: str) -> None:
         self.platform_selection.set(platform)
 
-    def update_variants(self, variants: List[str]) -> None:
+    def update_variants(self, variants: list[str]) -> None:
         self.variant_selection.configure(values=variants)
 
     def update_current_variant(self, variant: str) -> None:
@@ -217,7 +217,7 @@ class YangaView(View):
         self.build_button.configure(state="disabled")
         self.clean_button.configure(state="disabled")
 
-    def update_components(self, components: List[str]) -> None:
+    def update_components(self, components: list[str]) -> None:
         self.component_selection.configure(values=components)
 
     def update_current_component(self, component: str) -> None:
@@ -399,7 +399,7 @@ class YangaPresenter(Presenter):
             self.logger.error(e)
             return None
 
-    def _create_component_names(self, variant_name: str) -> List[str]:
+    def _create_component_names(self, variant_name: str) -> list[str]:
         if self.project_slurper:
             try:
                 components = self.project_slurper.get_variant_components(variant_name)

@@ -1,6 +1,6 @@
 from collections import ChainMap
 from dataclasses import dataclass
-from typing import Any, Dict
+from typing import Any
 
 from mashumaro import DataClassDictMixin
 
@@ -17,7 +17,7 @@ class MyConfig(DataClassDictMixin):
 
 
 def test_chainmap():
-    global_config: Dict[str, Any] = {"opt1": {"a1": "global_opt"}, "opt2": "global"}
+    global_config: dict[str, Any] = {"opt1": {"a1": "global_opt"}, "opt2": "global"}
     user_config = {"opt1": {"a1": "user_opt"}, "opt2": None}
     chainmap = ChainMap(user_config, global_config)
     assert chainmap["opt1"] == {"a1": "user_opt"}

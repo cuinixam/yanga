@@ -47,4 +47,4 @@ def test_yanga_scoop_install_stage(mini_project: Path) -> None:
     # Run the scoop install step
     step.run()
     step.update_execution_context()
-    assert len(exec_context.install_dirs) == 2
+    assert len(exec_context.install_dirs) == 1

@@ -1,6 +1,5 @@
 import os
 from pathlib import Path
-from typing import List
 
 from py_app_dev.core.logging import logger, time_it
 from py_app_dev.core.subprocess import SubprocessExecutor
@@ -9,7 +8,7 @@ from py_app_dev.core.subprocess import SubprocessExecutor
 class CMakeRunner:
     executable = "cmake"
 
-    def __init__(self, install_directories: List[Path]) -> None:
+    def __init__(self, install_directories: list[Path]) -> None:
         self.logger = logger.bind()
         self.install_directories = install_directories
 
@@ -27,7 +26,7 @@ class CMakeRunner:
         build_dir_str = build_dir.absolute().as_posix()
         self.run_cmake(["--build", build_dir_str, "--target", target, "--"])
 
-    def run_cmake(self, arguments: List[str]) -> None:
+    def run_cmake(self, arguments: list[str]) -> None:
         # Add the install directories to the PATH
         env = os.environ.copy()
         env["PATH"] = ";".join([path.absolute().as_posix() for path in self.install_directories] + [env["PATH"]])

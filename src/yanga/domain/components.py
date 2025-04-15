@@ -1,7 +1,7 @@
 from dataclasses import dataclass, field
 from enum import Enum, auto
 from pathlib import Path
-from typing import List, Optional
+from typing import Optional
 
 
 class ComponentType(Enum):
@@ -19,14 +19,14 @@ class Component:
     #: Component path
     path: Path
     #: Component sources
-    sources: List[str] = field(default_factory=list)
+    sources: list[str] = field(default_factory=list)
     #: Component test sources
-    test_sources: List[str] = field(default_factory=list)
+    test_sources: list[str] = field(default_factory=list)
     #: Component include directories
-    include_dirs: List[str] = field(default_factory=list)
+    include_dirs: list[str] = field(default_factory=list)
     #: Is this component a sub-component of another component
     is_subcomponent: bool = False
     #: Component description
     description: Optional[str] = None
     #: Subcomponents
-    components: List["Component"] = field(default_factory=list)
+    components: list["Component"] = field(default_factory=list)

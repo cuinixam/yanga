@@ -15,12 +15,13 @@ jobs:
       - uses: actions/checkout@v3
         with:
           fetch-depth: 0 # Required for finding the previous release tag (already created in the CI workflow)
-      - name: Bootstrap and create virtual environment
-        run: .\bootstrap.ps1
-        shell: powershell
-      - name: Install Dependencies
-        run: .venv/Scripts/poetry install --with=dev
-        shell: powershell
+      - uses: actions/checkout@v4
+      - name: Install pypeline runner
+        run: pip install pypeline-runner>=1.16
+        shell: bash
+      - name: Run pypeline
+        run: pypeline run --step CreateVEnv --single
+        shell: bash
       - name: Create windows executable
         run: .\build_exe.ps1
         shell: powershell

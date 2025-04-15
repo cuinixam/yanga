@@ -1,6 +1,6 @@
 import shutil
 from pathlib import Path
-from typing import List, Optional, Union
+from typing import Optional, Union
 
 from py_app_dev.core.exceptions import UserNotificationException
 from py_app_dev.core.logging import logger
@@ -11,7 +11,7 @@ class ProjectBuilder:
         self.project_dir = project_dir
         self.input_dir = input_dir if input_dir else Path(__file__).parent.joinpath("templates")
 
-        self.dirs: List[Path] = []
+        self.dirs: list[Path] = []
         self.check_target_directory_flag = True
 
     def with_disable_target_directory_check(self) -> "ProjectBuilder":
@@ -22,7 +22,7 @@ class ProjectBuilder:
         self.dirs.append(self.resolve_file_path(dir))
         return self
 
-    def resolve_file_paths(self, files: List[Path | str]) -> List[Path]:
+    def resolve_file_paths(self, files: list[Path | str]) -> list[Path]:
         return [self.resolve_file_path(file) for file in files]
 
     def resolve_file_path(self, file: Union[Path, str]) -> Path:

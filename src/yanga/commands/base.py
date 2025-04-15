@@ -1,7 +1,7 @@
 from argparse import Namespace
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import List, Optional, Type, TypeVar
+from typing import Optional, TypeVar
 
 from mashumaro import DataClassDictMixin
 from pick import pick
@@ -10,18 +10,14 @@ from py_app_dev.core.logging import logger
 T = TypeVar("T", bound=DataClassDictMixin)
 
 
-def create_config(config_class: Type[T], namespace: Namespace) -> T:
+def create_config(config_class: type[T], namespace: Namespace) -> T:
     """
     Creates a configuration instance from an argparse Namespace for the given class.
 
-    Parameters
-    ----------
-    - cls: The class type to instantiate, inheriting from DataClassDictMixin.
+    - config_class: The class type to instantiate, inheriting from DataClassDictMixin.
     - namespace: The argparse Namespace containing configuration data.
 
-    Returns
-    -------
-    An instance of cls populated with data from namespace.
+    It returns an instance of config_class populated with data from namespace.
 
     """
     return config_class.from_dict(vars(namespace))
@@ -35,7 +31,7 @@ class CommandConfigBase(DataClassDictMixin):
     )
 
 
-def prompt_user_to_select_option(options: List[str], prompt: str) -> Optional[str]:
+def prompt_user_to_select_option(options: list[str], prompt: str) -> Optional[str]:
     if not options:
         return None
     # If there is only one option, return it immediately
