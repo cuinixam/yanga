@@ -1,0 +1,4 @@
+{
+  "python_package_manager": "uv>=0.6",
+  "scoop_ignore_scoopfile": true
+}

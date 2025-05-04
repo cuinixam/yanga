@@ -5,7 +5,7 @@
 
 function Invoke-Bootstrap {
     # Download bootstrap scripts from external repository
-    Invoke-RestMethod https://raw.githubusercontent.com/avengineers/bootstrap-installer/v1.15.1/install.ps1 | Invoke-Expression
+    Invoke-RestMethod https://raw.githubusercontent.com/avengineers/bootstrap-installer/v1.17.0/install.ps1 | Invoke-Expression
     # Execute bootstrap script
     . .\.bootstrap\bootstrap.ps1
 }
@@ -24,6 +24,10 @@ Write-Output "Running in ${pwd}"
 try {
     # bootstrap environment
     Invoke-Bootstrap
+    # Load bootstrap's utility functions
+    . .\.bootstrap\utils.ps1
+
+    Invoke-CommandLine ".venv\Scripts\pypeline run --config-file yanga.yaml --step GenerateEnvSetupScript"
 }
 finally {
     Pop-Location

@@ -3,12 +3,15 @@
   "python.testing.pytestArgs": ["test"],
   "python.testing.unittestEnabled": false,
   "python.analysis.extraPaths": ["test"],
+  "[python]": {
+    "editor.defaultFormatter": "charliermarsh.ruff"
+  },
   "cmake.configureOnOpen": false,
-  "cmake.buildDirectory": "${workspaceFolder}/build/vscode/${variant:variant}/${buildKit}/cmake-ext",
+  "cmake.buildDirectory": "${workspaceFolder}/build/vscode/${variant:variant}/${buildKit}/${buildType}",
   "cmake.configureSettings": {
     "BUILD_KIT": "${buildKit}",
-    "CMAKE_TOOLCHAIN_FILE": "${toolchainFile}",
-    "CMAKE_MESSAGE_LOG_LEVEL": "STATUS"
+    "CMAKE_MESSAGE_LOG_LEVEL": "STATUS",
+    "BUILD_TYPE": "${buildType}"
   },
   "cmake.generator": "Ninja",
   "cmake.debugConfig": {
@@ -18,10 +21,7 @@
   },
   "cmake.configureOnEdit": false,
   "cmake.buildBeforeRun": false,
-  "cmake.environment": {
-    "PIPENV_VERBOSITY": "-1",
-    "PIPENV_VENV_IN_PROJECT": "1"
-  },
+  "cmake.options.statusBarVisibility": "compact",
   "cmake.buildToolArgs": [],
   "git.ignoreLimitWarning": true,
   "C_Cpp.errorSquiggles": "enabled",
@@ -36,7 +36,6 @@
   },
   "git.repositoryScanMaxDepth": 3,
   "git-graph.maxDepthOfRepoSearch": 3,
-  "[python]": {
-    "editor.defaultFormatter": "ms-python.black-formatter"
-  }
+  "editor.formatOnSave": true,
+  "files.insertFinalNewline": true
 }
