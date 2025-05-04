@@ -2,11 +2,11 @@
   {
     "name": "win_exe",
     "toolchainFile": "platforms/windows/clang.cmake",
-    "environmentSetupScript": "${workspaceFolder}/.venv/Scripts/activate"
+    "environmentSetupScript": "${workspaceFolder}/build/install/env_setup.bat"
   },
   {
     "name": "gtest",
     "toolchainFile": "platforms/windows/gcc.cmake",
-    "environmentSetupScript": "${workspaceFolder}/.venv/Scripts/activate"
+    "environmentSetupScript": "${workspaceFolder}/build/install/env_setup.bat"
   }
 ]

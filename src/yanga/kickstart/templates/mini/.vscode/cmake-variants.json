@@ -2,7 +2,6 @@
   "variant": {
     "choices": {
       "EnglishVariant": {
-        "buildType": "EnglishVariant",
         "long": "select to build variant 'EnglishVariant'",
         "settings": {
           "VARIANT": "EnglishVariant"
@@ -10,7 +9,6 @@
         "short": "EnglishVariant"
       },
       "GermanVariant": {
-        "buildType": "GermanVariant",
         "long": "select to build variant 'GermanVariant'",
         "settings": {
           "VARIANT": "GermanVariant"
@@ -19,5 +17,20 @@
       }
     },
     "default": "EnglishVariant"
+  },
+  "buildType": {
+    "default": "Debug",
+    "choices": {
+      "Debug": {
+        "short": "Debug",
+        "long": "Disable optimizations and include debug information",
+        "buildType": "Debug"
+      },
+      "Release": {
+        "short": "Release",
+        "long": "Optimize for speed and exclude debug information",
+        "buildType": "Release"
+      }
+    }
   }
 }

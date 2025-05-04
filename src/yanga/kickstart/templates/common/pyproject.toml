@@ -1,12 +1,17 @@
-[tool.poetry]
-name = "Hello Yanga"
+[project]
+name = "hello-yanga"
 version = "0.0.1"
 description = "A simple generated Yanga project to get you started"
-authors = ["Your Name"]
-package-mode = false
+authors = [
+    {name = "Your Name"},
+]
 
-[tool.poetry.dependencies]
-python = ">=3.11,<3.13"
-yanga = "^2.1"
-py-app-dev = "^2.5"
-west = "*"
+requires-python = "<4.0,>=3.10"
+dependencies = [
+    "yanga>=2,<3",
+    "west>=1,<2",
+    "py-app-dev>=2,<3",
+    # Added because UV needs it as explicit dependency. It might be a bug in UV
+    "wrapt>=1,<2",
+]
+

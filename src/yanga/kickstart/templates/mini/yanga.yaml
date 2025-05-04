@@ -31,10 +31,13 @@ pipeline:
       module: pypeline.steps.create_venv
       config:
         bootstrap_script: .bootstrap/bootstrap.py
+        python_executable: python
     - step: ScoopInstall
       module: pypeline.steps.scoop_install
       description: Install scoop dependencies
       timeout_sec: 120
+    - step: GenerateEnvSetupScript
+      module: pypeline.steps.env_setup_script
     - step: WestInstall
       module: pypeline.steps.west_install
       description: Install west dependencies

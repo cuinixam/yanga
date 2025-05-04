@@ -15,7 +15,7 @@ classifiers = [
     "Operating System :: OS Independent",
     "Topic :: Software Development :: Libraries",
 ]
-requires-python = "<3.13,<4.0,>=3.10"
+requires-python = "<4.0,>=3.10"
 dependencies = [
     "mashumaro<4.0,>=3.5",
     "loguru<1.0,>=0.7",
@@ -27,7 +27,7 @@ dependencies = [
     "pick<3.0,>=2.2",
     "typer<1.0,>=0.12",
     "hammocking<1.0,>=0.2",
-    "pypeline-runner<2.0,>=1.0",
+    "pypeline-runner<2.0,>=1.0"
 ]
 
 [project.urls]
@@ -46,7 +46,7 @@ dev = [
   "pypeline-runner>=1,<2",
   "pre-commit<5.0,>=4.0",
   "ruff<1.0,>=0.9",
-  "wrapt>=1,<2",
+  "wrapt",
   "pyinstaller<7.0,>=6.11",
   # docs
   "myst-parser>=4.0,<5",
@@ -58,6 +58,9 @@ dev = [
   "sphinx-book-theme>=1.1,<2",
   "sphinx-design>=0,<1"
 ]
+
+[tool.uv]
+package = true
 
 [tool.ruff]
 target-version = "py39"

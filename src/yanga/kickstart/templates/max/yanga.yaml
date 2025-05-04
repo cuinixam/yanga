@@ -4,6 +4,7 @@ pipeline:
       module: yanga.steps.create_venv
       config:
         bootstrap_script: .bootstrap/bootstrap.py
+        python_executable: python
     - step: ScoopInstall
       module: yanga.steps.scoop_install
     - step: WestInstall
