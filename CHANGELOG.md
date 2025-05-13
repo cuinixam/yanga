@@ -1,6 +1,14 @@
 # CHANGELOG
 
 
+## v2.4.0 (2025-05-13)
+
+### Features
+
+- Add generate setup scripts for kickstarter
+  ([`2da32b0`](https://github.com/cuinixam/yanga/commit/2da32b0a5f4b0085cc4278b41d291f34b199a090))
+
+
 ## v2.3.0 (2025-02-07)
 
 ### Bug Fixes
@@ -689,11 +697,6 @@ Fixes #12
 
 - Update bootstrap script
   ([`e06745b`](https://github.com/cuinixam/yanga/commit/e06745bf45a93ce5cad1c18b98c0a9043f5f1b73))
-
-### Refactoring
-
-- Mode yanga build to commands
-  ([`01f18be`](https://github.com/cuinixam/yanga/commit/01f18bed56567db85cb2b597585d153b0c0dbdd5))
 
 
 ## v0.1.0 (2023-06-06)
