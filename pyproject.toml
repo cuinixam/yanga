@@ -1,6 +1,6 @@
 [project]
 name = "yanga"
-version = "2.4.0"
+version = "2.4.1"
 description = "Yet another ninja generator to build C/CPP projects."
 readme = "README.md"
 license = {text = "MIT"}

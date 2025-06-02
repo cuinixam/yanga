@@ -1,6 +1,14 @@
 # CHANGELOG
 
 
+## v2.4.1 (2025-06-02)
+
+### Bug Fixes
+
+- Kickstarter files are missing in the installation
+  ([`cd53182`](https://github.com/cuinixam/yanga/commit/cd531825d053237ea159256c37edcc2afc3111f7))
+
+
 ## v2.4.0 (2025-05-13)
 
 ### Features
