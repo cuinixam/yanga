@@ -39,6 +39,15 @@ documentation = "https://yanga.readthedocs.io"
 [project.scripts]
 yanga = "yanga.ymain:main"
 
+[build-system]
+requires = ["poetry-core>=2,<3"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.poetry]
+packages = [
+    { include = "yanga", from = "src" },
+]
+
 [dependency-groups]
 dev = [
   "pytest<9.0,>=8.3",
