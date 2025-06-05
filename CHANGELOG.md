@@ -1,6 +1,14 @@
 # CHANGELOG
 
 
+## v2.5.0 (2025-06-05)
+
+### Features
+
+- Use pypeline internal bootstrap
+  ([`64153b5`](https://github.com/cuinixam/yanga/commit/64153b513be284740f1be044ff1052b6432eab33))
+
+
 ## v2.4.1 (2025-06-02)
 
 ### Bug Fixes
