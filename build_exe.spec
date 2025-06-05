@@ -14,6 +14,9 @@ modules = [f.stem for f in Path("src/yanga/steps").glob("*.py") if f.name != "__
 hidden_module_paths = [f"yanga.steps.{module}" for module in modules]
 modules = [f.stem for f in Path("src/yanga/cmake").glob("*.py") if f.name != "__init__.py"]
 hidden_module_paths = hidden_module_paths + [f"yanga.cmake.{module}" for module in modules]
+modules = [f.stem for f in Path(".venv/Lib/site-packages/pypeline/steps").glob("*.py") if f.name != "__init__.py"]
+hidden_module_paths = hidden_module_paths + [f"pypeline.steps.{module}" for module in modules]
+
 
 block_cipher = None
 
@@ -24,7 +27,7 @@ a = Analysis(
     binaries=[],
     datas=[
         (cookiecutter_version_file.as_posix(), "cookiecutter"),
-        ("src/yanga/commands/project_templates/", "yanga/commands/project_templates/"),
+        ("src/yanga/kickstart/templates/", "yanga/kickstart/templates/"),
         ("src/yanga/gui/resources", "yanga/gui/resources"),
     ],
     hiddenimports=["shellingham.nt", "shellingham.posix", "cookiecutter.extensions"] + hidden_module_paths,

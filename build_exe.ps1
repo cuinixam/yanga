@@ -12,9 +12,9 @@ Write-Host "Tag of the current commit: $tag"
 
 # Check if the tag matches the version pattern v*.*.*
 if ($tag -match "v\d+\.\d+\.\d+") {
-    # Build the executable by running pyinstaller with poetry from the .venv/Scripts/poetry
-    $poetry = ".\.venv\Scripts\poetry"
-    & $poetry run pyinstaller build_exe.spec
+    # Build the executable by running pyinstaller with uv from the .venv/Scripts/uv
+    $uv = ".\.venv\Scripts\uv"
+    & $uv run pyinstaller build_exe.spec
 
     # Archive the executable
     $tag = $tag -replace "v", ""
