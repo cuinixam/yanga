@@ -30,8 +30,7 @@ pipeline:
     - step: CreateVEnv
       module: pypeline.steps.create_venv
       config:
-        bootstrap_script: .bootstrap/bootstrap.py
-        python_executable: python
+        python_executable: python3
     - step: ScoopInstall
       module: pypeline.steps.scoop_install
       description: Install scoop dependencies
