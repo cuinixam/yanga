@@ -10,8 +10,8 @@ from yanga.domain.execution_context import ExecutionContext
 
 
 class GenerateBuildSystemFiles(PipelineStep[ExecutionContext]):
-    def __init__(self, execution_context: ExecutionContext, output_dir: Path, config: Optional[dict[str, Any]] = None) -> None:
-        super().__init__(execution_context, output_dir, config)
+    def __init__(self, execution_context: ExecutionContext, group_name: Optional[str] = None, config: Optional[dict[str, Any]] = None) -> None:
+        super().__init__(execution_context, group_name, config)
         self.logger = logger.bind()
         self.generated_files: list[Path] = []
 
@@ -56,7 +56,7 @@ class ExecuteBuild(PipelineStep[ExecutionContext]):
 
     def run(self) -> int:
         self.logger.debug(f"Run {self.get_name()} stage. Output dir: {self.output_dir}")
-        CMakeRunner(self.execution_context.install_dirs).run(self.output_dir, self.execution_context.user_request.target_name)
+        CMakeRunner(self.execution_context.install_dirs).run(self.output_dir, self.execution_context.user_request.target_name, self.execution_context.user_request.build_type)
         return 0
 
     def get_inputs(self) -> list[Path]:

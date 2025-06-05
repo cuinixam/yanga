@@ -54,6 +54,10 @@ def run(
         None,
         help="Define a specific target to execute.",
     ),
+    build_type: Optional[str] = typer.Option(
+        None,
+        help="Build type to use (e.g., 'Debug', 'Release').",
+    ),
     step: Optional[str] = typer.Option(
         None,
         help="Name of the step to run (as written in the pipeline config).",
@@ -81,6 +85,7 @@ def run(
             variant_name,
             component_name,
             target,
+            build_type,
             step,
             single,
             print,

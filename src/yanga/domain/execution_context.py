@@ -37,6 +37,7 @@ class UserRequest:
     variant_name: Optional[str] = None
     component_name: Optional[str] = None
     target: Optional[Union[str, UserRequestTarget]] = None
+    build_type: Optional[str] = None
 
     @property
     def target_name(self) -> str:
@@ -51,8 +52,9 @@ class UserVariantRequest(UserRequest):
         self,
         variant_name: Optional[str],
         target: Optional[Union[str, UserRequestTarget]] = None,
+        build_type: Optional[str] = None,
     ) -> None:
-        super().__init__(UserRequestScope.VARIANT, variant_name, None, target=target)
+        super().__init__(UserRequestScope.VARIANT, variant_name, None, target=target, build_type=build_type)
 
 
 class IncludeDirectoriesProvider(ABC):
@@ -105,4 +107,5 @@ class ExecutionContext(_ExecutionContext):
             self.project_root_dir,
             self.variant_name,
             self.platform.name if self.platform else None,
+            self.user_request.build_type,
         )

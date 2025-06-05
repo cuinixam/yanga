@@ -26,6 +26,8 @@ class PlatformConfig(DataClassDictMixin):
     toolchain_file: Optional[str] = None
     #: Build system cmake generators
     cmake_generators: GenericPipelineConfig = field(default_factory=list)
+    #: Supported build types
+    build_types: list[str] = field(default_factory=list)
     # This field is intended to keep track of where configuration was loaded from and
     # it is automatically added when configuration is loaded from file
     file: Optional[Path] = None
