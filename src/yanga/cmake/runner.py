@@ -1,5 +1,6 @@
 import os
 from pathlib import Path
+from typing import Optional
 
 from py_app_dev.core.logging import logger, time_it
 from py_app_dev.core.subprocess import SubprocessExecutor
@@ -12,14 +13,17 @@ class CMakeRunner:
         self.logger = logger.bind()
         self.install_directories = install_directories
 
-    def run(self, build_dir: Path, target: str = "all") -> None:
-        self.configure(build_dir)
+    def run(self, build_dir: Path, target: str = "all", build_type: Optional[str] = None) -> None:
+        self.configure(build_dir, build_type)
         self.build(build_dir, target)
 
     @time_it("CMake configure")
-    def configure(self, build_dir: Path) -> None:
+    def configure(self, build_dir: Path, build_type: Optional[str] = None) -> None:
         build_dir_str = build_dir.absolute().as_posix()
-        self.run_cmake(["-S", build_dir_str, "-B", build_dir_str, "-G", "Ninja"])
+        cmake_args = ["-S", build_dir_str, "-B", build_dir_str, "-G", "Ninja"]
+        if build_type:
+            cmake_args.append(f"-DCMAKE_BUILD_TYPE={build_type}")
+        self.run_cmake(cmake_args)
 
     @time_it("CMake build")
     def build(self, build_dir: Path, target: str = "all") -> None:

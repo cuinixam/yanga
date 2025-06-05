@@ -15,13 +15,14 @@ class ProjectArtifactsLocator:
         project_root_dir: Path,
         variant_name: Optional[str],
         platform_name: Optional[str],
+        build_type: Optional[str],
     ) -> None:
         self.project_root_dir = project_root_dir
         self.build_dir = project_root_dir / "build"
         self.variants_dir = project_root_dir / "variants"
         self.platforms_dir = project_root_dir / "platforms"
         self.config_file = project_root_dir / self.CONFIG_FILENAME
-        self.variant_build_dir: Path = self.determine_variant_build_dir(variant_name, platform_name, self.build_dir)
+        self.variant_build_dir: Path = self.determine_variant_build_dir(variant_name, platform_name, build_type, self.build_dir)
         self.variant_dir: Optional[Path] = self.variants_dir / variant_name if variant_name else None
         self.external_dependencies_dir = self.build_dir / "external"
         scripts_dir = "Scripts" if sys.platform.startswith("win32") else "bin"
@@ -44,9 +45,13 @@ class ProjectArtifactsLocator:
             raise UserNotificationException(f"Artifact '{artifact}' not found in the project.")
 
     @staticmethod
-    def determine_variant_build_dir(variant_name: Optional[str], platform_name: Optional[str], build_dir: Path) -> Path:
-        if variant_name and platform_name:
-            return build_dir / variant_name / platform_name
+    def determine_variant_build_dir(variant_name: Optional[str], platform_name: Optional[str], build_type: Optional[str], build_dir: Path) -> Path:
+        # build up the path in order: variant, platform, build_type
+        parts = []
         if variant_name:
-            return build_dir / variant_name
-        return build_dir
+            parts.append(variant_name)
+        if platform_name:
+            parts.append(platform_name)
+        if build_type:
+            parts.append(build_type)
+        return build_dir.joinpath(*parts) if parts else build_dir

@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import Dict, List, Optional, TypeAlias
+from typing import Optional, TypeAlias
 
 from py_app_dev.core.exceptions import UserNotificationException
 from py_app_dev.core.logging import logger
@@ -41,7 +41,7 @@ class YangaProjectSlurper:
 
     def get_variant_config_file(self, variant_name: str) -> Optional[Path]:
         variant = self.get_variant_config(variant_name)
-        artifacts_locator = ProjectArtifactsLocator(self.project_dir, variant_name, None)
+        artifacts_locator = ProjectArtifactsLocator(self.project_dir, variant_name, None, None)
         return artifacts_locator.locate_artifact(variant.config_file, [variant.file]) if variant.config_file else None
 
     def get_variant_components(self, variant_name: str) -> list[Component]:
@@ -57,7 +57,8 @@ class YangaProjectSlurper:
 
     def _collect_variant_components(self, variant: VariantConfig) -> list[Component]:
         """
-        "Collect all components for the given variant.
+        Collect all components for the given variant.
+
         Look for components in the component pool and add them to the list.
         """
         components = []

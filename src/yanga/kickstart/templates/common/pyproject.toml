@@ -3,15 +3,21 @@ name = "hello-yanga"
 version = "0.0.1"
 description = "A simple generated Yanga project to get you started"
 authors = [
-    {name = "Your Name"},
+  { name = "Your Name" },
 ]
 
 requires-python = "<4.0,>=3.10"
-dependencies = [
-    "yanga>=2,<3",
-    "west>=1,<2",
-    "py-app-dev>=2,<3",
-    # Added because UV needs it as explicit dependency. It might be a bug in UV
-    "wrapt>=1,<2",
+classifiers = [
+  "Programming Language :: Python :: 3 :: Only",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
 ]
-
+dependencies = [
+  "py-app-dev>=2,<3",
+  "west>=1,<2",
+  # Added because UV needs it as explicit dependency. It might be a bug in UV
+  "wrapt>=1,<2",
+  "yanga>=2,<3",
+]

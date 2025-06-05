@@ -58,7 +58,7 @@ def env(locate_artifact: Mock) -> ExecutionContext:
         ),
     ]
     env.include_directories = [Path("/mock/include/dir")]
-    env.create_artifacts_locator.return_value = ProjectArtifactsLocator(Path("/mock/project/root"), "mock_variant", "mock_platform")
+    env.create_artifacts_locator.return_value = ProjectArtifactsLocator(Path("/mock/project/root"), "mock_variant", "mock_platform", "mock_build_type")
     return env
 
 

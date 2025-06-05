@@ -28,6 +28,10 @@ class RunCommandConfig(CommandConfigBase):
     )
     component_name: Optional[str] = field(default=None, metadata={"help": "Restrict the scope to one specific component."})
     target: Optional[str] = field(default=None, metadata={"help": "Define a specific target to execute."})
+    build_type: Optional[str] = field(
+        default=None,
+        metadata={"help": "Build type to use (e.g., 'Debug', 'Release')."},
+    )
     step: Optional[str] = field(
         default=None,
         metadata={"help": "Name of the step to run (as written in the pipeline config)."},
@@ -78,6 +82,7 @@ class RunCommand(Command):
             variant_name=variant_name,
             component_name=config.component_name,
             target=config.target,
+            build_type=config.build_type,
         )
         self.execute_pipeline_steps(
             project_dir=config.project_dir,
@@ -110,7 +115,7 @@ class RunCommand(Command):
         if not project_slurper.pipeline:
             raise UserNotificationException("No pipeline found in the configuration.")
         # Schedule the steps to run
-        steps_references = PipelineScheduler[ExecutionContext](project_slurper.pipeline, project_dir).get_steps_to_run(step, single)
+        steps_references = PipelineScheduler[ExecutionContext](project_slurper.pipeline, project_dir).get_steps_to_run([step] if step else None, single)
         if not steps_references:
             if step:
                 raise UserNotificationException(f"Step '{step}' not found in the pipeline.")
