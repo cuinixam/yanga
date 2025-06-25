@@ -14,7 +14,7 @@ from yanga.cmake.cmake_backend import (
 )
 from yanga.cmake.gtest import GTestCMakeGenerator
 from yanga.domain.artifacts import ProjectArtifactsLocator
-from yanga.domain.components import Component, ComponentType
+from yanga.domain.components import Component
 from yanga.domain.execution_context import ExecutionContext
 
 
@@ -36,7 +36,6 @@ def env(locate_artifact: Mock) -> ExecutionContext:
     env.components = [
         Component(
             name="CompA",
-            type=ComponentType.COMPONENT,
             path=Path("compA"),
             sources=["source.cpp"],
             test_sources=["test_source.cpp"],
@@ -47,7 +46,6 @@ def env(locate_artifact: Mock) -> ExecutionContext:
         ),
         Component(
             name="CompBNotTestable",
-            type=ComponentType.COMPONENT,
             path=Path("compB"),
             sources=["source.cpp"],
             test_sources=[],

@@ -1,5 +1,6 @@
+from collections import OrderedDict
 from pathlib import Path
-from typing import Optional, TypeAlias
+from typing import Optional
 
 from py_app_dev.core.exceptions import UserNotificationException
 from py_app_dev.core.logging import logger
@@ -7,17 +8,121 @@ from pypeline.domain.pipeline import PipelineConfig
 
 from yanga.domain.artifacts import ProjectArtifactsLocator
 
-from .components import Component, ComponentType
+from .components import Component
 from .config import ComponentConfig, PlatformConfig, VariantConfig, YangaUserConfig
 from .config_slurper import YangaConfigSlurper
 
-ComponentsConfigsPool: TypeAlias = dict[str, ComponentConfig]
+
+class ComponentFactory:
+    def __init__(self, project_dir: Path) -> None:
+        self.project_dir = project_dir
+
+    def create(self, component_config: ComponentConfig) -> Component:
+        component_path = self.project_dir / component_config.path if component_config.path else None
+        if not component_path:
+            component_path = component_config.file if component_config.file else None
+            if not component_path:
+                component_path = self.project_dir
+        component = Component(
+            component_config.name,
+            component_path,
+        )
+        component.sources = component_config.sources
+        component.test_sources = component_config.test_sources
+        return component
+
+
+class ComponentsConfigsPool:
+    def __init__(self, component_factory: ComponentFactory) -> None:
+        self._pool: dict[str, ComponentConfig] = {}
+        self.component_factory = component_factory
+
+    @classmethod
+    def from_configs(cls, configs: list[ComponentConfig], component_factory: ComponentFactory) -> "ComponentsConfigsPool":
+        pool = cls(component_factory)
+        for config in configs:
+            if config.name in pool._pool:
+                raise UserNotificationException(f"Component '{config.name}' is already defined in the pool.")
+            pool._pool[config.name] = config
+        return pool
+
+    def __getitem__(self, name: str) -> ComponentConfig:
+        """Get a component configuration by name, raising KeyError if not found."""
+        if name not in self._pool:
+            raise KeyError(f"Component '{name}' not found in the configuration pool.")
+        return self._pool[name]
+
+    def __setitem__(self, name: str, config: ComponentConfig) -> None:
+        """Set a component configuration by name, replacing any existing configuration."""
+        self._pool[name] = config
+
+    def get(self, name: str, default: Optional[ComponentConfig] = None) -> Optional[ComponentConfig]:
+        """Get a component configuration by name, returning None if not found."""
+        return self._pool.get(name, default)
+
+    def get_component_config(self, name: str) -> Optional[ComponentConfig]:
+        return self.get(name)
+
+    def get_component(self, name: str) -> Optional[Component]:
+        component_config = self.get_component_config(name)
+        return self.component_factory.create(component_config) if component_config else None
+
+
+class IncludeDirectoriesResolver:
+    """
+    Resolve include directories for each component.
+
+    Collects the private include directories and all public include directories
+    from the required components. This is transitive, meaning that if a component requires
+    other components, the public include directories of the required component are also added
+    to the component's include directories. The resulted list is uniques and keeps the order
+    of the include directories as they were defined in the configuration.
+    """
+
+    def __init__(self, components_configs_pool: ComponentsConfigsPool) -> None:
+        self._components_configs_pool = components_configs_pool
+        self._cache: dict[str, list[Path]] = {}
+
+    def populate(self, components: list[Component]) -> None:
+        for component in components:
+            config = self._components_configs_pool.get_component_config(component.name)
+            if config is None:
+                continue
+            visited: set[str] = set()
+            public_includes = self._collect_public_includes(config, visited)
+            includes = [component.path.joinpath(inc_dir) for inc_dir in config.private_include_directories] + public_includes
+            # Remove duplicates but preserve order
+            component.include_dirs = list(OrderedDict.fromkeys(includes))
+
+    def _collect_public_includes(self, component_config: ComponentConfig, visited: set[str]) -> list[Path]:
+        if component_config.name in self._cache:
+            return self._cache[component_config.name]
+
+        if component_config.name in visited:
+            return []  # Prevent infinite recursion in case of circular dependencies
+
+        visited.add(component_config.name)
+        component = self._components_configs_pool.get_component(component_config.name)
+        if not component:
+            raise UserNotificationException(f"Component '{component_config.name}' not found in the configuration pool.")
+        includes = [component.path.joinpath(inc_dir) for inc_dir in component_config.public_include_directories]
+
+        for dep_name in component_config.required_components:
+            dep_config = self._components_configs_pool.get(dep_name)
+            if dep_config:
+                includes.extend(self._collect_public_includes(dep_config, visited))
+
+        # Remove duplicates but preserve order
+        deduped_includes = list(OrderedDict.fromkeys(includes))
+        self._cache[component_config.name] = deduped_includes
+        return deduped_includes
 
 
 class YangaProjectSlurper:
     def __init__(self, project_dir: Path, configuration_file_name: Optional[str] = None, exclude_dirs: Optional[list[str]] = None) -> None:
         self.logger = logger.bind()
         self.project_dir = project_dir
+        self.component_factory = ComponentFactory(self.project_dir)
         exclude = exclude_dirs if exclude_dirs else []
         # Merge the exclude directories with the hardcoded ones
         exclude = list({*exclude, ".git", ".github", ".vscode", "build", ".venv"})
@@ -68,27 +173,13 @@ class YangaProjectSlurper:
             component_config = self.components_configs_pool.get(component_name, None)
             if not component_config:
                 raise UserNotificationException(f"Component '{component_name}' not found in the configuration.")
-            components.append(self._create_build_component(component_config))
+            components.append(self.component_factory.create(component_config))
         self._resolve_subcomponents(components, self.components_configs_pool)
+        IncludeDirectoriesResolver(self.components_configs_pool).populate(components)
         return components
 
-    def _create_build_component(self, component_config: ComponentConfig) -> Component:
-        # TODO: determine component type based on if it has sources, subcomponents
-        component_type = ComponentType.COMPONENT
-        component_path = component_config.file.parent if component_config.file else self.project_dir
-        build_component = Component(
-            component_config.name,
-            component_type,
-            component_path,
-        )
-        if component_config.sources:
-            build_component.sources = component_config.sources
-        if component_config.test_sources:
-            build_component.test_sources = component_config.test_sources
-        return build_component
-
     def _collect_components_configs(self, user_configs: list[YangaUserConfig]) -> ComponentsConfigsPool:
-        components_config: ComponentsConfigsPool = {}
+        components_config = ComponentsConfigsPool(self.component_factory)
         for user_config in user_configs:
             for component_config in user_config.components:
                 if components_config.get(component_config.name, None):
