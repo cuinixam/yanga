@@ -10,7 +10,7 @@ from yanga.cmake.cmake_backend import (
     CMakeObjectLibrary,
 )
 from yanga.cmake.create_executable import CreateExecutableCMakeGenerator
-from yanga.domain.components import Component, ComponentType
+from yanga.domain.components import Component
 from yanga.domain.execution_context import ExecutionContext
 
 
@@ -21,7 +21,6 @@ def env() -> ExecutionContext:
     env.components = [
         Component(
             name="CompA",
-            type=ComponentType.COMPONENT,
             path=Path("compA"),
             sources=["srcA/source.cpp"],
             test_sources=["test_source.cpp"],
@@ -32,7 +31,6 @@ def env() -> ExecutionContext:
         ),
         Component(
             name="CompBNotTestable",
-            type=ComponentType.COMPONENT,
             path=Path("compB"),
             sources=["srcB/source.cpp"],
             test_sources=[],

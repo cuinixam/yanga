@@ -2,6 +2,7 @@ import io
 import json
 import traceback
 from dataclasses import dataclass, field
+from enum import Enum, auto
 from pathlib import Path
 from typing import Any, ClassVar, Optional
 
@@ -60,25 +61,48 @@ class VariantConfig(DataClassDictMixin):
     file: Optional[Path] = None
 
 
+class IncludeDirectoryScope(Enum):
+    PUBLIC = auto()
+    PRIVATE = auto()
+
+
+@dataclass
+class IncludeDirectory(DataClassDictMixin):
+    #: Include directory path
+    path: str
+    #: Include directory scope
+    scope: IncludeDirectoryScope
+
+
 @dataclass
 class ComponentConfig(DataClassDictMixin):
     #: Component name
     name: str
     #: Description
     description: Optional[str] = None
-    #: Subcomponents
+    #: Subcomponents - intended for `container` components that can collect other components to ease their management
     components: list[str] = field(default_factory=list)
     #: Component sources
     sources: list[str] = field(default_factory=list)
     #: Component test sources
     test_sources: list[str] = field(default_factory=list)
     #: Component include directories
-    include_directories: list[str] = field(default_factory=list)
-    #: Component variants
-    variants: list[VariantConfig] = field(default_factory=list)
+    include_directories: list[IncludeDirectory] = field(default_factory=list)
+    #: Name of the components that this component requires header files from
+    required_components: list[str] = field(default_factory=list)
+    #: Directory relative to the project root where this component is located
+    path: Optional[Path] = None
     # This field is intended to keep track of where configuration was loaded from and
     # it is automatically added when configuration is loaded from file
     file: Optional[Path] = None
+
+    @property
+    def private_include_directories(self) -> list[str]:
+        return [d.path for d in self.include_directories if d.scope == IncludeDirectoryScope.PRIVATE]
+
+    @property
+    def public_include_directories(self) -> list[str]:
+        return [d.path for d in self.include_directories if d.scope == IncludeDirectoryScope.PUBLIC]
 
 
 @dataclass
