@@ -1,5 +1,8 @@
+from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Optional
+
+from mashumaro import DataClassDictMixin
 
 from yanga.domain.component_analyzer import ComponentAnalyzer
 from yanga.domain.execution_context import (
@@ -22,11 +25,18 @@ from .cmake_backend import (
 from .generator import CMakeGenerator
 
 
+@dataclass
+class CreateExecutableConfig(DataClassDictMixin):
+    #: If this is enabled, all includes are defined globally and not component specific
+    use_global_includes: bool = True
+
+
 class CreateExecutableCMakeGenerator(CMakeGenerator):
     """Generates CMake elements to build an executable for a variant."""
 
     def __init__(self, execution_context: ExecutionContext, output_dir: Path, config: Optional[dict[str, Any]] = None) -> None:
         super().__init__(execution_context, output_dir, config)
+        self.config_data = CreateExecutableConfig.from_dict(self.config) if self.config else CreateExecutableConfig()
 
     @property
     def variant_name(self) -> Optional[str]:
@@ -41,7 +51,8 @@ class CreateExecutableCMakeGenerator(CMakeGenerator):
 
     def create_variant_cmake_elements(self) -> list[CMakeElement]:
         elements: list[CMakeElement] = []
-        elements.append(self.get_include_directories())
+        if self.config_data.use_global_includes:
+            elements.append(self.get_include_directories())
         # TODO: I do not like that I have to know here that the components are object libraries
         variant_executable = CMakeAddExecutable(
             "${PROJECT_NAME}",

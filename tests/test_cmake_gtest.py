@@ -9,6 +9,7 @@ from yanga.cmake.cmake_backend import (
     CMakeCustomCommand,
     CMakeCustomTarget,
     CMakeInclude,
+    CMakeIncludeDirectories,
     CMakeObjectLibrary,
     CMakeVariable,
 )
@@ -136,3 +137,25 @@ def test_automock_disabled_generates_no_mock_targets(env: ExecutionContext, outp
 
     executable = cmake_analyzer.assert_element_of_type(CMakeAddExecutable)
     assert [str(source) for source in executable.sources] == ["source.cpp", "test_source.cpp"]
+
+
+def test_use_global_includes_disabled_generates_no_global_include_directories(env: ExecutionContext, output_dir: Path) -> None:
+    """Verify that when use_global_includes is disabled, no global include directories are generated."""
+    # Global include directories should not be generated in the variant elements
+    variant_elements = GTestCMakeGenerator(env, output_dir, {"use_global_includes": False}).create_variant_cmake_elements()
+    variant_analyzer = CMakeAnalyzer(variant_elements)
+
+    # Check that no CMakeIncludeDirectories is present in variant elements
+    include_directories = variant_analyzer.find_elements_of_type(CMakeIncludeDirectories)
+    assert len(include_directories) == 0
+
+
+def test_use_global_includes_enabled_by_default_generates_global_include_directories(env: ExecutionContext, output_dir: Path) -> None:
+    """Verify that when use_global_includes is enabled (default), global include directories are generated."""
+    # Global include directories should be generated in the variant elements
+    variant_elements = GTestCMakeGenerator(env, output_dir).create_variant_cmake_elements()
+    variant_analyzer = CMakeAnalyzer(variant_elements)
+
+    # Check that CMakeIncludeDirectories is present in variant elements
+    include_directories = variant_analyzer.find_elements_of_type(CMakeIncludeDirectories)
+    assert len(include_directories) == 1  # Should have one CMakeIncludeDirectories element

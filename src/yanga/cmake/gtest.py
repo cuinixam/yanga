@@ -38,6 +38,8 @@ from .generator import CMakeGenerator
 class GTestCMakeGeneratorConfig(DataClassDictMixin):
     #: Enable the generation of mockup sources
     automock: bool = True
+    #: If this is enabled, all includes are defined globally and not component specific
+    use_global_includes: bool = True
 
 
 class GTestCMakeArtifactsLocator:
@@ -308,7 +310,8 @@ class GTestCMakeGenerator(CMakeGenerator):
         elements.append(CMakeComment("Enable testing with CTest"))
         elements.append(CMakeInclude("CTest"))
         elements.append(CMakeListAppend("CMAKE_CTEST_ARGUMENTS", ["--output-on-failure"]))
-        elements.append(self.get_include_directories())
+        if self.config_obj.use_global_includes:
+            elements.append(self.get_include_directories())
         return elements
 
     def get_include_directories(self) -> CMakeIncludeDirectories:
