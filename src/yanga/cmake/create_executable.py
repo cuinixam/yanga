@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+from functools import cached_property
 from pathlib import Path
 from typing import Any, Optional
 
@@ -21,6 +22,7 @@ from .cmake_backend import (
     CMakeIncludeDirectories,
     CMakeObjectLibrary,
     CMakePath,
+    CMakeTargetIncludeDirectories,
 )
 from .generator import CMakeGenerator
 
@@ -36,7 +38,11 @@ class CreateExecutableCMakeGenerator(CMakeGenerator):
 
     def __init__(self, execution_context: ExecutionContext, output_dir: Path, config: Optional[dict[str, Any]] = None) -> None:
         super().__init__(execution_context, output_dir, config)
-        self.config_data = CreateExecutableConfig.from_dict(self.config) if self.config else CreateExecutableConfig()
+
+    @cached_property
+    def config_obj(self) -> CreateExecutableConfig:
+        """Lazily creates and caches a GTestCMakeGeneratorConfig instance."""
+        return CreateExecutableConfig.from_dict(self.config) if self.config else CreateExecutableConfig()
 
     @property
     def variant_name(self) -> Optional[str]:
@@ -51,8 +57,10 @@ class CreateExecutableCMakeGenerator(CMakeGenerator):
 
     def create_variant_cmake_elements(self) -> list[CMakeElement]:
         elements: list[CMakeElement] = []
-        if self.config_data.use_global_includes:
+        if self.config_obj.use_global_includes:
             elements.append(self.get_include_directories())
+        else:
+            elements.append(CMakeComment("Use global includes for all components disabled."))
         # TODO: I do not like that I have to know here that the components are object libraries
         variant_executable = CMakeAddExecutable(
             "${PROJECT_NAME}",
@@ -79,12 +87,28 @@ class CreateExecutableCMakeGenerator(CMakeGenerator):
         include_dirs = collector.collect_include_directories() + self.execution_context.include_directories
         return CMakeIncludeDirectories([CMakePath(path) for path in include_dirs])
 
+    def get_component_include_directories(self, component_analyzer: ComponentAnalyzer) -> list[CMakePath]:
+        """Get include directories specific to this component."""
+        include_dirs = component_analyzer.collect_include_directories() + self.execution_context.include_directories
+        return [CMakePath(path) for path in include_dirs]
+
     def create_components_cmake_elements(self) -> list[CMakeElement]:
         elements: list[CMakeElement] = []
         for component in self.execution_context.components:
             component_analyzer = ComponentAnalyzer([component], self.execution_context.create_artifacts_locator())
-            component_library = CMakeObjectLibrary(component.name, component_analyzer.collect_sources())
+            sources = component_analyzer.collect_sources()
+            component_library = CMakeObjectLibrary(component.name, sources)
             elements.append(component_library)
+
+            # Add component-specific include directories when global includes are disabled
+            if not self.config_obj.use_global_includes:
+                include_dirs: list[CMakePath] = self.get_component_include_directories(component_analyzer)
+                if include_dirs:
+                    # Determine visibility: use PRIVATE for libraries with sources, INTERFACE for header-only
+                    visibility = "INTERFACE" if not sources else "PRIVATE"
+                    target_includes = CMakeTargetIncludeDirectories(component_library.target_name, include_dirs, visibility)
+                    elements.append(target_includes)
+
             elements.append(
                 CMakeCustomTarget(
                     UserRequest(

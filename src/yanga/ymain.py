@@ -65,17 +65,14 @@ def run(
     single: bool = typer.Option(
         False,
         help="If provided, only the provided step will run, without running all previous steps in the pipeline.",
-        is_flag=True,
     ),
     print: bool = typer.Option(
         False,
         help="Print the pipeline steps.",
-        is_flag=True,
     ),
     force_run: bool = typer.Option(
         False,
         help="Force the execution of a step even if it is not dirty.",
-        is_flag=True,
     ),
 ) -> None:
     RunCommand().do_run(

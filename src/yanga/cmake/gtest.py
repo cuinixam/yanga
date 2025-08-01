@@ -29,6 +29,7 @@ from .cmake_backend import (
     CMakeListAppend,
     CMakeObjectLibrary,
     CMakePath,
+    CMakeTargetIncludeDirectories,
     CMakeVariable,
 )
 from .generator import CMakeGenerator
@@ -100,6 +101,15 @@ class Hammocking:
         sources = [CMakePath(source) for source in self.gtest_cmake_component.component_analyzer.collect_sources()]
         component_sources_object_library = CMakeObjectLibrary(self.gtest_cmake_component.partial_link_name, self.gtest_cmake_component.component_analyzer.collect_sources())
         elements.append(component_sources_object_library)
+        # Add include directories specific to this component
+        include_dirs: list[CMakePath] = self.gtest_cmake_component.get_include_directories()
+        # Add the build directory for the component to find the generated mockup sources
+        include_dirs.append(self.artifacts_locator.cmake_build_dir)
+        if include_dirs:
+            # Determine visibility: use PRIVATE for libraries with sources, INTERFACE for header-only
+            visibility = "INTERFACE" if not sources else "PRIVATE"
+            target_includes = CMakeTargetIncludeDirectories(component_sources_object_library.target_name, include_dirs, visibility)
+            elements.append(target_includes)
         # Custom command to create the partial link library
         partial_link_obj = self.artifacts_locator.cmake_build_dir.joinpath(f"{self.gtest_cmake_component.partial_link_name}.o")
         custom_command = CMakeCustomCommand(
@@ -137,7 +147,7 @@ class Hammocking:
                         partial_link_obj,
                         "--outdir",
                         self.artifacts_locator.cmake_build_dir,
-                        " ".join(["-I" + str(source) for source in self.gtest_cmake_component.get_include_directories()]),
+                        " ".join(["-I" + str(inc_dir) for inc_dir in include_dirs]),
                         "-x",
                         "c",
                     ],
@@ -194,6 +204,17 @@ class GTestComponentCMakeGenerator:
             sources += mockup_generator.get_mockup_sources()
         test_executable = self.add_executable(gtest_cmake_component.executable_name, sources)
         elements.append(test_executable)
+
+        # Add component-specific include directories when global includes are disabled
+        if not self.config.use_global_includes:
+            include_dirs: list[CMakePath] = gtest_cmake_component.get_include_directories()
+            # Add the build directory for the component to find the generated mockup sources
+            include_dirs.append(self.artifacts_locator.cmake_build_dir)
+            if include_dirs:
+                # Determine visibility: use PRIVATE for executables with sources, INTERFACE for header-only
+                visibility = "INTERFACE" if not sources else "PRIVATE"
+                target_includes = CMakeTargetIncludeDirectories(test_executable.name, include_dirs, visibility)
+                elements.append(target_includes)
 
         # Create the custom target to execute the tests
         execute_tests_command = self.run_executable(component.name, test_executable.name)
@@ -312,6 +333,8 @@ class GTestCMakeGenerator(CMakeGenerator):
         elements.append(CMakeListAppend("CMAKE_CTEST_ARGUMENTS", ["--output-on-failure"]))
         if self.config_obj.use_global_includes:
             elements.append(self.get_include_directories())
+        else:
+            elements.append(CMakeComment("Use global includes for all components disabled."))
         return elements
 
     def get_include_directories(self) -> CMakeIncludeDirectories:

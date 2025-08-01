@@ -16,6 +16,7 @@ from yanga.cmake.cmake_backend import (
     CMakeObjectLibrary,
     CMakePath,
     CMakeProject,
+    CMakeTargetIncludeDirectories,
     CMakeVariable,
 )
 
@@ -124,3 +125,17 @@ def test_cmake_list_append():
 def test_cmake_enable_testing():
     cmake_enable_testing = CMakeEnableTesting()
     assert cmake_enable_testing.to_string() == "enable_testing()"
+
+
+def test_cmake_target_include_directories():
+    paths = [CMakePath(Path("/include/dir1")), CMakePath(Path("/include/dir2"))]
+    target_include_dirs = CMakeTargetIncludeDirectories("my_target", paths, "PRIVATE")
+    assert target_include_dirs.to_string() == "target_include_directories(my_target PRIVATE /include/dir1 /include/dir2)"
+
+    # Test with INTERFACE visibility
+    interface_include_dirs = CMakeTargetIncludeDirectories("my_interface", paths, "INTERFACE")
+    assert interface_include_dirs.to_string() == "target_include_directories(my_interface INTERFACE /include/dir1 /include/dir2)"
+
+    # Test with empty paths
+    empty_include_dirs = CMakeTargetIncludeDirectories("my_target", [], "PRIVATE")
+    assert empty_include_dirs.to_string() == ""

@@ -28,8 +28,10 @@ class ComponentAnalyzer:
         return files
 
     def collect_include_directories(self) -> list[Path]:
-        # TODO: check if there are specific include directories for each component
-        includes = [path.parent for path in self.collect_sources()]
+        includes: list[Path] = []
+        for component in self.components:
+            includes.extend(component.include_dirs)
+        includes.extend([path.parent for path in self.collect_sources()])
         # remove duplicates and return
         return make_list_unique(includes)
 

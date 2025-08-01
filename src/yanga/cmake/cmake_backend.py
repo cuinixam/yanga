@@ -175,6 +175,20 @@ class CMakeIncludeDirectories(CMakeElement):
         return self.tab_prefix + path.to_string()
 
 
+class CMakeTargetIncludeDirectories(CMakeElement):
+    def __init__(self, target_name: str, paths: list[CMakePath], visibility: str = "PRIVATE") -> None:
+        super().__init__()
+        self.target_name = target_name
+        self.paths = paths
+        self.visibility = visibility  # PRIVATE, PUBLIC, or INTERFACE
+
+    def to_string(self) -> str:
+        if not self.paths:
+            return ""
+        paths_str = " ".join(path.to_string() for path in self.paths)
+        return f"target_include_directories({self.target_name} {self.visibility} {paths_str})"
+
+
 @dataclass
 class CMakeAddExecutable(CMakeElement):
     name: str
