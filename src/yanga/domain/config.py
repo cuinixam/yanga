@@ -4,7 +4,7 @@ import traceback
 from dataclasses import dataclass, field
 from enum import Enum, auto
 from pathlib import Path
-from typing import Any, ClassVar, Optional
+from typing import Any, Callable, ClassVar, Optional
 
 import yaml
 from mashumaro import DataClassDictMixin
@@ -61,7 +61,33 @@ class VariantConfig(DataClassDictMixin):
     file: Optional[Path] = None
 
 
-class IncludeDirectoryScope(Enum):
+class StringableEnum(Enum):
+    @classmethod
+    def from_string(cls, name: str) -> "StringableEnum":
+        return getattr(cls, str(name).upper())
+
+    def to_string(self) -> str:
+        return self.name
+
+    def __str__(self) -> str:
+        return self.to_string()
+
+
+def stringable_enum_field_metadata(
+    enum_type: type[StringableEnum],
+    alias: Optional[str] = None,
+) -> dict[str, Any]:
+    """Generates metadata for dataclass fields that handle stringable enum types."""
+    metadata: dict[str, Callable[[Any], Any]] = {
+        "deserialize": lambda type_str: (enum_type.from_string(type_str) if type_str else None),
+        "serialize": lambda type_obj: type_obj.to_string() if type_obj else None,
+    }
+    if alias:
+        metadata["alias"] = alias  # type: ignore
+    return metadata
+
+
+class IncludeDirectoryScope(StringableEnum):
     PUBLIC = auto()
     PRIVATE = auto()
 
@@ -71,7 +97,7 @@ class IncludeDirectory(DataClassDictMixin):
     #: Include directory path
     path: str
     #: Include directory scope
-    scope: IncludeDirectoryScope
+    scope: IncludeDirectoryScope = field(metadata=stringable_enum_field_metadata(IncludeDirectoryScope))
 
 
 @dataclass

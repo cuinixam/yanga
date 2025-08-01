@@ -9,7 +9,7 @@ from yanga.ymain import app
 runner = CliRunner()
 
 
-@pytest.mark.skip(reason="TODO: integration tests fail of windows")
+@pytest.mark.skip(reason="TODO: integration tests fail on windows")
 def test_run(tmp_path: Path) -> None:
     project_dir = tmp_path.joinpath("mini")
     result = runner.invoke(
@@ -25,5 +25,16 @@ def test_run(tmp_path: Path) -> None:
     result = runner.invoke(
         app,
         ["run", "--project-dir", project_dir.as_posix(), "--platform", "gtest", "--variant-name", "EnglishVariant"],
+    )
+    assert result.exit_code == 0
+
+
+@pytest.mark.skipif(not Path("D:/ateliere/spled").exists(), reason="Exploratory test. Not meant to be run in CI.")
+@pytest.mark.parametrize("platform", ["win_exe", "gtest"])
+def test_spled(platform: str) -> None:
+    project_dir = Path("D:/ateliere/spled")
+    result = runner.invoke(
+        app,
+        ["run", "--project-dir", project_dir.as_posix(), "--variant-name", "Disco", "--platform", platform, "--target", "all", "--force-run"],
     )
     assert result.exit_code == 0

@@ -11,6 +11,7 @@ from yanga.cmake.cmake_backend import (
     CMakeInclude,
     CMakeIncludeDirectories,
     CMakeObjectLibrary,
+    CMakeTargetIncludeDirectories,
     CMakeVariable,
 )
 from yanga.cmake.gtest import GTestCMakeGenerator
@@ -159,3 +160,40 @@ def test_use_global_includes_enabled_by_default_generates_global_include_directo
     # Check that CMakeIncludeDirectories is present in variant elements
     include_directories = variant_analyzer.find_elements_of_type(CMakeIncludeDirectories)
     assert len(include_directories) == 1  # Should have one CMakeIncludeDirectories element
+
+
+def test_use_global_includes_disabled_adds_component_specific_include_directories(env: ExecutionContext, output_dir: Path) -> None:
+    """Verify that when use_global_includes is disabled, component-specific include directories are added as target_include_directories."""
+    # Set up component with include directories
+    component = env.components[0]  # Get the CompA component
+    component.include_dirs = [Path("/component/inc"), Path("/component/src")]
+
+    # Generate elements with use_global_includes=False
+    elements = GTestCMakeGenerator(env, output_dir, {"use_global_includes": False}).generate()
+    cmake_analyzer = CMakeAnalyzer(elements)
+
+    # Find the executable
+    executable = cmake_analyzer.assert_element_of_type(CMakeAddExecutable)
+
+    # Check that CMakeTargetIncludeDirectories elements are generated
+    target_includes = cmake_analyzer.find_elements_of_type(CMakeTargetIncludeDirectories)
+    assert len(target_includes) > 0, "No CMakeTargetIncludeDirectories elements found"
+
+    # Find the target include directories for our executable
+    target_name = executable.name
+    component_target_includes = [ti for ti in target_includes if ti.target_name == target_name]
+    assert len(component_target_includes) > 0, f"No target include directories found for target {target_name}"
+
+    # Check that component include directories are included
+    all_paths = []
+    for ti in component_target_includes:
+        all_paths.extend([str(path.path) for path in ti.paths])
+
+    # Normalize paths for Windows compatibility
+    normalized_paths = [p.replace("\\", "/") for p in all_paths]
+    assert "/component/inc" in normalized_paths, f"Component include directory not found in target includes: {normalized_paths}"
+    assert "/component/src" in normalized_paths, f"Component include directory not found in target includes: {normalized_paths}"
+
+    # Verify that the visibility is PRIVATE for executables with sources
+    component_ti = component_target_includes[0]
+    assert component_ti.visibility == "PRIVATE", f"Expected PRIVATE visibility, got {component_ti.visibility}"
