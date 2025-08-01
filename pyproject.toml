@@ -51,6 +51,7 @@ dev = [
   "mlx-traceability>=11,<12",
   # docs
   "myst-parser>=4,<5",
+  "pip-system-certs>=4,<5",
   "pre-commit>=4,<5",
   "pyinstaller>=6.11,<7",
   "pypeline-runner>=1,<2",
