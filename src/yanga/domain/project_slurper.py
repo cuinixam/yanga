@@ -56,6 +56,10 @@ class ComponentsConfigsPool:
         """Set a component configuration by name, replacing any existing configuration."""
         self._pool[name] = config
 
+    def values(self) -> list[ComponentConfig]:
+        """Return a list of all component configurations in the pool."""
+        return list(self._pool.values())
+
     def get(self, name: str, default: Optional[ComponentConfig] = None) -> Optional[ComponentConfig]:
         """Get a component configuration by name, returning None if not found."""
         return self._pool.get(name, default)
