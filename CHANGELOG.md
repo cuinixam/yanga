@@ -1,6 +1,23 @@
 # CHANGELOG
 
 
+## v2.6.0 (2025-08-08)
+
+### Features
+
+- Add component includes resolver
+  ([`6c26d60`](https://github.com/cuinixam/yanga/commit/6c26d60ca7e7936eed55005d09f9fcc63d3fb8d2))
+
+- Add support for build type
+  ([`5472db4`](https://github.com/cuinixam/yanga/commit/5472db40fa06d86c5efa2131e679c2159e8b8007))
+
+- Add use global includes configuration switch
+  ([`2b82e83`](https://github.com/cuinixam/yanga/commit/2b82e83a91c43441230d4bfd73f43c87c798af6b))
+
+- Collect component specific includes
+  ([`4ad2879`](https://github.com/cuinixam/yanga/commit/4ad2879c97b8cde07ab7bdfba487b94253559ceb))
+
+
 ## v2.5.0 (2025-06-05)
 
 ### Features
