@@ -9,7 +9,6 @@ from yanga.domain.execution_context import ExecutionContext
 
 from .cmake_backend import (
     CMakeFile,
-    CMakeInclude,
     CMakeMinimumVersion,
     CMakePath,
     CMakeProject,
@@ -46,15 +45,12 @@ class CMakeBuildSystemGenerator:
 
     def generate(self) -> list[CMakeFile]:
         files = []
-        cmake_lists_file = self.create_cmake_lists()
-        files.append(cmake_lists_file)
         files.append(self.create_variant_cmake_file())
-        cmake_lists_file.append(CMakeInclude(self.variant_cmake_file))
         return files
 
     def create_cmake_lists(self) -> CMakeFile:
         cmake_file = CMakeFile(self.output_dir.joinpath("CMakeLists.txt"))
-        cmake_file.append(CMakeMinimumVersion("3.20"))
+        cmake_file.append(CMakeMinimumVersion("4.1"))
         platform = self.execution_context.platform
         if platform and platform.toolchain_file:
             cmake_file.append(

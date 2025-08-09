@@ -1,37 +1,42 @@
-import os
 from pathlib import Path
 from typing import Optional
 
-from py_app_dev.core.logging import logger, time_it
-from py_app_dev.core.subprocess import SubprocessExecutor
+from py_app_dev.core.logging import logger
 
 
 class CMakeRunner:
     executable = "cmake"
 
-    def __init__(self, install_directories: list[Path]) -> None:
+    def __init__(self, project_dir: Path, build_dir: Path) -> None:
         self.logger = logger.bind()
-        self.install_directories = install_directories
+        self.project_dir = project_dir
+        self.build_dir = build_dir
 
-    def run(self, build_dir: Path, target: str = "all", build_type: Optional[str] = None) -> None:
-        self.configure(build_dir, build_type)
-        self.build(build_dir, target)
-
-    @time_it("CMake configure")
-    def configure(self, build_dir: Path, build_type: Optional[str] = None) -> None:
-        build_dir_str = build_dir.absolute().as_posix()
-        cmake_args = ["-S", build_dir_str, "-B", build_dir_str, "-G", "Ninja"]
+    def get_configure_command(self, toolchain_file: Optional[str], variant_name: Optional[str], platform_name: Optional[str], build_type: Optional[str] = None) -> list[str | Path]:
+        cmake_args = [
+            "-S",
+            self.project_dir.absolute().as_posix(),
+            "-B",
+            self.build_dir.absolute().as_posix(),
+            "-G",
+            "Ninja",
+        ]
+        if toolchain_file:
+            cmake_args.append(f"-DCMAKE_TOOLCHAIN_FILE={toolchain_file}")
+        if variant_name:
+            cmake_args.append(f"-DVARIANT={variant_name}")
+        if platform_name:
+            cmake_args.append(f"-DPLATFORM={platform_name}")
         if build_type:
             cmake_args.append(f"-DCMAKE_BUILD_TYPE={build_type}")
-        self.run_cmake(cmake_args)
+        return [self.executable, *cmake_args]
 
-    @time_it("CMake build")
-    def build(self, build_dir: Path, target: str = "all") -> None:
-        build_dir_str = build_dir.absolute().as_posix()
-        self.run_cmake(["--build", build_dir_str, "--target", target, "--"])
-
-    def run_cmake(self, arguments: list[str]) -> None:
-        # Add the install directories to the PATH
-        env = os.environ.copy()
-        env["PATH"] = ";".join([path.absolute().as_posix() for path in self.install_directories] + [env["PATH"]])
-        SubprocessExecutor([self.executable, *arguments], env=env).execute()
+    def get_build_command(self, target: str = "all") -> list[str | Path]:
+        return [
+            self.executable,
+            "--build",
+            self.build_dir.absolute().as_posix(),
+            "--target",
+            target,
+            "--",
+        ]

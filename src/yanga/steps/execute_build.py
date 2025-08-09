@@ -5,6 +5,7 @@ from py_app_dev.core.logging import logger
 from pypeline.domain.pipeline import PipelineStep
 
 from yanga.cmake.builder import CMakeBuildSystemGenerator
+from yanga.cmake.cmake_backend import CMakePath
 from yanga.cmake.runner import CMakeRunner
 from yanga.domain.execution_context import ExecutionContext
 
@@ -56,8 +57,19 @@ class ExecuteBuild(PipelineStep[ExecutionContext]):
 
     def run(self) -> int:
         self.logger.debug(f"Run {self.get_name()} stage. Output dir: {self.output_dir}")
-        CMakeRunner(self.execution_context.install_dirs).run(self.output_dir, self.execution_context.user_request.target_name, self.execution_context.user_request.build_type)
+        cmake_runner = CMakeRunner(self.execution_context.project_root_dir, self.output_dir)
+        toolchain_file = None
+        platform_name = self.execution_context.platform.name if self.execution_context.platform else None
+        if self.execution_context.platform and self.execution_context.platform.toolchain_file:
+            toolchain_file = CMakePath(
+                self.execution_context.create_artifacts_locator().locate_artifact(self.execution_context.platform.toolchain_file, [self.execution_context.platform.file])
+            ).to_string()
+        self._run(cmake_runner.get_configure_command(toolchain_file, self.execution_context.variant_name, platform_name, self.execution_context.user_request.build_type))
+        self._run(cmake_runner.get_build_command(self.execution_context.user_request.target_name))
         return 0
+
+    def _run(self, cmd: list[str | Path]) -> None:
+        self.execution_context.create_process_executor(cmd).execute()
 
     def get_inputs(self) -> list[Path]:
         return []
