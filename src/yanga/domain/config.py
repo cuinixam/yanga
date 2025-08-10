@@ -18,6 +18,60 @@ from yaml.scanner import ScannerError
 
 
 @dataclass
+class WestDependency(DataClassDictMixin):
+    #: Project name
+    name: str
+    #: Remote name
+    remote: str
+    #: Revision (tag, branch, or commit)
+    revision: str
+    #: Path where the dependency will be installed
+    path: str
+
+
+@dataclass
+class WestRemote(DataClassDictMixin):
+    #: Remote name
+    name: str
+    #: URL base
+    url_base: str = field(metadata={"alias": "url-base"})
+
+
+@dataclass
+class WestManifest(DataClassDictMixin):
+    #: Remote configurations
+    remotes: list[WestRemote] = field(default_factory=list)
+    #: Project dependencies
+    projects: list[WestDependency] = field(default_factory=list)
+
+
+@dataclass
+class WestManifestFile(DataClassDictMixin):
+    manifest: WestManifest
+    # This field is intended to keep track of where configuration was loaded from and
+    # it is automatically added when configuration is loaded from file
+    file: Optional[Path] = None
+
+    @classmethod
+    def from_file(cls, config_file: Path) -> "WestManifestFile":
+        config_dict = cls.parse_to_dict(config_file)
+        return cls.from_dict(config_dict)
+
+    @staticmethod
+    def parse_to_dict(config_file: Path) -> dict[str, Any]:
+        try:
+            with open(config_file) as fs:
+                config_dict = yaml.safe_load(fs)
+                # Add file name to config to keep track of where configuration was loaded from
+                config_dict["file"] = config_file
+            return config_dict
+        except ScannerError as e:
+            raise UserNotificationException(f"Failed scanning west manifest file '{config_file}'. \nError: {e}") from e
+        except ParserError as e:
+            raise UserNotificationException(f"Failed parsing west manifest file '{config_file}'. \nError: {e}") from e
+
+
+@dataclass
 class PlatformConfig(DataClassDictMixin):
     #: Platform name
     name: str
@@ -29,6 +83,8 @@ class PlatformConfig(DataClassDictMixin):
     cmake_generators: GenericPipelineConfig = field(default_factory=list)
     #: Supported build types
     build_types: list[str] = field(default_factory=list)
+    #: West dependencies for this platform
+    west_dependencies: Optional[WestManifest] = None
     # This field is intended to keep track of where configuration was loaded from and
     # it is automatically added when configuration is loaded from file
     file: Optional[Path] = None
@@ -56,6 +112,8 @@ class VariantConfig(DataClassDictMixin):
     platform: Optional[str] = None
     #: Configuration
     config_file: Optional[str] = None
+    #: West dependencies for this variant
+    west_dependencies: Optional[WestManifest] = None
     # This field is intended to keep track of where configuration was loaded from and
     # it is automatically added when configuration is loaded from file
     file: Optional[Path] = None

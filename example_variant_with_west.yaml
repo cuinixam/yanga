@@ -1,0 +1,16 @@
+variants:
+  - name: TestVariant
+    description: Variant that includes additional test dependencies
+    bom:
+      components:
+        - main
+        - greeter
+    west_dependencies:
+      remotes:
+        - name: catch2
+          url_base: https://github.com/catchorg
+      projects:
+        - name: Catch2
+          remote: catch2
+          revision: v3.4.0
+          path: external/catch2
