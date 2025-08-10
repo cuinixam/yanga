@@ -10,7 +10,7 @@ from pypeline.domain.execution_context import ExecutionContext as _ExecutionCont
 
 from .artifacts import ProjectArtifactsLocator
 from .components import Component
-from .config import PlatformConfig
+from .config import PlatformConfig, VariantConfig
 
 
 class UserRequestTarget(Enum):
@@ -73,6 +73,7 @@ class ExecutionContext(_ExecutionContext):
         user_config_files: Optional[list[Path]] = None,
         config_file: Optional[Path] = None,
         platform: Optional[PlatformConfig] = None,
+        variant: Optional[VariantConfig] = None,
     ) -> None:
         super().__init__(project_root_dir)
         self.user_request = user_request
@@ -81,6 +82,7 @@ class ExecutionContext(_ExecutionContext):
         self.user_config_files = user_config_files if user_config_files else []
         self.config_file = config_file
         self.platform = platform
+        self.variant = variant
         self.include_dirs_providers: list[IncludeDirectoriesProvider] = []
 
     @property

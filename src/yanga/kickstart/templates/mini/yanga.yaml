@@ -38,7 +38,7 @@ pipeline:
     - step: GenerateEnvSetupScript
       module: pypeline.steps.env_setup_script
     - step: WestInstall
-      module: pypeline.steps.west_install
+      module: yanga.steps.west_install
       description: Install west dependencies
   gen:
     - step: KConfigGen
