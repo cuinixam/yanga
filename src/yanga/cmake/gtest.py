@@ -19,16 +19,14 @@ from .cmake_backend import (
     CMakeAddSubdirectory,
     CMakeCommand,
     CMakeComment,
-    CMakeContent,
     CMakeCustomCommand,
     CMakeCustomTarget,
     CMakeElement,
     CMakeEmptyLine,
-    CMakeInclude,
     CMakeIncludeDirectories,
-    CMakeListAppend,
     CMakeObjectLibrary,
     CMakePath,
+    CMakeSetTargetProperties,
     CMakeTargetIncludeDirectories,
     CMakeVariable,
 )
@@ -51,6 +49,10 @@ class GTestCMakeArtifactsLocator:
         self.artifacts_locator = execution_context.create_artifacts_locator()
         self.cmake_build_dir = CMakePath(output_dir, "CMAKE_BUILD_DIR")
         self.cmake_gtest_dir = CMakePath(self.artifacts_locator.locate_artifact("gtest", [self.artifacts_locator.build_dir]))
+
+    def get_component_build_dir(self, component_name: str) -> CMakePath:
+        """Get the component-specific build directory."""
+        return self.cmake_build_dir.joinpath(component_name)
 
 
 class GTestCMakeComponent:
@@ -103,15 +105,16 @@ class CMakeMockupCreator:
         elements.append(component_sources_object_library)
         # Add include directories specific to this component
         include_dirs: list[CMakePath] = self.gtest_cmake_component.get_include_directories()
-        # Add the build directory for the component to find the generated mockup sources
-        include_dirs.append(self.artifacts_locator.cmake_build_dir)
+        # Add the component-specific build directory for the component to find the generated mockup sources
+        component_build_dir = self.artifacts_locator.get_component_build_dir(self.gtest_cmake_component.name)
+        include_dirs.append(component_build_dir)
         if include_dirs:
             # Determine visibility: use PRIVATE for libraries with sources, INTERFACE for header-only
             visibility = "INTERFACE" if not sources else "PRIVATE"
             target_includes = CMakeTargetIncludeDirectories(component_sources_object_library.target_name, include_dirs, visibility)
             elements.append(target_includes)
         # Custom command to create the partial link library
-        partial_link_obj = self.artifacts_locator.cmake_build_dir.joinpath(f"{self.gtest_cmake_component.partial_link_name}.o")
+        partial_link_obj = component_build_dir.joinpath(f"{self.gtest_cmake_component.partial_link_name}.o")
         custom_command = CMakeCustomCommand(
             "Create partial link library containing only the productive sources",
             [partial_link_obj],
@@ -146,7 +149,7 @@ class CMakeMockupCreator:
                         "--partial-object-file",
                         partial_link_obj,
                         "--output-dir",
-                        self.artifacts_locator.cmake_build_dir,
+                        component_build_dir,
                         "--compilation-database",
                         self.artifacts_locator.cmake_build_dir.joinpath("compile_commands.json"),
                         "--no-strict",
@@ -179,7 +182,8 @@ class CMakeMockupCreator:
         return [self.get_mockup_file("cc")]
 
     def get_mockup_file(self, file_extension: str) -> Path:
-        return self.artifacts_locator.cmake_build_dir.joinpath(f"mockup_{self.gtest_cmake_component.name}.{file_extension}").to_path()
+        component_build_dir = self.artifacts_locator.get_component_build_dir(self.gtest_cmake_component.name)
+        return component_build_dir.joinpath(f"mockup_{self.gtest_cmake_component.name}.{file_extension}").to_path()
 
 
 class GTestComponentCMakeGenerator:
@@ -207,11 +211,17 @@ class GTestComponentCMakeGenerator:
         test_executable = self.add_executable(gtest_cmake_component.executable_name, sources)
         elements.append(test_executable)
 
+        # Set the executable output directory to the component-specific directory
+        component_build_dir = self.artifacts_locator.get_component_build_dir(component.name)
+        target_properties = CMakeSetTargetProperties(test_executable.name, {"RUNTIME_OUTPUT_DIRECTORY": component_build_dir})
+        elements.append(target_properties)
+
         # Add component-specific include directories when global includes are disabled
         if not self.config.use_global_includes:
             include_dirs: list[CMakePath] = gtest_cmake_component.get_include_directories()
-            # Add the build directory for the component to find the generated mockup sources
-            include_dirs.append(self.artifacts_locator.cmake_build_dir)
+            # Add the component-specific build directory for the component to find the generated mockup sources
+            component_build_dir = self.artifacts_locator.get_component_build_dir(component.name)
+            include_dirs.append(component_build_dir)
             if include_dirs:
                 # Determine visibility: use PRIVATE for executables with sources, INTERFACE for header-only
                 visibility = "INTERFACE" if not sources else "PRIVATE"
@@ -253,7 +263,6 @@ class GTestComponentCMakeGenerator:
                 ),
             ]
         )
-        elements.append(CMakeContent(f"gtest_discover_tests({test_executable.name})"))
         elements.append(CMakeEmptyLine())
 
         return elements
@@ -271,17 +280,21 @@ class GTestComponentCMakeGenerator:
         )
 
     def run_executable(self, component_name: str, component_executable_name: str) -> CMakeCustomCommand:
+        component_build_dir = self.artifacts_locator.get_component_build_dir(component_name)
+        junit_report_file = component_build_dir.joinpath(f"{component_name}_junit.xml")
+        # The executable will be in the component-specific directory
+        executable_path = component_build_dir.joinpath(component_executable_name)
         command = CMakeCommand(
-            component_executable_name,
+            executable_path,
             [
-                f"--gtest_output=xml:{component_name}_junit.xml",
+                f"--gtest_output=xml:{junit_report_file}",
                 "||",
                 "${CMAKE_COMMAND}",
                 "-E",
                 "true",
             ],
         )
-        outputs = [self.artifacts_locator.cmake_build_dir.joinpath(f"{component_name}_junit.xml")]
+        outputs = [component_build_dir.joinpath(f"{component_name}_junit.xml")]
         return CMakeCustomCommand(
             "Run the test executable, generate JUnit report and return success independent of the test result",
             outputs,
@@ -330,11 +343,6 @@ class GTestCMakeGenerator(CMakeGenerator):
                 self.artifacts_locator.cmake_build_dir.joinpath(".gtest"),
             )
         )
-        elements.append(CMakeComment("Use the Google Test infrastructure (e.g. gtest_discover_tests)"))
-        elements.append(CMakeInclude("GoogleTest"))
-        elements.append(CMakeComment("Enable testing with CTest"))
-        elements.append(CMakeInclude("CTest"))
-        elements.append(CMakeListAppend("CMAKE_CTEST_ARGUMENTS", ["--output-on-failure"]))
         if self.config_obj.use_global_includes:
             elements.append(self.get_include_directories())
         else:
@@ -350,8 +358,10 @@ class GTestCMakeGenerator(CMakeGenerator):
         # Add the GTest and GMock include directory
         for name in ["googletest", "googlemock"]:
             include_dirs.append(self.artifacts_locator.cmake_gtest_dir.joinpath(f"{name}/include").to_path())
-        # Add the build directory to the include directories to be able to include the generated mockup sources
-        include_dirs.append(self.artifacts_locator.cmake_build_dir.to_path())
+        # Add the component-specific build directories to the include directories to be able to include the generated mockup sources
+        for component in self.execution_context.components:
+            component_build_dir = self.artifacts_locator.get_component_build_dir(component.name)
+            include_dirs.append(component_build_dir.to_path())
         return CMakeIncludeDirectories([CMakePath(path) for path in include_dirs])
 
     def create_components_cmake_elements(self) -> list[CMakeElement]:

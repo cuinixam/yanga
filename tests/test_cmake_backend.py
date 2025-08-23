@@ -70,6 +70,8 @@ def test_cmake_path():
     assert str(cmake_path_with_variable) == "${TEST_PATH}"
     cmake_path_joined = cmake_path_with_variable.joinpath("include")
     assert str(cmake_path_joined) == "${TEST_PATH}/include"
+    # Use joinpath multiple times
+    assert cmake_path_joined.joinpath("comp").to_path() == path / "include" / "comp"
 
 
 def test_cmake_include():

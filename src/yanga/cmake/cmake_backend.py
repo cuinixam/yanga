@@ -145,7 +145,8 @@ class CMakePath:
         return self.path / self.relative_path if self.relative_path else self.path
 
     def joinpath(self, path: str) -> "CMakePath":
-        return CMakePath(self.path, self.variable, Path(path))
+        rel_path = self.relative_path / path if self.relative_path else Path(path)
+        return CMakePath(self.path, self.variable, rel_path)
 
     def __str__(self) -> str:
         return self.to_string()
@@ -240,6 +241,22 @@ class CMakeAddExecutable(CMakeElement):
 
     def _add_link_options(self) -> str:
         return f"target_link_options({self.name} PRIVATE " + " ".join(self.link_options) + ")"
+
+
+@dataclass
+class CMakeSetTargetProperties(CMakeElement):
+    target: str
+    properties: dict[str, str | CMakePath]
+
+    def to_string(self) -> str:
+        if not self.properties:
+            return ""
+
+        props = []
+        for key, value in self.properties.items():
+            props.extend([key, str(value)])
+
+        return f"set_target_properties({self.target} PROPERTIES {' '.join(props)})"
 
 
 class CMakeCommand(CMakeElement):
