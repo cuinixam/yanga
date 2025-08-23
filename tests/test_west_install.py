@@ -21,7 +21,7 @@ def test_west_install_with_platform_dependencies():
         platform = PlatformConfig(
             name="test_platform",
             description="Test platform",
-            west_dependencies=WestManifest(
+            west_manifest=WestManifest(
                 remotes=[WestRemote(name="gtest", url_base="https://github.com/google")],
                 projects=[WestDependency(name="googletest", remote="gtest", revision="v1.14.0", path="external/gtest")],
             ),
@@ -56,7 +56,7 @@ def test_west_install_with_variant_dependencies():
         variant = VariantConfig(
             name="test_variant",
             description="Test variant",
-            west_dependencies=WestManifest(
+            west_manifest=WestManifest(
                 remotes=[WestRemote(name="catch2", url_base="https://github.com/catchorg")],
                 projects=[WestDependency(name="Catch2", remote="catch2", revision="v3.4.0", path="external/catch2")],
             ),
@@ -90,7 +90,7 @@ def test_west_install_merges_platform_and_variant_dependencies():
         # Create platform with dependencies
         platform = PlatformConfig(
             name="test_platform",
-            west_dependencies=WestManifest(
+            west_manifest=WestManifest(
                 remotes=[WestRemote(name="gtest", url_base="https://github.com/google")],
                 projects=[WestDependency(name="googletest", remote="gtest", revision="v1.14.0", path="external/gtest")],
             ),
@@ -99,7 +99,7 @@ def test_west_install_merges_platform_and_variant_dependencies():
         # Create variant with different dependencies
         variant = VariantConfig(
             name="test_variant",
-            west_dependencies=WestManifest(
+            west_manifest=WestManifest(
                 remotes=[WestRemote(name="catch2", url_base="https://github.com/catchorg")],
                 projects=[WestDependency(name="Catch2", remote="catch2", revision="v3.4.0", path="external/catch2")],
             ),
@@ -151,7 +151,7 @@ def test_west_install_generates_west_yaml():
         # Create platform with dependencies
         platform = PlatformConfig(
             name="test_platform",
-            west_dependencies=WestManifest(
+            west_manifest=WestManifest(
                 remotes=[WestRemote(name="gtest", url_base="https://github.com/google")],
                 projects=[WestDependency(name="googletest", remote="gtest", revision="v1.14.0", path="external/gtest")],
             ),
@@ -204,7 +204,7 @@ def test_west_install_variant_specific_directories():
         # Create platform with dependencies
         platform = PlatformConfig(
             name="linux_platform",
-            west_dependencies=WestManifest(
+            west_manifest=WestManifest(
                 remotes=[WestRemote(name="test_remote", url_base="https://github.com/test")],
                 projects=[WestDependency(name="test_project", remote="test_remote", revision="main", path="external/test")],
             ),
@@ -242,7 +242,7 @@ def test_west_install_uses_shared_external_directory():
         # Create platform with dependencies
         platform = PlatformConfig(
             name="test_platform",
-            west_dependencies=WestManifest(
+            west_manifest=WestManifest(
                 remotes=[WestRemote(name="test_remote", url_base="https://github.com/test")],
                 projects=[WestDependency(name="test_project", remote="test_remote", revision="main", path="external/test")],
             ),
@@ -301,7 +301,7 @@ def test_west_install_tracks_individual_dependency_directories():
         # Create platform with multiple dependencies
         platform = PlatformConfig(
             name="test_platform",
-            west_dependencies=WestManifest(
+            west_manifest=WestManifest(
                 remotes=[WestRemote(name="github", url_base="https://github.com")],
                 projects=[
                     WestDependency(name="googletest", remote="github", revision="v1.14.0", path="external/gtest"),

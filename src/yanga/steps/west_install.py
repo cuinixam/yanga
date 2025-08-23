@@ -99,8 +99,8 @@ class WestInstall(PipelineStep[ExecutionContext]):
                 self.logger.warning(f"Failed to parse global west.yaml: {e}")
 
         # Add platform dependencies
-        if self.execution_context.platform and self.execution_context.platform.west_dependencies:
-            platform_manifest = self.execution_context.platform.west_dependencies
+        if self.execution_context.platform and self.execution_context.platform.west_manifest:
+            platform_manifest = self.execution_context.platform.west_manifest
 
             # Merge remotes
             for remote in platform_manifest.remotes:
@@ -113,8 +113,8 @@ class WestInstall(PipelineStep[ExecutionContext]):
                     collected_manifest.projects.append(project)
 
         # Add variant dependencies
-        if self.execution_context.variant and self.execution_context.variant.west_dependencies:
-            variant_manifest = self.execution_context.variant.west_dependencies
+        if self.execution_context.variant and self.execution_context.variant.west_manifest:
+            variant_manifest = self.execution_context.variant.west_manifest
 
             # Merge remotes
             for remote in variant_manifest.remotes:

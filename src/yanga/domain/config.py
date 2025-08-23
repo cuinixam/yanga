@@ -84,7 +84,7 @@ class PlatformConfig(DataClassDictMixin):
     #: Supported build types
     build_types: list[str] = field(default_factory=list)
     #: West dependencies for this platform
-    west_dependencies: Optional[WestManifest] = None
+    west_manifest: Optional[WestManifest] = None
     # This field is intended to keep track of where configuration was loaded from and
     # it is automatically added when configuration is loaded from file
     file: Optional[Path] = None
@@ -113,7 +113,7 @@ class VariantConfig(DataClassDictMixin):
     #: Configuration
     config_file: Optional[str] = None
     #: West dependencies for this variant
-    west_dependencies: Optional[WestManifest] = None
+    west_manifest: Optional[WestManifest] = None
     # This field is intended to keep track of where configuration was loaded from and
     # it is automatically added when configuration is loaded from file
     file: Optional[Path] = None
