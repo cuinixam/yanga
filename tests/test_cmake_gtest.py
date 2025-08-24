@@ -17,6 +17,7 @@ from yanga.cmake.cmake_backend import (
 from yanga.cmake.gtest import GTestCMakeGenerator
 from yanga.domain.artifacts import ProjectArtifactsLocator
 from yanga.domain.components import Component
+from yanga.domain.config import TestingConfiguration
 from yanga.domain.execution_context import ExecutionContext
 
 
@@ -40,7 +41,7 @@ def env(locate_artifact: Mock) -> ExecutionContext:
             name="CompA",
             path=Path("compA"),
             sources=["source.cpp"],
-            test_sources=["test_source.cpp"],
+            testing=TestingConfiguration(sources=["test_source.cpp"]),
             include_dirs=[],
             is_subcomponent=False,
             description="Mock component A",
@@ -50,7 +51,7 @@ def env(locate_artifact: Mock) -> ExecutionContext:
             name="CompBNotTestable",
             path=Path("compB"),
             sources=["source.cpp"],
-            test_sources=[],
+            testing=TestingConfiguration(sources=[]),
             include_dirs=[],
             is_subcomponent=False,
             description="Mock component A",
@@ -130,7 +131,7 @@ def test_automock_enabled_by_default(env: ExecutionContext, output_dir: Path) ->
 def test_automock_disabled_generates_no_mock_targets(env: ExecutionContext, output_dir: Path) -> None:
     """Verify that when automock is explicitly disabled, no partial link library and no mockup-related custom targets are generated."""
     # Run IUT
-    elements = GTestCMakeGenerator(env, output_dir, {"automock": False}).generate()
+    elements = GTestCMakeGenerator(env, output_dir, {"mocking": {"enabled": False}}).generate()
 
     cmake_analyzer = CMakeAnalyzer(elements)
 
@@ -156,10 +157,10 @@ def test_use_global_includes_disabled_generates_no_global_include_directories(en
     assert len(include_directories) == 0
 
 
-def test_use_global_includes_enabled_by_default_generates_global_include_directories(env: ExecutionContext, output_dir: Path) -> None:
+def test_use_global_includes_enabled_generates_global_include_directories(env: ExecutionContext, output_dir: Path) -> None:
     """Verify that when use_global_includes is enabled (default), global include directories are generated."""
     # Global include directories should be generated in the variant elements
-    variant_elements = GTestCMakeGenerator(env, output_dir).create_variant_cmake_elements()
+    variant_elements = GTestCMakeGenerator(env, output_dir, {"use_global_includes": True}).create_variant_cmake_elements()
     variant_analyzer = CMakeAnalyzer(variant_elements)
 
     # Check that CMakeIncludeDirectories is present in variant elements

@@ -7,8 +7,11 @@ components:
     type: component
     sources:
       - greeter.c
-    test_sources:
-      - greeter_test.cc
+    testing:
+      sources:
+        - greeter_test.cc
+      mocking:
+        strict: false
 
 variants:
   - name: EnglishVariant
@@ -17,6 +20,8 @@ variants:
       components:
         - main
         - greeter
+    config:
+      LINKER_SCRIPT: linker.ld
   - name: GermanVariant
     description: Say hello in German.
     bom:
@@ -24,8 +29,6 @@ variants:
         - main
         - greeter
     features_selection_file: "config_de.txt"
-    config:
-      LINKER_SCRIPT: cfg/linker.ld
 
 pipeline:
   install:

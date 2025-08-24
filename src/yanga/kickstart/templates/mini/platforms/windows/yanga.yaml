@@ -11,6 +11,12 @@ platforms:
     cmake_generators:
       - step: GTestCMakeGenerator
         module: yanga.cmake.gtest
+        config:
+            mocking:
+              enabled: true
+              strict: true
+              exclude_symbol_patterns:
+                - "_*"
     toolchain_file: gcc.cmake
     west_manifest:
       remotes:

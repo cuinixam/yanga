@@ -11,6 +11,7 @@ from yanga.cmake.cmake_backend import (
 )
 from yanga.cmake.create_executable import CreateExecutableCMakeGenerator
 from yanga.domain.components import Component
+from yanga.domain.config import TestingConfiguration
 from yanga.domain.execution_context import ExecutionContext
 
 
@@ -23,7 +24,7 @@ def env() -> ExecutionContext:
             name="CompA",
             path=Path("compA"),
             sources=["srcA/source.cpp"],
-            test_sources=["test_source.cpp"],
+            testing=TestingConfiguration(sources=["test_source.cpp"]),
             include_dirs=[],
             is_subcomponent=False,
             description="Mock component A",
@@ -33,7 +34,7 @@ def env() -> ExecutionContext:
             name="CompBNotTestable",
             path=Path("compB"),
             sources=["srcB/source.cpp"],
-            test_sources=[],
+            testing=TestingConfiguration(sources=[]),
             include_dirs=[],
             is_subcomponent=False,
             description="Mock component A",

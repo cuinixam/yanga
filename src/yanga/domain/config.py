@@ -72,6 +72,21 @@ class WestManifestFile(DataClassDictMixin):
 
 
 @dataclass
+class MockingConfiguration(DataClassDictMixin):
+    enabled: Optional[bool] = None
+    strict: Optional[bool] = None
+    exclude_symbol_patterns: list[str] | None = None
+
+
+@dataclass
+class TestingConfiguration(DataClassDictMixin):
+    #: Component test sources
+    sources: list[str] = field(default_factory=list)
+    #: Mocking configuration
+    mocking: Optional[MockingConfiguration] = None
+
+
+@dataclass
 class PlatformConfig(DataClassDictMixin):
     #: Platform name
     name: str
@@ -172,6 +187,8 @@ class ComponentConfig(DataClassDictMixin):
     sources: list[str] = field(default_factory=list)
     #: Component test sources
     test_sources: list[str] = field(default_factory=list)
+    #: Testing
+    testing: Optional[TestingConfiguration] = None
     #: Component include directories
     include_directories: list[IncludeDirectory] = field(default_factory=list)
     #: Name of the components that this component requires header files from

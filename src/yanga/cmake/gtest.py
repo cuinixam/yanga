@@ -7,6 +7,7 @@ from mashumaro import DataClassDictMixin
 
 from yanga.domain.component_analyzer import ComponentAnalyzer
 from yanga.domain.components import Component
+from yanga.domain.config import MockingConfiguration
 from yanga.domain.execution_context import (
     ExecutionContext,
     UserRequest,
@@ -35,10 +36,16 @@ from .generator import CMakeGenerator
 
 @dataclass
 class GTestCMakeGeneratorConfig(DataClassDictMixin):
-    #: Enable the generation of mockup sources
-    automock: bool = True
     #: If this is enabled, all includes are defined globally and not component specific
-    use_global_includes: bool = True
+    use_global_includes: bool = False
+    #: Mocking configuration
+    mocking: Optional[MockingConfiguration] = None
+
+    @property
+    def automock(self) -> bool:
+        if self.mocking and self.mocking.enabled is not None:
+            return self.mocking.enabled
+        return True
 
 
 class GTestCMakeArtifactsLocator:
@@ -93,9 +100,10 @@ class GTestCMakeComponent:
 
 
 class CMakeMockupCreator:
-    def __init__(self, gtest_cmake_component: GTestCMakeComponent, artifacts_locator: GTestCMakeArtifactsLocator):
+    def __init__(self, gtest_cmake_component: GTestCMakeComponent, artifacts_locator: GTestCMakeArtifactsLocator, mocking_config: Optional[MockingConfiguration]):
         self.artifacts_locator = artifacts_locator
         self.gtest_cmake_component = gtest_cmake_component
+        self.mocking_config = mocking_config
 
     def generate(self) -> list[CMakeElement]:
         elements: list[CMakeElement] = []
@@ -134,6 +142,13 @@ class CMakeMockupCreator:
         )
         elements.append(custom_command)
         # Custom command to run clanguru and generate the mockup sources
+        clanguru_args = []
+        if self.mocking_config:
+            clanguru_args.append("--strict" if self.mocking_config.strict else "--no-strict")
+            if self.mocking_config.exclude_symbol_patterns:
+                for pattern in self.mocking_config.exclude_symbol_patterns:
+                    clanguru_args.extend(["--exclude-symbol-pattern", f'"{pattern}"'])
+
         generate_mockup_cmake_cmd = CMakeCustomCommand(
             description="Run clanguru to generate mockup sources",
             outputs=[CMakePath(file) for file in self.get_mockup_generated_files()],
@@ -152,9 +167,7 @@ class CMakeMockupCreator:
                         component_build_dir,
                         "--compilation-database",
                         self.artifacts_locator.cmake_build_dir.joinpath("compile_commands.json"),
-                        "--no-strict",
-                        "--exclude-symbol-pattern",
-                        "_*",
+                        *clanguru_args,
                     ],
                 )
             ],
@@ -176,7 +189,7 @@ class CMakeMockupCreator:
         return elements
 
     def get_mockup_generated_files(self) -> list[Path]:
-        return [self.get_mockup_file("h"), *self.get_mockup_sources()]
+        return [self.get_mockup_file("log"), self.get_mockup_file("h"), *self.get_mockup_sources()]
 
     def get_mockup_sources(self) -> list[Path]:
         return [self.get_mockup_file("cc")]
@@ -193,11 +206,13 @@ class GTestComponentCMakeGenerator:
         self.config = config
 
     def generate(self, component: Component) -> list[CMakeElement]:
+        component_generator_config = self._determine_component_generator_config(component)
+
         gtest_cmake_component = GTestCMakeComponent(component, self.execution_context)
         component_analyzer = gtest_cmake_component.component_analyzer
         mockup_generator = None
-        if self.config.automock:
-            mockup_generator = CMakeMockupCreator(gtest_cmake_component, self.artifacts_locator)
+        if component_generator_config.automock:
+            mockup_generator = CMakeMockupCreator(gtest_cmake_component, self.artifacts_locator, component_generator_config.mocking)
         # Skip components without tests
         if not component_analyzer.is_testable():
             return []
@@ -217,7 +232,7 @@ class GTestComponentCMakeGenerator:
         elements.append(target_properties)
 
         # Add component-specific include directories when global includes are disabled
-        if not self.config.use_global_includes:
+        if not component_generator_config.use_global_includes:
             include_dirs: list[CMakePath] = gtest_cmake_component.get_include_directories()
             # Add the component-specific build directory for the component to find the generated mockup sources
             component_build_dir = self.artifacts_locator.get_component_build_dir(component.name)
@@ -266,6 +281,19 @@ class GTestComponentCMakeGenerator:
         elements.append(CMakeEmptyLine())
 
         return elements
+
+    def _determine_component_generator_config(self, component: Component) -> GTestCMakeGeneratorConfig:
+        """Take over the component mocking configuration over the global generator configuration."""
+        result = self.config
+        if component.testing and component.testing.mocking:
+            if not result.mocking:
+                result.mocking = component.testing.mocking
+            else:
+                if component.testing.mocking.enabled is not None:
+                    result.mocking.enabled = component.testing.mocking.enabled
+                if component.testing.mocking.exclude_symbol_patterns:
+                    result.mocking.exclude_symbol_patterns = component.testing.mocking.exclude_symbol_patterns
+        return result
 
     def add_executable(self, component_name: str, sources: list[Path]) -> CMakeAddExecutable:
         return CMakeAddExecutable(

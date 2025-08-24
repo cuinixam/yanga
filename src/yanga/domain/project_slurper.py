@@ -9,7 +9,7 @@ from pypeline.domain.pipeline import PipelineConfig
 from yanga.domain.artifacts import ProjectArtifactsLocator
 
 from .components import Component
-from .config import ComponentConfig, PlatformConfig, VariantConfig, YangaUserConfig
+from .config import ComponentConfig, PlatformConfig, TestingConfiguration, VariantConfig, YangaUserConfig
 from .config_slurper import YangaConfigSlurper
 
 
@@ -28,7 +28,9 @@ class ComponentFactory:
             component_path,
         )
         component.sources = component_config.sources
-        component.test_sources = component_config.test_sources
+        component.testing = component_config.testing if component_config.testing else TestingConfiguration()
+        if component_config.test_sources:
+            component.testing.sources.extend(component_config.test_sources)
         return component
 
 
