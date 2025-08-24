@@ -1,6 +1,14 @@
 # CHANGELOG
 
 
+## v2.8.0 (2025-08-24)
+
+### Features
+
+- Add user mocking configuration
+  ([`a91708b`](https://github.com/cuinixam/yanga/commit/a91708b60af7505e9b9544abe14b9bb34dc566de))
+
+
 ## v2.7.0 (2025-08-24)
 
 ### Features
