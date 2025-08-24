@@ -1,6 +1,26 @@
 # CHANGELOG
 
 
+## v2.7.0 (2025-08-24)
+
+### Features
+
+- Add platform and variant specific external dependencies
+  ([`dd7921c`](https://github.com/cuinixam/yanga/commit/dd7921c10399082d78f4d03196f869bab5d93759))
+
+- Generate variant cmake configuration file
+  ([`802dcc7`](https://github.com/cuinixam/yanga/commit/802dcc716cdba8dbf0425fb4af38d154356d44d3))
+
+- Group generated component build artifacts
+  ([`98bcf28`](https://github.com/cuinixam/yanga/commit/98bcf28fde8bfaddb5474f9a9b625e79475b8d4a))
+
+- Use clanguru for mocking
+  ([`fe83d18`](https://github.com/cuinixam/yanga/commit/fe83d187f62a0d2b2ff47befafc8e0bad356f974))
+
+- Use project root CMake file
+  ([`5a69ada`](https://github.com/cuinixam/yanga/commit/5a69ada4cc53a67630ed63890ec78758e3139181))
+
+
 ## v2.6.0 (2025-08-08)
 
 ### Features
