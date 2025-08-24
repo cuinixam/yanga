@@ -127,7 +127,7 @@ class RunCommand(Command):
             user_request=user_request,
             components=(project_slurper.get_variant_components(variant_name) if variant_name else []),
             user_config_files=project_slurper.user_config_files,
-            config_file=(project_slurper.get_variant_config_file(variant_name) if variant_name else None),
+            features_selection_file=(project_slurper.get_variant_config_file(variant_name) if variant_name else None),
             platform=project_slurper.get_platform(platform_name),
             variant=(project_slurper.get_variant_config(variant_name) if variant_name else None),
         )

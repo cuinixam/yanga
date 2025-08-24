@@ -71,7 +71,7 @@ class ExecutionContext(_ExecutionContext):
         variant_name: Optional[str] = None,
         components: Optional[list[Component]] = None,
         user_config_files: Optional[list[Path]] = None,
-        config_file: Optional[Path] = None,
+        features_selection_file: Optional[Path] = None,
         platform: Optional[PlatformConfig] = None,
         variant: Optional[VariantConfig] = None,
     ) -> None:
@@ -80,7 +80,7 @@ class ExecutionContext(_ExecutionContext):
         self.variant_name = variant_name
         self.components = components if components else []
         self.user_config_files = user_config_files if user_config_files else []
-        self.config_file = config_file
+        self.features_selection_file = features_selection_file
         self.platform = platform
         self.variant = variant
         self.include_dirs_providers: list[IncludeDirectoriesProvider] = []

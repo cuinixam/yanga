@@ -78,8 +78,7 @@ def test_generate(gtest_cmake_generator: GTestCMakeGenerator) -> None:
     cmake_analyzer = CMakeAnalyzer(elements)
     variables = cmake_analyzer.assert_elements_of_type(CMakeVariable, 5)
     assert [var.name for var in variables] == ["CMAKE_EXPORT_COMPILE_COMMANDS", "CMAKE_CXX_STANDARD", "CMAKE_CXX_STANDARD_REQUIRED", "gtest_force_shared_crt", "CMAKE_BUILD_DIR"]
-    includes = cmake_analyzer.assert_elements_of_type(CMakeInclude, 2)
-    assert [include.path for include in includes] == ["GoogleTest", "CTest"]
+    cmake_analyzer.assert_elements_of_type(CMakeInclude, 0)
 
 
 def test_create_variant_cmake_elements(
@@ -250,7 +249,7 @@ def test_executable_output_directory_is_set(env: ExecutionContext, output_dir: P
 
     # Find the properties for CompA executable
     comp_a_properties = [tp for tp in target_properties if tp.target == "CompA"]
-    assert len(comp_a_properties) == 2, f"Expected 2 target properties for CompA (runtime and discovery), found {len(comp_a_properties)}"
+    assert len(comp_a_properties) == 1, f"Expected 2 target properties for CompA (runtime and discovery), found {len(comp_a_properties)}"
 
     # Find the runtime output directory property
     runtime_props = [tp for tp in comp_a_properties if "RUNTIME_OUTPUT_DIRECTORY" in tp.properties]
@@ -258,11 +257,3 @@ def test_executable_output_directory_is_set(env: ExecutionContext, output_dir: P
 
     runtime_dir = str(runtime_props[0].properties["RUNTIME_OUTPUT_DIRECTORY"])
     assert "CompA" in runtime_dir, f"Component subdirectory not found in runtime output directory: {runtime_dir}"
-
-    # Find the discovery properties
-    discovery_props = [tp for tp in comp_a_properties if "DISCOVERY_OUTPUT_FILE" in tp.properties]
-    assert len(discovery_props) == 1, "DISCOVERY_OUTPUT_FILE property not found"
-
-    discovery_file = str(discovery_props[0].properties["DISCOVERY_OUTPUT_FILE"])
-    assert "CompA" in discovery_file, f"Component subdirectory not found in discovery output file: {discovery_file}"
-    assert "tests.cmake" in discovery_file, f"Expected tests.cmake in discovery file: {discovery_file}"

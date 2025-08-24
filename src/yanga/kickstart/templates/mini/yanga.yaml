@@ -23,7 +23,9 @@ variants:
       components:
         - main
         - greeter
-    config_file: "config_de.txt"
+    features_selection_file: "config_de.txt"
+    config:
+      LINKER_SCRIPT: cfg/linker.ld
 
 pipeline:
   install:

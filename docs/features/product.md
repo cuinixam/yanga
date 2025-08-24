@@ -18,7 +18,7 @@ variants:
       components:
         - main
         - greeter
-    config_file: "config_de.txt"
+    features_selection_file: "config_de.txt"
 ```
 
 ## Component-Based Architecture

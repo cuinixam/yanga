@@ -43,8 +43,13 @@ class CMakeBuildSystemGenerator:
     def variant_cmake_file(self) -> CMakePath:
         return self.cmake_current_list_dir.joinpath("variant.cmake")
 
+    @property
+    def config_cmake_file(self) -> CMakePath:
+        return self.cmake_current_list_dir.joinpath("config.cmake")
+
     def generate(self) -> list[CMakeFile]:
         files = []
+        files.append(self.create_config_cmake_file())
         files.append(self.create_variant_cmake_file())
         return files
 
@@ -76,4 +81,12 @@ class CMakeBuildSystemGenerator:
                 raise UserNotificationException(e) from e
             except TypeError as e:
                 raise UserNotificationException(f"{e}. Please check {platform.file} for {step}.") from e
+        return cmake_file
+
+    def create_config_cmake_file(self) -> CMakeFile:
+        from .config import ConfigCMakeGenerator
+
+        cmake_file = CMakeFile(self.config_cmake_file.to_path())
+        config_generator = ConfigCMakeGenerator(self.execution_context, self.output_dir)
+        cmake_file.extend(config_generator.generate())
         return cmake_file

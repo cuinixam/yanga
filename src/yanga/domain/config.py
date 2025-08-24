@@ -111,7 +111,9 @@ class VariantConfig(DataClassDictMixin):
     #: Platform
     platform: Optional[str] = None
     #: Configuration
-    config_file: Optional[str] = None
+    features_selection_file: Optional[str] = None
+    #: Generic configuration key-value pairs that will be exported as CMake variables
+    config: dict[str, Any] = field(default_factory=dict)
     #: West dependencies for this variant
     west_manifest: Optional[WestManifest] = None
     # This field is intended to keep track of where configuration was loaded from and

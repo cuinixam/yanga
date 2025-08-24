@@ -42,7 +42,7 @@ class KConfigGen(PipelineStep[ExecutionContext]):
             return 0
         kconfig = KConfig(
             kconfig_model_file,
-            self.execution_context.config_file,
+            self.execution_context.features_selection_file,
         )
         self.input_files = kconfig.get_parsed_files()
         config = kconfig.collect_config_data()

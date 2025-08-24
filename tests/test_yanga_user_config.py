@@ -59,7 +59,7 @@ def test_load_user_config(tmp_path: Path) -> None:
         bom:
           components:
             - main
-        config_file: "config_de.txt"
+        features_selection_file: "config_de.txt"
 
     pipeline:
       install:
@@ -83,7 +83,7 @@ def test_load_user_config(tmp_path: Path) -> None:
     assert config.variants
     de_variant = next((v for v in config.variants if v.name == "GermanVariant"), None)
     assert de_variant
-    assert de_variant.config_file == "config_de.txt"
+    assert de_variant.features_selection_file == "config_de.txt"
     en_variant = next((v for v in config.variants if v.name == "EnglishVariant"), None)
     assert en_variant
-    assert en_variant.config_file is None
+    assert en_variant.features_selection_file is None

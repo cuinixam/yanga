@@ -151,7 +151,7 @@ class YangaProjectSlurper:
     def get_variant_config_file(self, variant_name: str) -> Optional[Path]:
         variant = self.get_variant_config(variant_name)
         artifacts_locator = ProjectArtifactsLocator(self.project_dir, variant_name, None, None)
-        return artifacts_locator.locate_artifact(variant.config_file, [variant.file]) if variant.config_file else None
+        return artifacts_locator.locate_artifact(variant.features_selection_file, [variant.file]) if variant.features_selection_file else None
 
     def get_variant_components(self, variant_name: str) -> list[Component]:
         return self._collect_variant_components(self.get_variant_config(variant_name))
