@@ -99,8 +99,10 @@ class ExecutionContext(_ExecutionContext):
         self.include_dirs_providers.append(provider)
 
     def create_process_executor(self, command: list[str | Path], cwd: Optional[Path] = None) -> SubprocessExecutor:
-        # Add the install directories to the PATH
         env = os.environ.copy()
+        # Update the environment variables with the ones from the execution context
+        env.update(self.env_vars)
+        # Add the install directories to the PATH
         env["PATH"] = os.pathsep.join([path.absolute().as_posix() for path in self.install_dirs] + [env["PATH"]])
         return SubprocessExecutor(command, cwd=cwd, env=env, shell=True)  # noqa: S604
 
