@@ -1,5 +1,4 @@
 from pathlib import Path
-from unittest.mock import Mock
 
 import pytest
 
@@ -10,52 +9,12 @@ from yanga.cmake.cmake_backend import (
     CMakeObjectLibrary,
 )
 from yanga.cmake.create_executable import CreateExecutableCMakeGenerator
-from yanga.domain.components import Component
-from yanga.domain.config import TestingConfiguration
 from yanga.domain.execution_context import ExecutionContext
 
 
 @pytest.fixture
-def env() -> ExecutionContext:
-    env = Mock(spec=ExecutionContext)
-    env.variant_name = "mock_variant"
-    env.components = [
-        Component(
-            name="CompA",
-            path=Path("compA"),
-            sources=["srcA/source.cpp"],
-            testing=TestingConfiguration(sources=["test_source.cpp"]),
-            include_dirs=[],
-            is_subcomponent=False,
-            description="Mock component A",
-            components=[],
-        ),
-        Component(
-            name="CompBNotTestable",
-            path=Path("compB"),
-            sources=["srcB/source.cpp"],
-            testing=TestingConfiguration(sources=[]),
-            include_dirs=[],
-            is_subcomponent=False,
-            description="Mock component A",
-            components=[],
-        ),
-    ]
-    env.include_directories = [Path("/mock/include/dir")]
-    artifacts_locator = Mock()
-    artifacts_locator.locate_artifact = lambda artifact, _: Path(f"/some/path/{artifact}")
-    env.create_artifacts_locator = lambda: artifacts_locator
-    return env
-
-
-@pytest.fixture
-def output_dir(tmp_path: Path) -> Path:
-    return tmp_path / "output"
-
-
-@pytest.fixture
-def create_executable_generator(env: ExecutionContext, output_dir: Path) -> CreateExecutableCMakeGenerator:
-    return CreateExecutableCMakeGenerator(env, output_dir)
+def create_executable_generator(execution_context: ExecutionContext, output_dir: Path) -> CreateExecutableCMakeGenerator:
+    return CreateExecutableCMakeGenerator(execution_context, output_dir)
 
 
 def test_generate(create_executable_generator: CreateExecutableCMakeGenerator) -> None:
@@ -88,6 +47,8 @@ def test_create_variant_cmake_elements(
 def test_get_include_directories(
     create_executable_generator: CreateExecutableCMakeGenerator,
 ) -> None:
+    # Add an additional global include directory
+    create_executable_generator.execution_context.include_directories.append(Path("/another/include/dir"))
     assert len(create_executable_generator.get_include_directories().paths) == 3  # Two from components, one global
 
 
