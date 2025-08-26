@@ -44,7 +44,9 @@ urls."Bug Tracker" = "https://github.com/cuinixam/yanga/issues"
 urls.Changelog = "https://github.com/cuinixam/yanga/blob/main/CHANGELOG.md"
 urls.documentation = "https://yanga.readthedocs.io"
 urls.repository = "https://github.com/cuinixam/yanga"
+
 scripts.yanga = "yanga.ymain:main"
+scripts.yanga_cmd = "yanga.commands.__main__:main"
 
 [dependency-groups]
 dev = [

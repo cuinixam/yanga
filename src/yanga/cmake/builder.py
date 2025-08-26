@@ -5,6 +5,7 @@ from py_app_dev.core.exceptions import UserNotificationException
 from py_app_dev.core.logging import logger
 from py_app_dev.core.pipeline import PipelineLoader
 
+from yanga.cmake.artifacts_locator import CMakeArtifactsLocator
 from yanga.domain.execution_context import ExecutionContext
 
 from .cmake_backend import (
@@ -38,6 +39,7 @@ class CMakeBuildSystemGenerator:
         self.output_dir = output_dir
         # The directory where the CMakeLists.txt file is located
         self.cmake_current_list_dir = CMakePath(self.output_dir, "CMAKE_CURRENT_LIST_DIR")
+        self.artifacts_locator = CMakeArtifactsLocator(output_dir, execution_context)
 
     @property
     def variant_cmake_file(self) -> CMakePath:
@@ -69,6 +71,9 @@ class CMakeBuildSystemGenerator:
 
     def create_variant_cmake_file(self) -> CMakeFile:
         cmake_file = CMakeFile(self.variant_cmake_file.to_path())
+        cmake_build_dir_var = self.artifacts_locator.cmake_build_dir.to_cmake_element()
+        if cmake_build_dir_var:
+            cmake_file.append(cmake_build_dir_var)
         # Load all configured CMake generators
         platform = self.execution_context.platform
         if platform:
@@ -89,4 +94,6 @@ class CMakeBuildSystemGenerator:
         cmake_file = CMakeFile(self.config_cmake_file.to_path())
         config_generator = ConfigCMakeGenerator(self.execution_context, self.output_dir)
         cmake_file.extend(config_generator.generate())
+        # configure cmake to generate compile commands
+        cmake_file.append(CMakeVariable("CMAKE_EXPORT_COMPILE_COMMANDS", "ON", True, "BOOL", "", True))
         return cmake_file

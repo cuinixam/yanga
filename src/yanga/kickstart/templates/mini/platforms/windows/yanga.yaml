@@ -4,6 +4,8 @@ platforms:
     cmake_generators:
       - step: CreateExecutableCMakeGenerator
         module: yanga.cmake.create_executable
+      - step: CppCheckCMakeGenerator
+        module: yanga.cmake.cpp_check
     toolchain_file: clang.cmake
     is_default: true
   - name: gtest
@@ -17,6 +19,8 @@ platforms:
               strict: true
               exclude_symbol_patterns:
                 - "_*"
+      - step: CppCheckCMakeGenerator
+        module: yanga.cmake.cpp_check
     toolchain_file: gcc.cmake
     west_manifest:
       remotes:

@@ -176,7 +176,7 @@ wheels = [
 
 [[package]]
 name = "clanguru"
-version = "0.8.0"
+version = "0.8.1"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "jinja2" },
@@ -186,9 +186,9 @@ dependencies = [
     { name = "py-app-dev" },
     { name = "typer" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/a1/33/a07310cc8880c82a7061d913f37fe39010a7d6ed170ad10562c7ef9aad44/clanguru-0.8.0.tar.gz", hash = "sha256:023e04868e94642189c075556ea1a4535735c027188c7592895449bbf34285fc", size = 24999, upload-time = "2025-08-25T19:06:21.384Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/25/5f/4cec9d5ebd1ccefa29ebfb6fa26091e4a31fed9d5a0ea97bd133a62eb9a3/clanguru-0.8.1.tar.gz", hash = "sha256:f7d6266a7c2aef2657412539a26c88546cd354b76a85848d342cb09ac693bc22", size = 24982, upload-time = "2025-08-26T18:58:48.64Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/18/31/f0d240c640e89c2bb441515643a8eb038e82a355fcc9165ea2f5f3336f91/clanguru-0.8.0-py3-none-any.whl", hash = "sha256:4439df87e977275fa196ccd2be562fd102aa5fc469da61104885dc38a40fa9e4", size = 27286, upload-time = "2025-08-25T19:06:20.072Z" },
+    { url = "https://files.pythonhosted.org/packages/34/ae/e66ff7ad6c497baed3923128d17be6e21158119b7656abd89493461be5f0/clanguru-0.8.1-py3-none-any.whl", hash = "sha256:8b13f693c1074a35656ec69c3f51be4ddc877adbcdb2007ef5497da29171fa54", size = 27275, upload-time = "2025-08-26T18:58:47.073Z" },
 ]
 
 [[package]]
@@ -1336,11 +1336,11 @@ wheels = [
 
 [[package]]
 name = "platformdirs"
-version = "4.3.8"
+version = "4.4.0"
 source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/fe/8b/3c73abc9c759ecd3f1f7ceff6685840859e8070c4d947c93fae71f6a0bf2/platformdirs-4.3.8.tar.gz", hash = "sha256:3d512d96e16bcb959a814c9f348431070822a6496326a4be0911c40b5a74c2bc", size = 21362, upload-time = "2025-05-07T22:47:42.121Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/23/e8/21db9c9987b0e728855bd57bff6984f67952bea55d6f75e055c46b5383e8/platformdirs-4.4.0.tar.gz", hash = "sha256:ca753cf4d81dc309bc67b0ea38fd15dc97bc30ce419a7f58d13eb3bf14c4febf", size = 21634, upload-time = "2025-08-26T14:32:04.268Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/fe/39/979e8e21520d4e47a0bbe349e2713c0aac6f3d853d0e5b34d76206c439aa/platformdirs-4.3.8-py3-none-any.whl", hash = "sha256:ff7059bb7eb1179e2685604f4aaf157cfd9535242bd23742eadc3c13542139b4", size = 18567, upload-time = "2025-05-07T22:47:40.376Z" },
+    { url = "https://files.pythonhosted.org/packages/40/4b/2028861e724d3bd36227adfa20d3fd24c3fc6d52032f4a93c133be5d17ce/platformdirs-4.4.0-py3-none-any.whl", hash = "sha256:abd01743f24e5287cd7a5db3752faf1a2d65353f38ec26d98e25a6db65958c85", size = 18654, upload-time = "2025-08-26T14:32:02.735Z" },
 ]
 
 [[package]]

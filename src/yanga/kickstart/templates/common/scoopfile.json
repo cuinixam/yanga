@@ -3,12 +3,20 @@
     {
       "Name": "versions",
       "Source": "https://github.com/ScoopInstaller/Versions"
+    },
+    {
+      "Name": "main",
+      "Source": "https://github.com/ScoopInstaller/Main"
     }
   ],
   "apps": [
     {
       "Source": "versions",
       "Name": "mingw-winlibs-llvm-ucrt"
+    },
+    {
+      "Source": "main",
+      "Name": "cppcheck"
     }
   ]
 }

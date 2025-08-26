@@ -10,23 +10,22 @@ from yanga import __version__
 from yanga.commands.filter_compile_commands import FilterCompileCommandsCommand
 
 
-def do_run() -> None:
+def do_run() -> int:
     parser = ArgumentParser(prog="yanga_cmd", description="Yanga CLI utilities", exit_on_error=False)
     parser.add_argument("-v", "--version", action="version", version=f"%(prog)s {__version__}")
     builder = CommandLineHandlerBuilder(parser)
     builder.add_commands([FilterCompileCommandsCommand()])
     handler = builder.create()
-    handler.run(argv[1:])
+    return handler.run(argv[1:])
 
 
 def main() -> int:
     try:
         setup_logger()
-        do_run()
+        return do_run()
     except UserNotificationException as e:
         logger.error(f"{e}")
         return 1
-    return 0
 
 
 if __name__ == "__main__":
