@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<results version="2">
+    <cppcheck version="2.16.0"/>
+    <errors>
+        <error id="missingIncludeSystem" severity="information" msg="Include file: &lt;stdio.h&gt; not found. Please note: Cppcheck does not need standard library headers to get proper results." verbose="Include file: &lt;stdio.h&gt; not found. Please note: Cppcheck does not need standard library headers to get proper results.">
+            <location file="tests\data\sample_cppcheck_input.c" line="3" column="0"/>
+        </error>
+        <error id="missingIncludeSystem" severity="information" msg="Include file: &lt;string.h&gt; not found. Please note: Cppcheck does not need standard library headers to get proper results." verbose="Include file: &lt;string.h&gt; not found. Please note: Cppcheck does not need standard library headers to get proper results.">
+            <location file="tests\data\sample_cppcheck_input.c" line="4" column="0"/>
+        </error>
+        <error id="bufferAccessOutOfBounds" severity="error" msg="Buffer is accessed out of bounds: buffer" verbose="Buffer is accessed out of bounds: buffer" cwe="788" file0="tests/data/sample_cppcheck_input.c">
+            <location file="tests\data\sample_cppcheck_input.c" line="12" column="12" info="Buffer overrun"/>
+        </error>
+        <error id="nullPointer" severity="error" msg="Null pointer dereference: ptr" verbose="Null pointer dereference: ptr" cwe="476" file0="tests/data/sample_cppcheck_input.c">
+            <location file="tests\data\sample_cppcheck_input.c" line="16" column="6" info="Null pointer dereference"/>
+            <location file="tests\data\sample_cppcheck_input.c" line="15" column="16" info="Assignment &apos;ptr=NULL&apos;, assigned value is 0"/>
+            <symbol>ptr</symbol>
+        </error>
+        <error id="uninitvar" severity="error" msg="Uninitialized variable: x" verbose="Uninitialized variable: x" cwe="457" file0="tests/data/sample_cppcheck_input.c">
+            <location file="tests\data\sample_cppcheck_input.c" line="14" column="24"/>
+            <symbol>x</symbol>
+        </error>
+        <error id="unusedFunction" severity="style" msg="The function &apos;unused_function&apos; is never used." verbose="The function &apos;unused_function&apos; is never used." cwe="561">
+            <location file="tests\data\sample_cppcheck_input.c" line="6" column="0"/>
+            <symbol>unused_function</symbol>
+        </error>
+        <error id="checkersReport" severity="information" msg="Active checkers: 108/836 (use --checkers-report=&lt;filename&gt; to see details)" verbose="Active checkers: 108/836 (use --checkers-report=&lt;filename&gt; to see details)"/>
+    </errors>
+</results>

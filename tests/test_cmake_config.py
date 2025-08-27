@@ -1,7 +1,7 @@
 from pathlib import Path
 from tempfile import TemporaryDirectory
 
-from tests.utils import CMakeAnalyzer
+from tests.utils import assert_elements_of_type
 from yanga.cmake.cmake_backend import CMakeComment, CMakeVariable
 from yanga.cmake.config import ConfigCMakeGenerator
 from yanga.domain.config import VariantConfig
@@ -49,18 +49,16 @@ def test_config_cmake_generator_with_variant_config() -> None:
         generator = ConfigCMakeGenerator(execution_context, output_dir)
         elements = generator.generate()
 
-        cmake_analyzer = CMakeAnalyzer(elements)
-
         # Should contain generator comment + configuration comment + 4 variables
         assert len(elements) == 6
 
         # Check the comments
-        comments = cmake_analyzer.assert_elements_of_type(CMakeComment, 2)
+        comments = assert_elements_of_type(elements, CMakeComment, 2)
         assert "ConfigCMakeGenerator" in comments[0].to_string()
         assert "Variant-specific configuration variables" in comments[1].to_string()
 
         # Check the variables
-        variables = cmake_analyzer.assert_elements_of_type(CMakeVariable, 4)
+        variables = assert_elements_of_type(elements, CMakeVariable, 4)
         variable_dict = {var.name: var.value for var in variables}
 
         assert variable_dict["LINKER_SCRIPT"] == "STM32F103.ld"

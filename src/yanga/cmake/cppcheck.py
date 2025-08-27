@@ -29,10 +29,11 @@ class CppCheckCMakeGenerator(CMakeGenerator):
         elements: list[CMakeElement] = []
         compile_commands_file = self.artifacts_locator.compile_commands_file
         xml_report_file = self.artifacts_locator.cmake_build_dir.joinpath("cppcheck_report.xml")
+        md_report_file = self.artifacts_locator.cmake_build_dir.joinpath("cppcheck_report.md")
         compile_filter_command = CMakeCustomCommand(
             description="Run cppcheck for all sources",
-            outputs=[xml_report_file],
-            depends=[compile_commands_file],
+            outputs=[xml_report_file, md_report_file],
+            depends=[],
             commands=[
                 CMakeCommand(
                     "cppcheck",
@@ -44,6 +45,16 @@ class CppCheckCMakeGenerator(CMakeGenerator):
                         "--project=" + str(compile_commands_file),
                         "--xml",
                         "2> " + str(xml_report_file),
+                    ],
+                ),
+                CMakeCommand(
+                    "yanga_cmd",
+                    [
+                        "cppcheck_report",
+                        "--input-file",
+                        xml_report_file,
+                        "--output-file",
+                        md_report_file,
                     ],
                 ),
             ],
@@ -70,10 +81,12 @@ class CppCheckCMakeGenerator(CMakeGenerator):
             sources = component_analyzer.collect_sources()
             component_compile_commands_file = self.artifacts_locator.get_component_compile_commands(component.name)
             xml_report_file = self.artifacts_locator.get_component_build_dir(component.name).joinpath("cppcheck_report.xml")
+            md_report_file = self.artifacts_locator.get_component_build_dir(component.name).joinpath("cppcheck_report.md")
+            # TODO: Make sure the cpp commands depends on the component objects being built
             compile_filter_command = CMakeCustomCommand(
                 description=f"Run cppcheck for component {component.name}",
-                outputs=[component_compile_commands_file, xml_report_file],
-                depends=[self.artifacts_locator.compile_commands_file],
+                outputs=[component_compile_commands_file, xml_report_file, md_report_file],
+                depends=[],
                 commands=[
                     CMakeCommand(
                         "yanga_cmd",
@@ -97,6 +110,16 @@ class CppCheckCMakeGenerator(CMakeGenerator):
                             "--project=" + str(component_compile_commands_file),
                             "--xml",
                             "2> " + str(xml_report_file),
+                        ],
+                    ),
+                    CMakeCommand(
+                        "yanga_cmd",
+                        [
+                            "cppcheck_report",
+                            "--input-file",
+                            xml_report_file,
+                            "--output-file",
+                            md_report_file,
                         ],
                     ),
                 ],

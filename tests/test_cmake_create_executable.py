@@ -2,7 +2,7 @@ from pathlib import Path
 
 import pytest
 
-from tests.utils import CMakeAnalyzer
+from tests.utils import assert_element_of_type, assert_elements_of_type, find_elements_of_type
 from yanga.cmake.cmake_backend import (
     CMakeAddExecutable,
     CMakeCustomTarget,
@@ -20,10 +20,10 @@ def create_executable_generator(execution_context: ExecutionContext, output_dir:
 def test_generate(create_executable_generator: CreateExecutableCMakeGenerator) -> None:
     elements = create_executable_generator.generate()
     assert elements
-    cmake_analyzer = CMakeAnalyzer(elements)
-    executable = cmake_analyzer.assert_element_of_type(CMakeAddExecutable)
+
+    executable = assert_element_of_type(elements, CMakeAddExecutable)
     assert executable.name == "${PROJECT_NAME}"
-    targets = cmake_analyzer.assert_elements_of_type(CMakeCustomTarget, 5)
+    targets = assert_elements_of_type(elements, CMakeCustomTarget, 5)
     assert [target.name for target in targets] == [
         "build",
         "CompA_compile",
@@ -37,10 +37,10 @@ def test_create_variant_cmake_elements(
     create_executable_generator: CreateExecutableCMakeGenerator,
 ) -> None:
     elements = create_executable_generator.create_variant_cmake_elements()
-    cmake_analyzer = CMakeAnalyzer(elements)
-    executable = cmake_analyzer.assert_element_of_type(CMakeAddExecutable)
+
+    executable = assert_element_of_type(elements, CMakeAddExecutable)
     assert executable.name == "${PROJECT_NAME}"
-    custom_target = cmake_analyzer.assert_element_of_type(CMakeCustomTarget)
+    custom_target = assert_element_of_type(elements, CMakeCustomTarget)
     assert custom_target.name == "build"
 
 
@@ -56,10 +56,10 @@ def test_create_components_cmake_elements(
     create_executable_generator: CreateExecutableCMakeGenerator,
 ) -> None:
     elements = create_executable_generator.create_components_cmake_elements()
-    cmake_analyzer = CMakeAnalyzer(elements)
-    object_libraries = cmake_analyzer.find_elements_of_type(CMakeObjectLibrary)
+
+    object_libraries = find_elements_of_type(elements, CMakeObjectLibrary)
     assert len(object_libraries) == 2  # One for each component
-    compile_targets = cmake_analyzer.find_elements_of_type(CMakeCustomTarget)
+    compile_targets = find_elements_of_type(elements, CMakeCustomTarget)
     assert [target.name for target in compile_targets] == [
         "CompA_compile",
         "CompA_build",

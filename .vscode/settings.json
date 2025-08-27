@@ -37,6 +37,7 @@
     "pypeline",
     "slurper",
     "subcomponent",
-    "subcomponents"
+    "subcomponents",
+    "cppcheck"
   ]
 }

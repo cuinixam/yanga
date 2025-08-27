@@ -2,7 +2,7 @@ from pathlib import Path
 
 import pytest
 
-from tests.utils import CMakeAnalyzer
+from tests.utils import assert_element_of_type, assert_elements_of_type, find_elements_of_type
 from yanga.cmake.cmake_backend import (
     CMakeAddExecutable,
     CMakeCustomCommand,
@@ -25,10 +25,10 @@ def gtest_cmake_generator(execution_context: ExecutionContext, output_dir: Path)
 def test_generate(gtest_cmake_generator: GTestCMakeGenerator) -> None:
     elements = gtest_cmake_generator.generate()
     assert elements
-    cmake_analyzer = CMakeAnalyzer(elements)
-    variables = cmake_analyzer.assert_elements_of_type(CMakeVariable, 3)
+
+    variables = assert_elements_of_type(elements, CMakeVariable, 3)
     assert [var.name for var in variables] == ["CMAKE_CXX_STANDARD", "CMAKE_CXX_STANDARD_REQUIRED", "gtest_force_shared_crt"]
-    cmake_analyzer.assert_elements_of_type(CMakeInclude, 0)
+    assert_elements_of_type(elements, CMakeInclude, 0)
 
 
 def test_create_variant_cmake_elements(
@@ -42,10 +42,10 @@ def test_cmake_build_components_file(
     gtest_cmake_generator: GTestCMakeGenerator,
 ) -> None:
     elements = gtest_cmake_generator.create_components_cmake_elements()
-    cmake_analyzer = CMakeAnalyzer(elements)
-    executable = cmake_analyzer.assert_element_of_type(CMakeAddExecutable)
+
+    executable = assert_element_of_type(elements, CMakeAddExecutable)
     assert executable.name == "CompA"
-    targets = cmake_analyzer.assert_elements_of_type(CMakeCustomTarget, 3)
+    targets = assert_elements_of_type(elements, CMakeCustomTarget, 3)
     assert [target.name for target in targets] == ["CompA_mockup", "CompA_test", "CompA_build"]
 
 
@@ -57,15 +57,14 @@ def test_automock_enabled_by_default(execution_context: ExecutionContext, output
     # Run IUT
     elements = GTestCMakeGenerator(execution_context, output_dir).generate()
 
-    cmake_analyzer = CMakeAnalyzer(elements)
-    custom_targets: list[CMakeCustomTarget] = cmake_analyzer.assert_elements_of_type(CMakeCustomTarget, 3)
+    custom_targets: list[CMakeCustomTarget] = assert_elements_of_type(elements, CMakeCustomTarget, 3)
     assert [target.name for target in custom_targets] == ["CompA_mockup", "CompA_test", "CompA_build"]
     # Expect the partial link library required to find the symbols to be mocked
-    object_library = cmake_analyzer.assert_element_of_type(CMakeObjectLibrary)
+    object_library = assert_element_of_type(elements, CMakeObjectLibrary)
     assert object_library.name == "CompA_PC"
-    executable = cmake_analyzer.assert_element_of_type(CMakeAddExecutable)
+    executable = assert_element_of_type(elements, CMakeAddExecutable)
     assert [str(source) for source in executable.sources] == ["compA_source.cpp", "test_compA_source.cpp", f"{output_dir.as_posix()}/CompA/mockup_CompA.cc"]
-    custom_command = cmake_analyzer.assert_element_of_type(CMakeCustomCommand, lambda cmd: cmd.description.startswith("Run the test executable"))
+    custom_command = assert_element_of_type(elements, CMakeCustomCommand, lambda cmd: cmd.description.startswith("Run the test executable"))
     assert len(custom_command.commands) == 1
     # The command should now be the full path to the executable in the component directory
     command_str = str(custom_command.commands[0].command)
@@ -82,16 +81,14 @@ def test_automock_disabled_generates_no_mock_targets(execution_context: Executio
     # Run IUT
     elements = GTestCMakeGenerator(execution_context, output_dir, {"mocking": {"enabled": False}}).generate()
 
-    cmake_analyzer = CMakeAnalyzer(elements)
-
     # No mockup-related custom targets should be generated.
-    custom_targets: list[CMakeCustomTarget] = cmake_analyzer.assert_elements_of_type(CMakeCustomTarget, 2)
+    custom_targets: list[CMakeCustomTarget] = assert_elements_of_type(elements, CMakeCustomTarget, 2)
     assert [target.name for target in custom_targets] == ["CompA_test", "CompA_build"]
 
     # No partial link library should be generated.
-    cmake_analyzer.assert_elements_of_type(CMakeObjectLibrary, 0)
+    assert_elements_of_type(elements, CMakeObjectLibrary, 0)
 
-    executable = cmake_analyzer.assert_element_of_type(CMakeAddExecutable)
+    executable = assert_element_of_type(elements, CMakeAddExecutable)
     assert [str(source) for source in executable.sources] == ["compA_source.cpp", "test_compA_source.cpp"]
 
 
@@ -99,10 +96,9 @@ def test_use_global_includes_disabled_generates_no_global_include_directories(ex
     """Verify that when use_global_includes is disabled, no global include directories are generated."""
     # Global include directories should not be generated in the variant elements
     variant_elements = GTestCMakeGenerator(execution_context, output_dir, {"use_global_includes": False}).create_variant_cmake_elements()
-    variant_analyzer = CMakeAnalyzer(variant_elements)
 
     # Check that no CMakeIncludeDirectories is present in variant elements
-    include_directories = variant_analyzer.find_elements_of_type(CMakeIncludeDirectories)
+    include_directories = find_elements_of_type(variant_elements, CMakeIncludeDirectories)
     assert len(include_directories) == 0
 
 
@@ -110,10 +106,9 @@ def test_use_global_includes_enabled_generates_global_include_directories(execut
     """Verify that when use_global_includes is enabled (default), global include directories are generated."""
     # Global include directories should be generated in the variant elements
     variant_elements = GTestCMakeGenerator(execution_context, output_dir, {"use_global_includes": True}).create_variant_cmake_elements()
-    variant_analyzer = CMakeAnalyzer(variant_elements)
 
     # Check that CMakeIncludeDirectories is present in variant elements
-    include_directories = variant_analyzer.find_elements_of_type(CMakeIncludeDirectories)
+    include_directories = find_elements_of_type(variant_elements, CMakeIncludeDirectories)
     assert len(include_directories) == 1  # Should have one CMakeIncludeDirectories element
 
 
@@ -125,13 +120,12 @@ def test_use_global_includes_disabled_adds_component_specific_include_directorie
 
     # Generate elements with use_global_includes=False
     elements = GTestCMakeGenerator(execution_context, output_dir, {"use_global_includes": False}).generate()
-    cmake_analyzer = CMakeAnalyzer(elements)
 
     # Find the executable
-    executable = cmake_analyzer.assert_element_of_type(CMakeAddExecutable)
+    executable = assert_element_of_type(elements, CMakeAddExecutable)
 
     # Check that CMakeTargetIncludeDirectories elements are generated
-    target_includes = cmake_analyzer.find_elements_of_type(CMakeTargetIncludeDirectories)
+    target_includes = find_elements_of_type(elements, CMakeTargetIncludeDirectories)
     assert len(target_includes) > 0, "No CMakeTargetIncludeDirectories elements found"
 
     # Find the target include directories for our executable
@@ -157,10 +151,9 @@ def test_use_global_includes_disabled_adds_component_specific_include_directorie
 def test_component_specific_directories_are_used(execution_context: ExecutionContext, output_dir: Path) -> None:
     """Verify that component-specific subdirectories are used for generated files."""
     elements = GTestCMakeGenerator(execution_context, output_dir).generate()
-    cmake_analyzer = CMakeAnalyzer(elements)
 
     # Find custom commands that contain component-specific paths
-    custom_commands = cmake_analyzer.find_elements_of_type(CMakeCustomCommand)
+    custom_commands = find_elements_of_type(elements, CMakeCustomCommand)
 
     # Look for JUnit XML output files in component-specific directories
     junit_outputs = [cmd for cmd in custom_commands if any("_junit.xml" in str(output) for output in cmd.outputs)]
@@ -188,13 +181,12 @@ def test_component_specific_directories_are_used(execution_context: ExecutionCon
 def test_executable_output_directory_is_set(execution_context: ExecutionContext, output_dir: Path) -> None:
     """Verify that executables are configured to output to component-specific directories."""
     elements = GTestCMakeGenerator(execution_context, output_dir).generate()
-    cmake_analyzer = CMakeAnalyzer(elements)
 
     # Import the target properties class for type checking
     from yanga.cmake.cmake_backend import CMakeSetTargetProperties
 
     # Find CMakeSetTargetProperties elements
-    target_properties = cmake_analyzer.find_elements_of_type(CMakeSetTargetProperties)
+    target_properties = find_elements_of_type(elements, CMakeSetTargetProperties)
     assert len(target_properties) > 0, "No target properties found"
 
     # Find the properties for CompA executable

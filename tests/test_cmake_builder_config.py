@@ -1,7 +1,7 @@
 from pathlib import Path
 from tempfile import TemporaryDirectory
 
-from tests.utils import CMakeAnalyzer
+from tests.utils import assert_element_of_type, assert_elements_of_type
 from yanga.cmake.builder import CMakeBuildSystemGenerator
 from yanga.cmake.cmake_backend import CMakeComment, CMakeVariable
 from yanga.domain.config import VariantConfig
@@ -40,20 +40,18 @@ def test_cmake_build_system_generator_creates_config_file() -> None:
         config_file = next((f for f in files if f.path.name == "config.cmake"), None)
         assert config_file is not None
 
-        # Analyze the config.cmake content
-        cmake_analyzer = CMakeAnalyzer(config_file.content)
-
         # Check for comments and variables
-        comments = cmake_analyzer.assert_elements_of_type(CMakeComment, 2)
+        comments = assert_elements_of_type(config_file.content, CMakeComment, 2)
         assert "ConfigCMakeGenerator" in comments[0].to_string()
         assert "Variant-specific configuration variables" in comments[1].to_string()
 
-        variables = cmake_analyzer.assert_elements_of_type(CMakeVariable, 3)
-        variable_dict = {var.name: var.value for var in variables}
-
-        assert variable_dict["LINKER_SCRIPT"] == "STM32F407.ld"
-        assert variable_dict["MCU_FAMILY"] == "STM32F4"
-        assert variable_dict["HEAP_SIZE"] == "32768"
+        variables = assert_elements_of_type(config_file.content, CMakeVariable, 4)
+        assert {
+            "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
+            "LINKER_SCRIPT": "STM32F407.ld",
+            "MCU_FAMILY": "STM32F4",
+            "HEAP_SIZE": "32768",
+        } == {var.name: var.value for var in variables}
 
 
 def test_cmake_build_system_generator_creates_empty_config_file() -> None:
@@ -78,13 +76,9 @@ def test_cmake_build_system_generator_creates_empty_config_file() -> None:
         config_file = next((f for f in files if f.path.name == "config.cmake"), None)
         assert config_file is not None
 
-        # Analyze the config.cmake content
-        cmake_analyzer = CMakeAnalyzer(config_file.content)
-
         # Should only have the generator comment
-        comments = cmake_analyzer.assert_elements_of_type(CMakeComment, 1)
-        assert "ConfigCMakeGenerator" in comments[0].to_string()
+        assert "ConfigCMakeGenerator" in assert_element_of_type(config_file.content, CMakeComment).to_string()
 
         # Should have no variables
-        variables = cmake_analyzer.find_elements_of_type(CMakeVariable)
-        assert len(variables) == 0
+        variable = assert_element_of_type(config_file.content, CMakeVariable)
+        assert variable.name == "CMAKE_EXPORT_COMPILE_COMMANDS"
