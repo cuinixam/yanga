@@ -3,7 +3,7 @@ from tempfile import TemporaryDirectory
 
 from tests.utils import assert_elements_of_type
 from yanga.cmake.cmake_backend import CMakeComment, CMakeVariable
-from yanga.cmake.config import ConfigCMakeGenerator
+from yanga.cmake.variant_config import ConfigCMakeGenerator
 from yanga.domain.config import VariantConfig
 from yanga.domain.execution_context import ExecutionContext, UserVariantRequest
 

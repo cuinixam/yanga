@@ -89,7 +89,7 @@ class CMakeBuildSystemGenerator:
         return cmake_file
 
     def create_config_cmake_file(self) -> CMakeFile:
-        from .config import ConfigCMakeGenerator
+        from .variant_config import ConfigCMakeGenerator
 
         cmake_file = CMakeFile(self.config_cmake_file.to_path())
         config_generator = ConfigCMakeGenerator(self.execution_context, self.output_dir)
