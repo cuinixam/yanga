@@ -5,7 +5,7 @@
 
 function Invoke-Bootstrap {
     # Download bootstrap scripts from external repository
-    Invoke-RestMethod https://raw.githubusercontent.com/avengineers/bootstrap-installer/v1.17.0/install.ps1 | Invoke-Expression
+    Invoke-RestMethod https://raw.githubusercontent.com/avengineers/bootstrap-installer/v1.17.2/install.ps1 | Invoke-Expression
     # Execute bootstrap script
     . .\.bootstrap\bootstrap.ps1
 }

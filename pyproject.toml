@@ -33,6 +33,7 @@ dependencies = [
   "kspl>=1,<2",
   "loguru>=0.7,<1",
   "mashumaro>=3.5,<4",
+  "myst-parser>=4,<5",
   "pick>=2.2,<3",
   "pillow>=10.1,<11",
   "py-app-dev>=2.14,<3",
@@ -52,7 +53,6 @@ scripts.yanga_cmd = "yanga.commands.__main__:main"
 dev = [
   "mlx-traceability>=11,<12",
   # docs
-  "myst-parser>=4,<5",
   "pip-system-certs>=4,<5",
   "pre-commit>=4,<5",
   "pyinstaller>=6.11,<7",

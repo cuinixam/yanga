@@ -6,6 +6,8 @@ platforms:
         module: yanga.cmake.create_executable
       - step: CppCheckCMakeGenerator
         module: yanga.cmake.cppcheck
+      - step: ReportCMakeGenerator
+        module: yanga.cmake.reports
     toolchain_file: clang.cmake
     is_default: true
   - name: gtest
@@ -21,6 +23,8 @@ platforms:
                 - "_*"
       - step: CppCheckCMakeGenerator
         module: yanga.cmake.cppcheck
+      - step: ReportCMakeGenerator
+        module: yanga.cmake.reports
     toolchain_file: gcc.cmake
     west_manifest:
       remotes:
