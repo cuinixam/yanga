@@ -14,7 +14,7 @@ from .cmake_backend import (
     CMakeProject,
     CMakeVariable,
 )
-from .generator import CMakeFile, CMakeGenerator, GeneratedFile
+from .generator import CMakeFile, CMakeGenerator, GeneratedFileIf
 
 
 class CMakeGeneratorReference:
@@ -52,8 +52,8 @@ class CMakeBuildSystemGenerator:
     def variant_name(self) -> str:
         return self.execution_context.variant_name or "MyProject"
 
-    def generate(self) -> list[GeneratedFile]:
-        files: list[GeneratedFile] = []
+    def generate(self) -> list[GeneratedFileIf]:
+        files: list[GeneratedFileIf] = []
         files.append(self.create_config_cmake_file())
         files.append(self.create_variant_cmake_file())
         return files

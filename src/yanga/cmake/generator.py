@@ -20,7 +20,7 @@ class CMakeGenerator(ABC):
         pass
 
 
-class GeneratedFile(ABC):
+class GeneratedFileIf(ABC):
     def __init__(self, path: Path) -> None:
         self.path = path
 
@@ -36,7 +36,16 @@ class GeneratedFile(ABC):
             f.write(self.to_string())
 
 
-class CMakeFile(GeneratedFile):
+class GeneratedFile(GeneratedFileIf):
+    def __init__(self, path: Path, content: str) -> None:
+        super().__init__(path)
+        self.content = content
+
+    def to_string(self) -> str:
+        return self.content
+
+
+class CMakeFile(GeneratedFileIf):
     def __init__(self, path: Path) -> None:
         super().__init__(path)
         self.content: list[CMakeElement] = []

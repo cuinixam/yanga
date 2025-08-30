@@ -27,7 +27,7 @@ class ReportScope(StringableEnum):
 
 
 @dataclass
-class ReportCommandConfig(BaseConfigJSONMixin):
+class CommandArgs(BaseConfigJSONMixin):
     scope: ReportScope = field(metadata=stringable_enum_field_metadata(ReportScope))
     variant_name: str = field(metadata={"help": "Variant name to report on. Required if scope is 'variant'."})
     source_files: list[Path] = field(metadata={"help": "Report generation relevant source files."})
@@ -35,26 +35,17 @@ class ReportCommandConfig(BaseConfigJSONMixin):
     component_name: str | None = field(default=None, metadata={"help": "Component name to report on. Required if scope is 'component'."})
 
 
-class ReportConfigFile(GeneratedFile):
-    def __init__(self, config: ReportCommandConfig) -> None:
-        super().__init__(config.output_file)
-        self.config = config
-
-    def to_string(self) -> str:
-        return self.config.to_json_string()
-
-
-class ReportCommand(Command):
+class ReportConfigCommand(Command):
     def __init__(self) -> None:
         super().__init__("report_config", "Create a component specific report configuration.")
         self.logger = logger.bind()
 
     def run(self, args: Namespace) -> int:
         self.logger.info(f"Running {self.name} with args {args}")
-        config = create_config(ReportCommandConfig, args)
-        ReportConfigFile(config).to_file()
+        config = create_config(CommandArgs, args)
+        GeneratedFile(config.output_file, config.to_json_string()).to_file()
         self.logger.info(f"Report configuration written to {config.output_file}")
         return 0
 
     def _register_arguments(self, parser: ArgumentParser) -> None:
-        register_arguments_for_config_dataclass(parser, ReportCommandConfig)
+        register_arguments_for_config_dataclass(parser, CommandArgs)

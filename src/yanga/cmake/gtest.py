@@ -215,10 +215,11 @@ class GTestComponentCMakeGenerator:
         elements.append(CMakeComment(f"Component {component.name}"))
 
         # Create the component executable
-        sources = component_analyzer.collect_sources() + component_analyzer.collect_test_sources()
+        productive_sources = component_analyzer.collect_sources()
+        all_sources = productive_sources + component_analyzer.collect_test_sources()
         if mockup_generator:
-            sources += mockup_generator.get_mockup_sources()
-        test_executable = self.add_executable(gtest_cmake_component.executable_name, sources)
+            all_sources += mockup_generator.get_mockup_sources()
+        test_executable = self.add_executable(gtest_cmake_component.executable_name, all_sources)
         elements.append(test_executable)
 
         # Set the executable output directory to the component-specific directory
@@ -234,13 +235,29 @@ class GTestComponentCMakeGenerator:
             include_dirs.append(component_build_dir)
             if include_dirs:
                 # Determine visibility: use PRIVATE for executables with sources, INTERFACE for header-only
-                visibility = "INTERFACE" if not sources else "PRIVATE"
+                visibility = "INTERFACE" if not all_sources else "PRIVATE"
                 target_includes = CMakeTargetIncludeDirectories(test_executable.name, include_dirs, visibility)
                 elements.append(target_includes)
 
         # Create the custom target to execute the tests
         execute_tests_command = self.run_executable(component.name, test_executable.name)
         elements.append(execute_tests_command)
+
+        # Generate coverage report
+        coverage_cmd = self.create_coverage_report(component.name, execute_tests_command, productive_sources)
+        elements.append(coverage_cmd)
+        elements.append(
+            CMakeCustomTarget(
+                name=UserRequest(
+                    UserRequestScope.COMPONENT,
+                    component_name=component.name,
+                    target=UserRequestTarget.COVERAGE,
+                ).target_name,
+                description=f"Generate coverage report for {component.name}",
+                commands=[],
+                depends=coverage_cmd.outputs,  # type: ignore
+            )
+        )
 
         # Create the component mockup sources
         if mockup_generator:
@@ -323,6 +340,40 @@ class GTestComponentCMakeGenerator:
             outputs,
             [component_executable_name],
             [command],
+        )
+
+    def create_coverage_report(self, component_name: str, execute_tests_command: CMakeCustomCommand, sources: list[Path]) -> CMakeCustomCommand:
+        component_build_dir = self.artifacts_locator.get_component_build_dir(component_name)
+        gcovr_config_file = component_build_dir.joinpath("gcovr.cfg")
+        return CMakeCustomCommand(
+            description=f"Generate coverage report for component {component_name}",
+            outputs=[component_build_dir.joinpath("coverage.json")],
+            depends=execute_tests_command.outputs,  # type: ignore
+            commands=[
+                CMakeCommand(
+                    "yanga_cmd",
+                    [
+                        "gcovr_config",
+                        "--component-objects",
+                        f"$<TARGET_OBJECTS:{component_name}>",
+                        "--source-files",
+                        *[CMakePath(src) for src in sources],
+                        "--output-file",
+                        gcovr_config_file,
+                    ],
+                ),
+                CMakeCommand(
+                    "gcovr",
+                    [
+                        "--config",
+                        gcovr_config_file,
+                        "--json",
+                        "--output",
+                        component_build_dir.joinpath("coverage.json"),
+                        "--json-pretty",
+                    ],
+                ),
+            ],
         )
 
 

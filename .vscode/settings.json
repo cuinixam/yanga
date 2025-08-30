@@ -38,6 +38,9 @@
     "slurper",
     "subcomponent",
     "subcomponents",
-    "cppcheck"
+    "cppcheck",
+    "gcovr",
+    "gcov",
+    "stringable"
   ]
 }

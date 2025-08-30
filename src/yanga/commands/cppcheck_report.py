@@ -172,7 +172,7 @@ def _extract_code_context(location: Location, context_lines: int) -> str:
 
 
 @dataclass
-class CppCheckReportCommandConfig(DataClassDictMixin):
+class CommandArgs(DataClassDictMixin):
     input_file: Path = field(
         metadata={"help": "CppCheck XML report."},
     )
@@ -187,11 +187,11 @@ class CppCheckReportCommand(Command):
         self.logger = logger.bind()
 
     def _register_arguments(self, parser: ArgumentParser) -> None:
-        register_arguments_for_config_dataclass(parser, CppCheckReportCommandConfig)
+        register_arguments_for_config_dataclass(parser, CommandArgs)
 
     def run(self, args: Namespace) -> int:
         self.logger.info(f"Running {self.name} with args {args}")
-        config = create_config(CppCheckReportCommandConfig, args)
+        config = create_config(CommandArgs, args)
         self.logger.debug(f"Generating HTML report {config.output_file} from {config.input_file}")
 
         # Load and parse the XML data

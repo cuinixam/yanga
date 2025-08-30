@@ -20,6 +20,7 @@ class UserRequestTarget(Enum):
     COMPILE = auto()
     CLEAN = auto()
     TEST = auto()
+    COVERAGE = auto()
     MOCKUP = auto()
     LINT = auto()
     REPORT = auto()
