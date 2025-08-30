@@ -28,6 +28,7 @@ class ComponentFactory:
             component_path,
         )
         component.sources = component_config.sources
+        component.docs_sources = component_config.docs_sources
         component.testing = component_config.testing if component_config.testing else TestingConfiguration()
         if component_config.test_sources:
             component.testing.sources.extend(component_config.test_sources)

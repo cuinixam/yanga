@@ -4,6 +4,7 @@ from tempfile import TemporaryDirectory
 from tests.utils import assert_element_of_type, assert_elements_of_type
 from yanga.cmake.builder import CMakeBuildSystemGenerator
 from yanga.cmake.cmake_backend import CMakeComment, CMakeVariable
+from yanga.cmake.generator import CMakeFile
 from yanga.domain.config import VariantConfig
 from yanga.domain.execution_context import ExecutionContext, UserVariantRequest
 
@@ -37,8 +38,7 @@ def test_cmake_build_system_generator_creates_config_file() -> None:
         assert len(files) == 2
 
         # Find the config.cmake file
-        config_file = next((f for f in files if f.path.name == "config.cmake"), None)
-        assert config_file is not None
+        config_file = assert_element_of_type(files, CMakeFile, lambda f: f.path.as_posix().endswith("config.cmake"))
 
         # Check for comments and variables
         comments = assert_elements_of_type(config_file.content, CMakeComment, 2)
@@ -73,8 +73,7 @@ def test_cmake_build_system_generator_creates_empty_config_file() -> None:
         assert len(files) == 2
 
         # Find the config.cmake file
-        config_file = next((f for f in files if f.path.name == "config.cmake"), None)
-        assert config_file is not None
+        config_file = assert_element_of_type(files, CMakeFile, lambda f: f.path.as_posix().endswith("config.cmake"))
 
         # Should only have the generator comment
         assert "ConfigCMakeGenerator" in assert_element_of_type(config_file.content, CMakeComment).to_string()

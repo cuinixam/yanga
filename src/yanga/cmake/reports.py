@@ -2,9 +2,8 @@ from pathlib import Path
 from typing import Any, Optional
 
 from yanga.cmake.artifacts_locator import CMakeArtifactsLocator
-from yanga.cmake.cmake_backend import CMakeCommand, CMakeComment, CMakeCustomCommand, CMakeCustomTarget, CMakeElement, CMakePath
+from yanga.cmake.cmake_backend import CMakeCommand, CMakeComment, CMakeCustomTarget, CMakeElement, CMakePath
 from yanga.cmake.generator import CMakeGenerator
-from yanga.domain.component_analyzer import ComponentAnalyzer
 from yanga.domain.execution_context import ExecutionContext, UserRequest, UserRequestScope, UserRequestTarget
 
 
@@ -53,6 +52,8 @@ class ReportCMakeGenerator(CMakeGenerator):
     def create_components_cmake_elements(self) -> list[CMakeElement]:
         elements: list[CMakeElement] = []
         for component in self.execution_context.components:
+            report_config_output_file = self.artifacts_locator.get_component_report_config(component.name)
+            docs_source_files = [CMakePath(Path(source)) for source in component.docs_sources]
             elements.append(
                 CMakeCustomTarget(
                     name=UserRequest(
@@ -62,6 +63,22 @@ class ReportCMakeGenerator(CMakeGenerator):
                     ).target_name,
                     description=f"Run sphinx build for component {component.name}",
                     commands=[
+                        CMakeCommand(
+                            "yanga_cmd",
+                            [
+                                "report_config",
+                                "--scope",
+                                "component",
+                                "--component-name",
+                                component.name,
+                                "--source-files",
+                                *docs_source_files,
+                                "--variant-name",
+                                self.execution_context.variant_name or "MyProject",
+                                "--output-file",
+                                report_config_output_file,
+                            ],
+                        ),
                         CMakeCommand(
                             "sphinx-build",
                             [

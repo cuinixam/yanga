@@ -19,3 +19,6 @@ class CMakeArtifactsLocator:
 
     def get_component_compile_commands(self, component_name: str) -> CMakePath:
         return self.get_component_build_dir(component_name).joinpath("component_compile_commands.json")
+
+    def get_component_report_config(self, component_name: str) -> CMakePath:
+        return self.get_component_build_dir(component_name).joinpath("report_config.json")

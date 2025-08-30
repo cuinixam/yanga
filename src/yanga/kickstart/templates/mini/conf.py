@@ -1,6 +1,3 @@
-# -*- coding: utf-8 -*-
-"""Configuration"""
-
 import datetime
 
 day = datetime.date.today()

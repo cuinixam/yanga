@@ -4,7 +4,6 @@ import pytest
 
 from tests.utils import assert_element_of_type, assert_elements_of_type, find_elements_of_type
 from yanga.cmake.cmake_backend import (
-    CMakeCustomCommand,
     CMakeCustomTarget,
 )
 from yanga.cmake.reports import ReportCMakeGenerator
@@ -46,4 +45,4 @@ def test_create_components_cmake_elements(
         "CompBNotTestable_report",
     ]
     comp_cmd = assert_element_of_type(elements, CMakeCustomTarget, lambda cmd: "CompA" in cmd.description)
-    assert [cmd.command for cmd in comp_cmd.commands] == ["sphinx-build"]
+    assert [cmd.command for cmd in comp_cmd.commands] == ["yanga_cmd", "sphinx-build"]

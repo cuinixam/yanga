@@ -189,6 +189,8 @@ class ComponentConfig(DataClassDictMixin):
     test_sources: list[str] = field(default_factory=list)
     #: Testing
     testing: Optional[TestingConfiguration] = None
+    #: Documentation sources
+    docs_sources: list[str] = field(default_factory=list)
     #: Component include directories
     include_directories: list[IncludeDirectory] = field(default_factory=list)
     #: Name of the components that this component requires header files from

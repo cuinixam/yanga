@@ -15,6 +15,8 @@ class Component:
     sources: list[str] = field(default_factory=list)
     #: Component testing configuration
     testing: Optional[TestingConfiguration] = None
+    #: Documentation sources
+    docs_sources: list[str] = field(default_factory=list)
     #: Component include directories paths. The actual paths are to be resolved by the user of this data.
     include_dirs: list[Path] = field(default_factory=list)
     #: Is this component a sub-component of another component

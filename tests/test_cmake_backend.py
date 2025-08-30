@@ -7,7 +7,6 @@ from yanga.cmake.cmake_backend import (
     CMakeCustomCommand,
     CMakeCustomTarget,
     CMakeEnableTesting,
-    CMakeFile,
     CMakeInclude,
     CMakeIncludeDirectories,
     CMakeLibrary,
@@ -19,6 +18,7 @@ from yanga.cmake.cmake_backend import (
     CMakeTargetIncludeDirectories,
     CMakeVariable,
 )
+from yanga.cmake.generator import CMakeFile
 
 
 def test_cmake_variable():

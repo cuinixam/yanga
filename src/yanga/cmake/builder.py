@@ -9,13 +9,12 @@ from yanga.cmake.artifacts_locator import CMakeArtifactsLocator
 from yanga.domain.execution_context import ExecutionContext
 
 from .cmake_backend import (
-    CMakeFile,
     CMakeMinimumVersion,
     CMakePath,
     CMakeProject,
     CMakeVariable,
 )
-from .generator import CMakeGenerator
+from .generator import CMakeFile, CMakeGenerator, GeneratedFile
 
 
 class CMakeGeneratorReference:
@@ -49,8 +48,12 @@ class CMakeBuildSystemGenerator:
     def config_cmake_file(self) -> CMakePath:
         return self.cmake_current_list_dir.joinpath("config.cmake")
 
-    def generate(self) -> list[CMakeFile]:
-        files = []
+    @property
+    def variant_name(self) -> str:
+        return self.execution_context.variant_name or "MyProject"
+
+    def generate(self) -> list[GeneratedFile]:
+        files: list[GeneratedFile] = []
         files.append(self.create_config_cmake_file())
         files.append(self.create_variant_cmake_file())
         return files
@@ -66,7 +69,7 @@ class CMakeBuildSystemGenerator:
                     CMakePath(self.execution_context.create_artifacts_locator().locate_artifact(platform.toolchain_file, [platform.file])).to_string(),
                 )
             )
-        cmake_file.append(CMakeProject(self.execution_context.variant_name or "MyProject"))
+        cmake_file.append(CMakeProject(self.variant_name))
         return cmake_file
 
     def create_variant_cmake_file(self) -> CMakeFile:

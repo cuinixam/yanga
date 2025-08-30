@@ -18,3 +18,38 @@ class CMakeGenerator(ABC):
     @abstractmethod
     def generate(self) -> list[CMakeElement]:
         pass
+
+
+class GeneratedFile(ABC):
+    def __init__(self, path: Path) -> None:
+        self.path = path
+
+    @abstractmethod
+    def to_string(self) -> str:
+        pass
+
+    def to_file(self) -> None:
+        dir = self.path.parent
+        if not dir.exists():
+            dir.mkdir(parents=True, exist_ok=True)
+        with open(self.path, "w") as f:
+            f.write(self.to_string())
+
+
+class CMakeFile(GeneratedFile):
+    def __init__(self, path: Path) -> None:
+        super().__init__(path)
+        self.content: list[CMakeElement] = []
+
+    def to_string(self) -> str:
+        return "\n".join(str(elem) for elem in self.content)
+
+    def append(self, content: Optional[CMakeElement]) -> "CMakeFile":
+        if content:
+            self.content.append(content)
+        return self
+
+    def extend(self, content: list[CMakeElement]) -> "CMakeFile":
+        for element in content:
+            self.append(element)
+        return self
