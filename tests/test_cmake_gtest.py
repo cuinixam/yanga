@@ -45,8 +45,8 @@ def test_cmake_build_components_file(
 
     executable = assert_element_of_type(elements, CMakeAddExecutable)
     assert executable.name == "CompA"
-    targets = assert_elements_of_type(elements, CMakeCustomTarget, 3)
-    assert [target.name for target in targets] == ["CompA_mockup", "CompA_test", "CompA_build"]
+    targets = assert_elements_of_type(elements, CMakeCustomTarget, 4)
+    assert {target.name for target in targets} == {"CompA_mockup", "CompA_test", "CompA_build", "CompA_coverage"}
 
 
 def test_get_include_directories(gtest_cmake_generator: GTestCMakeGenerator) -> None:
@@ -57,8 +57,8 @@ def test_automock_enabled_by_default(execution_context: ExecutionContext, output
     # Run IUT
     elements = GTestCMakeGenerator(execution_context, output_dir).generate()
 
-    custom_targets: list[CMakeCustomTarget] = assert_elements_of_type(elements, CMakeCustomTarget, 3)
-    assert [target.name for target in custom_targets] == ["CompA_mockup", "CompA_test", "CompA_build"]
+    targets = assert_elements_of_type(elements, CMakeCustomTarget, 4)
+    assert {target.name for target in targets} == {"CompA_mockup", "CompA_test", "CompA_build", "CompA_coverage"}
     # Expect the partial link library required to find the symbols to be mocked
     object_library = assert_element_of_type(elements, CMakeObjectLibrary)
     assert object_library.name == "CompA_PC"
@@ -82,8 +82,8 @@ def test_automock_disabled_generates_no_mock_targets(execution_context: Executio
     elements = GTestCMakeGenerator(execution_context, output_dir, {"mocking": {"enabled": False}}).generate()
 
     # No mockup-related custom targets should be generated.
-    custom_targets: list[CMakeCustomTarget] = assert_elements_of_type(elements, CMakeCustomTarget, 2)
-    assert [target.name for target in custom_targets] == ["CompA_test", "CompA_build"]
+    targets = assert_elements_of_type(elements, CMakeCustomTarget, 3)
+    assert {target.name for target in targets} == {"CompA_test", "CompA_build", "CompA_coverage"}
 
     # No partial link library should be generated.
     assert_elements_of_type(elements, CMakeObjectLibrary, 0)

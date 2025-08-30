@@ -344,10 +344,14 @@ class GTestComponentCMakeGenerator:
 
     def create_coverage_report(self, component_name: str, execute_tests_command: CMakeCustomCommand, sources: list[Path]) -> CMakeCustomCommand:
         component_build_dir = self.artifacts_locator.get_component_build_dir(component_name)
+        component_reports_dir = self.artifacts_locator.get_component_reports_dir(component_name)
         gcovr_config_file = component_build_dir.joinpath("gcovr.cfg")
+        gcovr_json_file = component_build_dir.joinpath("coverage.json")
+        gcovr_html_dir = component_reports_dir.joinpath("coverage")
+        gcovr_html_file = gcovr_html_dir.joinpath("index.html")
         return CMakeCustomCommand(
             description=f"Generate coverage report for component {component_name}",
-            outputs=[component_build_dir.joinpath("coverage.json")],
+            outputs=[gcovr_config_file, gcovr_json_file, gcovr_html_file],
             depends=execute_tests_command.outputs,  # type: ignore
             commands=[
                 CMakeCommand(
@@ -369,8 +373,29 @@ class GTestComponentCMakeGenerator:
                         gcovr_config_file,
                         "--json",
                         "--output",
-                        component_build_dir.joinpath("coverage.json"),
+                        gcovr_json_file,
                         "--json-pretty",
+                    ],
+                ),
+                CMakeCommand(
+                    "${CMAKE_COMMAND}",
+                    [
+                        "-E",
+                        "make_directory",
+                        gcovr_html_dir,
+                    ],
+                ),
+                CMakeCommand(
+                    "gcovr",
+                    [
+                        "--config",
+                        gcovr_config_file,
+                        "--add-tracefile",
+                        gcovr_json_file,
+                        "--html",
+                        "--html-details",
+                        "--output",
+                        gcovr_html_file,
                     ],
                 ),
             ],
