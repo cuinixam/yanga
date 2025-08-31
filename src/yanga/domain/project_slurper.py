@@ -4,7 +4,7 @@ from typing import Optional
 
 from py_app_dev.core.exceptions import UserNotificationException
 from py_app_dev.core.logging import logger
-from pypeline.domain.pipeline import PipelineConfig
+from pypeline.domain.pipeline import PipelineConfig, PipelineConfigIterator
 
 from yanga.domain.artifacts import ProjectArtifactsLocator
 
@@ -253,5 +253,11 @@ class YangaProjectSlurper:
         self.logger.info(f"Found {len(self.platforms)} platforms(s):")
         for platform in self.platforms:
             self.logger.info(f"  - {platform.name}")
-        self.logger.info("Found pipeline config.")
+        if self.pipeline:
+            self.logger.info("Found pipeline config:")
+            for group, step_configs in PipelineConfigIterator(self.pipeline):
+                if group:
+                    logger.info(f"    Group: {group}")
+                for step_config in step_configs:
+                    logger.info(f"        {step_config.step}")
         self.logger.info("-" * 80)
