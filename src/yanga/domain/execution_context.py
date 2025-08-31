@@ -23,6 +23,7 @@ class UserRequestTarget(Enum):
     COVERAGE = auto()
     MOCKUP = auto()
     LINT = auto()
+    DOCS = auto()
     REPORT = auto()
 
     def __str__(self) -> str:

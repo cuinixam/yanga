@@ -19,10 +19,12 @@ def test_generate(create_executable_generator: ReportCMakeGenerator) -> None:
     elements = create_executable_generator.generate()
     assert elements
 
-    targets = assert_elements_of_type(elements, CMakeCustomTarget, 3)
+    targets = assert_elements_of_type(elements, CMakeCustomTarget, 5)
     assert [target.name for target in targets] == [
         "report",
+        "CompA_docs",
         "CompA_report",
+        "CompBNotTestable_docs",
         "CompBNotTestable_report",
     ]
 
@@ -41,8 +43,12 @@ def test_create_components_cmake_elements(
 ) -> None:
     elements = create_executable_generator.create_components_cmake_elements()
     assert [target.name for target in find_elements_of_type(elements, CMakeCustomTarget)] == [
+        "CompA_docs",
         "CompA_report",
+        "CompBNotTestable_docs",
         "CompBNotTestable_report",
     ]
-    comp_cmd = assert_element_of_type(elements, CMakeCustomTarget, lambda cmd: "CompA" in cmd.description)
+    comp_cmd = assert_element_of_type(elements, CMakeCustomTarget, lambda target: target.name == "CompA_docs")
+    assert [cmd.command for cmd in comp_cmd.commands] == ["clanguru", "clanguru"]
+    comp_cmd = assert_element_of_type(elements, CMakeCustomTarget, lambda target: target.name == "CompA_report")
     assert [cmd.command for cmd in comp_cmd.commands] == ["yanga_cmd", "sphinx-build"]

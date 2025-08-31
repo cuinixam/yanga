@@ -27,6 +27,12 @@ class ComponentAnalyzer:
             files.extend([self.locate_component_file(component, source) for source in component.test_sources])
         return files
 
+    def collect_docs_sources(self) -> list[Path]:
+        files: list[Path] = []
+        for component in self.components:
+            files.extend([self.locate_component_file(component, source) for source in component.docs_sources])
+        return files
+
     def collect_include_directories(self) -> list[Path]:
         includes: list[Path] = []
         for component in self.components:

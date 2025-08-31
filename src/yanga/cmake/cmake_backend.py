@@ -151,6 +151,14 @@ class CMakePath:
     def __str__(self) -> str:
         return self.to_string()
 
+    def with_suffix(self, suffix: str) -> "CMakePath":
+        if self.relative_path:
+            new_relative_path = self.relative_path.with_suffix(suffix)
+            return CMakePath(self.path, self.variable, new_relative_path)
+        else:
+            new_path = self.path.with_suffix(suffix)
+            return CMakePath(new_path, self.variable, None)
+
 
 class CMakeInclude(CMakeElement):
     def __init__(self, path: str | CMakePath) -> None:
@@ -302,6 +310,15 @@ class CMakeDepends(CMakeElement):
         return f"{self.tab_prefix}DEPENDS {' '.join(str(depend) for depend in self.depends)}"
 
 
+class CMakeByproducts(CMakeElement):
+    def __init__(self, byproducts: list[CMakePath]) -> None:
+        super().__init__()
+        self.byproducts = byproducts
+
+    def to_string(self) -> str:
+        return f"{self.tab_prefix}BYPRODUCTS {' '.join(str(byproduct) for byproduct in self.byproducts)}"
+
+
 @dataclass
 class CMakeCustomCommand(CMakeElement):
     description: str
@@ -333,6 +350,7 @@ class CMakeCustomTarget(CMakeElement):
         commands: list[CMakeCommand],
         depends: Optional[list[str | CMakePath]] = None,
         default_target: bool = False,
+        byproducts: Optional[list[CMakePath]] = None,
     ) -> None:
         super().__init__()
         self.name = name
@@ -340,6 +358,7 @@ class CMakeCustomTarget(CMakeElement):
         self.depends = depends
         self.commands = commands
         self.default_target = default_target
+        self.byproducts = byproducts
 
     def to_string(self) -> str:
         add_to_all_target = "ALL" if self.default_target else ""
@@ -350,6 +369,8 @@ class CMakeCustomTarget(CMakeElement):
         content.extend(self._get_commands())
         if self.depends:
             content.append(CMakeDepends(self.depends).to_string())
+        if self.byproducts:
+            content.append(CMakeByproducts(self.byproducts).to_string())
         content.append(")")
         return "\n".join(str(line) for line in content)
 

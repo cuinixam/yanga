@@ -72,6 +72,8 @@ def test_cmake_path():
     assert str(cmake_path_joined) == "${TEST_PATH}/include"
     # Use joinpath multiple times
     assert cmake_path_joined.joinpath("comp").to_path() == path / "include" / "comp"
+    # Create file with suffix
+    assert CMakePath(Path("some/file.txt")).with_suffix(".md").to_path() == Path("some/file.md")
 
 
 def test_cmake_include():
@@ -106,8 +108,8 @@ def test_cmake_custom_command():
 
 def test_cmake_custom_target():
     commands = [CMakeCommand("my_target_command", ["arg1", "arg2"])]
-    cmake_custom_target = CMakeCustomTarget("my_custom_target", "Build custom target", commands, ["depend1"], True)
-    expected_string = "# Build custom target\nadd_custom_target(my_custom_target ALL\n    COMMAND my_target_command arg1 arg2\n    DEPENDS depend1\n)"
+    cmake_custom_target = CMakeCustomTarget("my_custom_target", "Build custom target", commands, ["depend1"], True, [CMakePath(Path("output1.txt"))])
+    expected_string = "# Build custom target\nadd_custom_target(my_custom_target ALL\n    COMMAND my_target_command arg1 arg2\n    DEPENDS depend1\n    BYPRODUCTS output1.txt\n)"
     assert cmake_custom_target.to_string() == expected_string
 
 

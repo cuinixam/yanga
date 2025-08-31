@@ -4,6 +4,7 @@ from typing import Any, Optional
 from yanga.cmake.artifacts_locator import CMakeArtifactsLocator
 from yanga.cmake.cmake_backend import CMakeCommand, CMakeComment, CMakeCustomTarget, CMakeElement, CMakePath
 from yanga.cmake.generator import CMakeGenerator
+from yanga.domain.component_analyzer import ComponentAnalyzer
 from yanga.domain.execution_context import ExecutionContext, UserRequest, UserRequestScope, UserRequestTarget
 
 
@@ -52,8 +53,41 @@ class ReportCMakeGenerator(CMakeGenerator):
     def create_components_cmake_elements(self) -> list[CMakeElement]:
         elements: list[CMakeElement] = []
         for component in self.execution_context.components:
+            component_analyzer = ComponentAnalyzer([component], self.execution_context.create_artifacts_locator())
+            component_build_dir = self.artifacts_locator.get_component_build_dir(component.name)
             report_config_output_file = self.artifacts_locator.get_component_report_config(component.name)
-            docs_source_files = [CMakePath(Path(source)) for source in component.docs_sources]
+            docs_source_files = [CMakePath(source) for source in component_analyzer.collect_docs_sources()]
+            source_files: list[CMakePath] = [CMakePath(source) for source in [*component_analyzer.collect_sources(), *component_analyzer.collect_test_sources()]]
+            source_files_output_md = [component_build_dir.joinpath(f"{source_file.to_path().name}.md") for source_file in source_files]
+            component_docs_target = UserRequest(
+                UserRequestScope.COMPONENT,
+                target=UserRequestTarget.DOCS,
+                component_name=component.name,
+            ).target_name
+
+            elements.append(
+                CMakeCustomTarget(
+                    name=component_docs_target,
+                    description=f"Generate sources docs for component {component.name}",
+                    commands=[
+                        CMakeCommand(
+                            "clanguru",
+                            [
+                                "generate",
+                                "--source-file",
+                                source_file,
+                                "--output-file",
+                                output_md,
+                                "--compilation-database",
+                                self.artifacts_locator.compile_commands_file,
+                            ],
+                        )
+                        for source_file, output_md in zip(source_files, source_files_output_md)
+                    ],
+                    depends=[self.artifacts_locator.compile_commands_file],
+                    byproducts=source_files_output_md,
+                )
+            )
             elements.append(
                 CMakeCustomTarget(
                     name=UserRequest(
@@ -61,7 +95,7 @@ class ReportCMakeGenerator(CMakeGenerator):
                         target=UserRequestTarget.REPORT,
                         component_name=component.name,
                     ).target_name,
-                    description=f"Run sphinx build for component {component.name}",
+                    description=f"Generate report for component {component.name}",
                     commands=[
                         CMakeCommand(
                             "yanga_cmd",
