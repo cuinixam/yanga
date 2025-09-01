@@ -6,6 +6,7 @@ from yanga.cmake.cmake_backend import CMakeCommand, CMakeComment, CMakeCustomCom
 from yanga.cmake.generator import CMakeGenerator
 from yanga.domain.component_analyzer import ComponentAnalyzer
 from yanga.domain.execution_context import ExecutionContext, UserRequest, UserRequestScope, UserRequestTarget
+from yanga.domain.reports import ReportRelevantFiles, ReportRelevantFileType
 
 
 class CppCheckCMakeGenerator(CMakeGenerator):
@@ -82,6 +83,7 @@ class CppCheckCMakeGenerator(CMakeGenerator):
             component_compile_commands_file = self.artifacts_locator.get_component_compile_commands(component.name)
             xml_report_file = self.artifacts_locator.get_component_build_dir(component.name).joinpath("cppcheck_report.xml")
             md_report_file = self.artifacts_locator.get_component_build_dir(component.name).joinpath("cppcheck_report.md")
+
             # TODO: Make sure the cpp commands depends on the component objects being built
             compile_filter_command = CMakeCustomCommand(
                 description=f"Run cppcheck for component {component.name}",
@@ -126,16 +128,30 @@ class CppCheckCMakeGenerator(CMakeGenerator):
             )
             elements.append(compile_filter_command)
             # Add custom target for linting the component
+            component_lint_target = UserRequest(
+                UserRequestScope.COMPONENT,
+                component_name=component.name,
+                target=UserRequestTarget.LINT,
+            )
+
             elements.append(
                 CMakeCustomTarget(
-                    UserRequest(
-                        UserRequestScope.COMPONENT,
-                        component_name=component.name,
-                        target=UserRequestTarget.LINT,
-                    ).target_name,
+                    component_lint_target.target_name,
                     f"Lint the {component.name} component",
                     [],
                     compile_filter_command.outputs,  # type: ignore
                 )
             )
+            # Register the component lint md report as relevant for the component report
+            self.execution_context.data_registry.insert(
+                ReportRelevantFiles(
+                    target=component_lint_target,
+                    files_to_be_included=[
+                        md_report_file.to_path(),
+                    ],
+                    file_type=ReportRelevantFileType.LINT_RESULT,
+                ),
+                component_lint_target.target_name,
+            )
+
         return elements

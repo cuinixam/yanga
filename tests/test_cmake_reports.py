@@ -51,4 +51,4 @@ def test_create_components_cmake_elements(
     comp_cmd = assert_element_of_type(elements, CMakeCustomTarget, lambda target: target.name == "CompA_docs")
     assert [cmd.command for cmd in comp_cmd.commands] == ["clanguru", "clanguru"]
     comp_cmd = assert_element_of_type(elements, CMakeCustomTarget, lambda target: target.name == "CompA_report")
-    assert [cmd.command for cmd in comp_cmd.commands] == ["yanga_cmd", "sphinx-build"]
+    assert [cmd.command for cmd in comp_cmd.commands] == ["${CMAKE_COMMAND}", "yanga_cmd", "${CMAKE_COMMAND}"]

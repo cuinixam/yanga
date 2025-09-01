@@ -12,7 +12,9 @@ class CMakeArtifactsLocator:
         self.artifacts_locator = execution_context.create_artifacts_locator()
         self.cmake_build_dir = CMakePath(output_dir, "CMAKE_BUILD_DIR")
         self.cmake_project_dir = CMakePath(self.artifacts_locator.project_root_dir)
+        self.cmake_variant_reports_dir = self.cmake_build_dir.joinpath("reports")
         self.compile_commands_file = self.cmake_build_dir.joinpath("compile_commands.json")
+        self.variant_report_config = self.cmake_build_dir.joinpath("report_config.json")
 
     def get_component_build_dir(self, component_name: str) -> CMakePath:
         return self.cmake_build_dir.joinpath(component_name)

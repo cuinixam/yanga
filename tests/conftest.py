@@ -2,6 +2,7 @@ from pathlib import Path
 from unittest.mock import Mock, patch
 
 import pytest
+from py_app_dev.core.data_registry import DataRegistry
 
 from yanga.domain.artifacts import ProjectArtifactsLocator
 from yanga.domain.components import Component
@@ -40,6 +41,7 @@ def execution_context(locate_artifact: Mock) -> ExecutionContext:
     ]
     env.include_directories = [Path("/mock/include/dir")]
     env.create_artifacts_locator.return_value = ProjectArtifactsLocator(Path("/mock/project/root"), "mock_variant", "mock_platform", "mock_build_type")
+    env.data_registry = DataRegistry()
     return env
 
 

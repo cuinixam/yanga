@@ -16,6 +16,12 @@ classifiers = [
 ]
 dependencies = [
   "py-app-dev>=2,<3",
+  "sphinx-book-theme>=1.1,<2",
+  "sphinx-copybutton>=0,<1",
+  "sphinx-design>=0,<1",
+  "sphinx-new-tab-link>=0,<1",
+  "sphinx-rtd-size>=0.2,<1",
+  "sphinxcontrib-mermaid>=1,<2",
   "west>=1,<2",
   # Added because UV needs it as explicit dependency. It might be a bug in UV
   "wrapt>=1,<2",

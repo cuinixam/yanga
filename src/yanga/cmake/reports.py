@@ -4,8 +4,10 @@ from typing import Any, Optional
 from yanga.cmake.artifacts_locator import CMakeArtifactsLocator
 from yanga.cmake.cmake_backend import CMakeCommand, CMakeComment, CMakeCustomTarget, CMakeElement, CMakePath
 from yanga.cmake.generator import CMakeGenerator
+from yanga.docs.sphinx import SphinxConfig
 from yanga.domain.component_analyzer import ComponentAnalyzer
 from yanga.domain.execution_context import ExecutionContext, UserRequest, UserRequestScope, UserRequestTarget
+from yanga.domain.reports import ReportRelevantFiles, ReportRelevantFileType
 
 
 class ReportCMakeGenerator(CMakeGenerator):
@@ -27,6 +29,7 @@ class ReportCMakeGenerator(CMakeGenerator):
 
     def create_variant_cmake_elements(self) -> list[CMakeElement]:
         elements: list[CMakeElement] = []
+        variant_report_dir = self.artifacts_locator.cmake_variant_reports_dir
         elements.append(
             CMakeCustomTarget(
                 name=UserRequest(
@@ -36,16 +39,30 @@ class ReportCMakeGenerator(CMakeGenerator):
                 description=f"Run sphinx build for variant {self.execution_context.variant_name}",
                 commands=[
                     CMakeCommand(
-                        "sphinx-build",
+                        "${CMAKE_COMMAND}",
                         [
+                            "-E",
+                            "make_directory",
+                            variant_report_dir,
+                        ],
+                    ),
+                    CMakeCommand(
+                        "${CMAKE_COMMAND}",
+                        [
+                            "-E",
+                            "env",
+                            f"{SphinxConfig.REPORT_CONFIGURATION_FILE_ENV_NAME}={self.artifacts_locator.variant_report_config}",
+                            "--",
+                            "sphinx-build",
                             "-E",
                             "-b",
                             "html",
                             self.artifacts_locator.cmake_project_dir,
-                            self.artifacts_locator.cmake_build_dir.joinpath("reports"),
+                            variant_report_dir,
                         ],
                     ),
                 ],
+                depends=[self.artifacts_locator.variant_report_config],
             )
         )
         return elements
@@ -63,11 +80,11 @@ class ReportCMakeGenerator(CMakeGenerator):
                 UserRequestScope.COMPONENT,
                 target=UserRequestTarget.DOCS,
                 component_name=component.name,
-            ).target_name
+            )
 
             elements.append(
                 CMakeCustomTarget(
-                    name=component_docs_target,
+                    name=component_docs_target.target_name,
                     description=f"Generate sources docs for component {component.name}",
                     commands=[
                         CMakeCommand(
@@ -88,42 +105,88 @@ class ReportCMakeGenerator(CMakeGenerator):
                     byproducts=source_files_output_md,
                 )
             )
+
+            # Register the component documentation files as relevant for the component report
+            self.execution_context.data_registry.insert(
+                ReportRelevantFiles(
+                    target=component_docs_target,
+                    files_to_be_included=[source.to_path() for source in docs_source_files],
+                    file_type=ReportRelevantFileType.DOCS,
+                ),
+                component_docs_target.target_name,
+            )
+
+            component_report_target = UserRequest(
+                UserRequestScope.COMPONENT,
+                target=UserRequestTarget.REPORT,
+                component_name=component.name,
+            )
+
+            component_report_dir = self.artifacts_locator.get_component_reports_dir(component.name)
             elements.append(
                 CMakeCustomTarget(
-                    name=UserRequest(
-                        UserRequestScope.COMPONENT,
-                        target=UserRequestTarget.REPORT,
-                        component_name=component.name,
-                    ).target_name,
+                    name=component_report_target.target_name,
                     description=f"Generate report for component {component.name}",
                     commands=[
+                        CMakeCommand(
+                            "${CMAKE_COMMAND}",
+                            [
+                                "-E",
+                                "make_directory",
+                                component_report_dir,
+                            ],
+                        ),
                         CMakeCommand(
                             "yanga_cmd",
                             [
                                 "report_config",
-                                "--scope",
-                                "component",
                                 "--component-name",
                                 component.name,
-                                "--source-files",
-                                *docs_source_files,
-                                "--variant-name",
-                                self.execution_context.variant_name or "MyProject",
                                 "--output-file",
                                 report_config_output_file,
+                                "--variant-report-config",
+                                self.artifacts_locator.variant_report_config,
                             ],
                         ),
                         CMakeCommand(
-                            "sphinx-build",
+                            "${CMAKE_COMMAND}",
                             [
+                                "-E",
+                                "env",
+                                f"REPORT_CONFIGURATION_FILE={report_config_output_file}",
+                                "--",
+                                "sphinx-build",
                                 "-E",
                                 "-b",
                                 "html",
                                 self.artifacts_locator.cmake_project_dir,
-                                self.artifacts_locator.get_component_build_dir(component.name).joinpath("reports"),
+                                component_report_dir,
                             ],
                         ),
                     ],
+                    depends=[
+                        self.artifacts_locator.variant_report_config,
+                        *source_files_output_md,
+                        UserRequest(
+                            UserRequestScope.COMPONENT,
+                            target=UserRequestTarget.LINT,
+                            component_name=component.name,
+                        ).target_name,
+                        UserRequest(
+                            UserRequestScope.COMPONENT,
+                            target=UserRequestTarget.COVERAGE,
+                            component_name=component.name,
+                        ).target_name,
+                    ],
                 )
+            )
+            # Register the component sources md files as relevant for the component report
+            self.execution_context.data_registry.insert(
+                ReportRelevantFiles(
+                    target=component_report_target,
+                    files_to_be_included=[md_output.to_path() for md_output in source_files_output_md],
+                    file_type=ReportRelevantFileType.SOURCES,
+                ),
+                component_report_target.target_name,
             )
         return elements

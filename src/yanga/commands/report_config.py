@@ -9,30 +9,23 @@ It gets from the command line:
 
 from argparse import ArgumentParser, Namespace
 from dataclasses import dataclass, field
-from enum import auto
 from pathlib import Path
 
 from py_app_dev.core.cmd_line import Command, register_arguments_for_config_dataclass
 from py_app_dev.core.logging import logger
 
 from yanga.cmake.generator import GeneratedFile
-from yanga.domain.config import BaseConfigJSONMixin, StringableEnum, stringable_enum_field_metadata
+from yanga.domain.config import BaseConfigJSONMixin
+from yanga.domain.reports import ReportConfig
 
 from .base import create_config
 
 
-class ReportScope(StringableEnum):
-    COMPONENT = auto()
-    VARIANT = auto()
-
-
 @dataclass
 class CommandArgs(BaseConfigJSONMixin):
-    scope: ReportScope = field(metadata=stringable_enum_field_metadata(ReportScope))
-    variant_name: str = field(metadata={"help": "Variant name to report on. Required if scope is 'variant'."})
-    source_files: list[Path] = field(metadata={"help": "Report generation relevant source files."})
+    component_name: str = field(metadata={"help": "Component name to report on. Required if scope is 'component'."})
+    variant_report_config: Path = field(metadata={"help": "Variant report configuration"})
     output_file: Path = field(metadata={"help": "Output file path to store the 'report_config.json'."})
-    component_name: str | None = field(default=None, metadata={"help": "Component name to report on. Required if scope is 'component'."})
 
 
 class ReportConfigCommand(Command):
@@ -42,9 +35,13 @@ class ReportConfigCommand(Command):
 
     def run(self, args: Namespace) -> int:
         self.logger.info(f"Running {self.name} with args {args}")
-        config = create_config(CommandArgs, args)
-        GeneratedFile(config.output_file, config.to_json_string()).to_file()
-        self.logger.info(f"Report configuration written to {config.output_file}")
+        cli_args = create_config(CommandArgs, args)
+        report_config = ReportConfig.from_json_file(cli_args.variant_report_config)
+        # Search in the report_config components the component that has the name and replace the components with the filter one
+        report_config.components = [next(component for component in report_config.components if component.name == cli_args.component_name)]
+        # Update component name to signal that this report config is for a specific component
+        report_config.component_name = cli_args.component_name
+        GeneratedFile(cli_args.output_file, report_config.to_json_string()).to_file()
         return 0
 
     def _register_arguments(self, parser: ArgumentParser) -> None:

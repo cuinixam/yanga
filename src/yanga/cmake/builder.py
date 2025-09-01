@@ -7,6 +7,7 @@ from py_app_dev.core.pipeline import PipelineLoader
 
 from yanga.cmake.artifacts_locator import CMakeArtifactsLocator
 from yanga.domain.execution_context import ExecutionContext
+from yanga.domain.reports import ComponentReportConfig, ReportConfig, ReportRelevantFiles
 
 from .cmake_backend import (
     CMakeMinimumVersion,
@@ -14,7 +15,7 @@ from .cmake_backend import (
     CMakeProject,
     CMakeVariable,
 )
-from .generator import CMakeFile, CMakeGenerator, GeneratedFileIf
+from .generator import CMakeFile, CMakeGenerator, GeneratedFile, GeneratedFileIf
 
 
 class CMakeGeneratorReference:
@@ -49,6 +50,10 @@ class CMakeBuildSystemGenerator:
         return self.cmake_current_list_dir.joinpath("config.cmake")
 
     @property
+    def report_config_file(self) -> CMakePath:
+        return self.artifacts_locator.variant_report_config
+
+    @property
     def variant_name(self) -> str:
         return self.execution_context.variant_name or "MyProject"
 
@@ -56,6 +61,7 @@ class CMakeBuildSystemGenerator:
         files: list[GeneratedFileIf] = []
         files.append(self.create_config_cmake_file())
         files.append(self.create_variant_cmake_file())
+        files.append(self.create_report_config_file())
         return files
 
     def create_cmake_lists(self) -> CMakeFile:
@@ -100,3 +106,25 @@ class CMakeBuildSystemGenerator:
         # configure cmake to generate compile commands
         cmake_file.append(CMakeVariable("CMAKE_EXPORT_COMPILE_COMMANDS", "ON", True, "BOOL", "", True))
         return cmake_file
+
+    def create_report_config_file(self) -> GeneratedFileIf:
+        # Collect all ReportRelevantFiles from the data registry
+        relevant_files_entries = self.execution_context.data_registry.find_data(ReportRelevantFiles)
+
+        # Group report relevant files by component name. Use a default list
+        components_data: dict[str, list[ReportRelevantFiles]] = {}
+        for entry in relevant_files_entries:
+            # Only collect data relevant for components
+            if entry.target.component_name:
+                if components_data.get(entry.target.component_name):
+                    components_data[entry.target.component_name].append(entry)
+                else:
+                    components_data[entry.target.component_name] = [entry]
+
+        config = ReportConfig(
+            variant=self.execution_context.variant_name or "",
+            platform=self.execution_context.platform.name if self.execution_context.platform else "",
+            project_dir=self.execution_context.project_root_dir,
+            components=[ComponentReportConfig(name=component_name, files=files) for component_name, files in components_data.items()],
+        )
+        return GeneratedFile(self.report_config_file.to_path(), config.to_json_string())

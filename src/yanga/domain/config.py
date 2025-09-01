@@ -1,6 +1,4 @@
-import io
 import json
-import traceback
 from dataclasses import dataclass, field
 from enum import Enum, auto
 from pathlib import Path
@@ -197,6 +195,7 @@ class ComponentConfig(DataClassDictMixin):
     required_components: list[str] = field(default_factory=list)
     #: Directory relative to the project root where this component is located
     path: Optional[Path] = None
+
     # This field is intended to keep track of where configuration was loaded from and
     # it is automatically added when configuration is loaded from file
     file: Optional[Path] = None
@@ -212,10 +211,15 @@ class ComponentConfig(DataClassDictMixin):
 
 @dataclass
 class YangaUserConfig(DataClassDictMixin):
+    #: Pipeline steps to execute
     pipeline: Optional[PipelineConfig] = None
+    #: Supported platforms to build for
     platforms: list[PlatformConfig] = field(default_factory=list)
+    #: Software product variants
     variants: list[VariantConfig] = field(default_factory=list)
+    #: Software components that can be used to create variants
     components: list[ComponentConfig] = field(default_factory=list)
+
     # This field is intended to keep track of where the configuration was loaded from and
     # it is automatically added when the configuration is loaded from the file
     file: Optional[Path] = None
@@ -242,16 +246,6 @@ class YangaUserConfig(DataClassDictMixin):
 class BaseConfigJSONMixin(DataClassJSONMixin):
     class Config(BaseConfig):
         code_generation_options: ClassVar[list[str]] = [TO_DICT_ADD_OMIT_NONE_FLAG]
-
-    @classmethod
-    def from_json_file(cls, file_path: Path) -> "BaseConfigJSONMixin":
-        try:
-            result = cls.from_dict(json.loads(file_path.read_text()))
-        except Exception as e:
-            output = io.StringIO()
-            traceback.print_exc(file=output)
-            raise UserNotificationException(output.getvalue()) from e
-        return result
 
     def to_json_string(self) -> str:
         return json.dumps(self.to_dict(omit_none=True), indent=2)

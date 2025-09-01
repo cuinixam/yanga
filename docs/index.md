@@ -6,7 +6,7 @@ sd_hide_title: true
 
 ## YANGA
 
-YANGA is a Python application designed for the **engineering** software product lines, by managing product variants, components, and platforms.
+YANGA is a Python application designed for **engineering** software product lines, by managing product variants, components, and platforms.
 It streamlines the process of building, extending, and deploying software across different platforms and configurations.
 
 ---
