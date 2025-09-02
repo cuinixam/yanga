@@ -1,6 +1,43 @@
 # CHANGELOG
 
 
+## v2.9.0 (2025-09-02)
+
+### Bug Fixes
+
+- Execution context environment is not provided to subprocesses
+  ([`1ce7133`](https://github.com/cuinixam/yanga/commit/1ce71331a5cd76bf65fa8ace18e76b144553c170))
+
+### Features
+
+- Add compile commands filter command
+  ([`829f5d9`](https://github.com/cuinixam/yanga/commit/829f5d903e7c6dd26066878f134e25cbeafdbe4d))
+
+- Add component gcovr configuration generation
+  ([`5047cb1`](https://github.com/cuinixam/yanga/commit/5047cb1a0494693b54edf6968b29236d8fb4a379))
+
+- Add component report generation
+  ([`65410da`](https://github.com/cuinixam/yanga/commit/65410dac709f7affdc88d6e0bb770140cf662376))
+
+- Add cppcheck generator to generate component xml report
+  ([`9f5ddfd`](https://github.com/cuinixam/yanga/commit/9f5ddfdc29892dcdb9ef08e8230b5fa6f7542535))
+
+- Add cppcheck report generator
+  ([`2d0be13`](https://github.com/cuinixam/yanga/commit/2d0be13e2ebe5285bc31a62817a7473b388d7d7d))
+
+- Add reports cmake generator
+  ([`4bd9680`](https://github.com/cuinixam/yanga/commit/4bd96807987776f29657253036889d43070b0abf))
+
+- Generate component coverage html report
+  ([`a1df5b3`](https://github.com/cuinixam/yanga/commit/a1df5b3525b9998f71912f81d6feb6754211bcb8))
+
+- Generate component sources documentation
+  ([`7eb6623`](https://github.com/cuinixam/yanga/commit/7eb6623c7550adcc764080b17725d3c4af9f2691))
+
+- Generate component specific docs config file
+  ([`702be62`](https://github.com/cuinixam/yanga/commit/702be62c01b695b351dc237d0856d0616dbd65a1))
+
+
 ## v2.8.0 (2025-08-24)
 
 ### Features
