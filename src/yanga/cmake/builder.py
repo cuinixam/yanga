@@ -7,7 +7,7 @@ from py_app_dev.core.pipeline import PipelineLoader
 
 from yanga.cmake.artifacts_locator import CMakeArtifactsLocator
 from yanga.domain.execution_context import ExecutionContext
-from yanga.domain.reports import ComponentReportConfig, ReportConfig, ReportRelevantFiles
+from yanga.domain.reports import ComponentReportConfig, ReportConfig, ReportRelevantFiles, VariantReportConfig
 
 from .cmake_backend import (
     CMakeMinimumVersion,
@@ -113,6 +113,7 @@ class CMakeBuildSystemGenerator:
 
         # Group report relevant files by component name. Use a default list
         components_data: dict[str, list[ReportRelevantFiles]] = {}
+        variant_data: list[ReportRelevantFiles] = []
         for entry in relevant_files_entries:
             # Only collect data relevant for components
             if entry.target.component_name:
@@ -120,11 +121,24 @@ class CMakeBuildSystemGenerator:
                     components_data[entry.target.component_name].append(entry)
                 else:
                     components_data[entry.target.component_name] = [entry]
-
+            else:
+                variant_data.append(entry)
         config = ReportConfig(
             variant=self.execution_context.variant_name or "",
             platform=self.execution_context.platform.name if self.execution_context.platform else "",
             project_dir=self.execution_context.project_root_dir,
-            components=[ComponentReportConfig(name=component_name, files=files) for component_name, files in components_data.items()],
+            components=[
+                ComponentReportConfig(
+                    name=component_name,
+                    files=files,
+                    build_dir=self.artifacts_locator.get_component_build_dir(component_name).to_path(),
+                )
+                for component_name, files in components_data.items()
+            ],
         )
+        if variant_data:
+            config.variant_config = VariantReportConfig(
+                files=variant_data,
+                build_dir=self.artifacts_locator.cmake_build_dir.to_path(),
+            )
         return GeneratedFile(self.report_config_file.to_path(), config.to_json_string())

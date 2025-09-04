@@ -25,6 +25,8 @@ class UserRequestTarget(Enum):
     LINT = auto()
     DOCS = auto()
     REPORT = auto()
+    #: These are all results relevant for reports generation (e.g., test results, coverage results, lint results, etc.)
+    RESULTS = auto()
 
     def __str__(self) -> str:
         return self.name.lower()
@@ -35,7 +37,7 @@ class UserRequestScope(Enum):
     COMPONENT = auto()
 
 
-@dataclass
+@dataclass(frozen=True, order=True)
 class UserRequest:
     scope: UserRequestScope
     variant_name: Optional[str] = None

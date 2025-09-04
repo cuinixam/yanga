@@ -21,9 +21,10 @@ def locate_artifact():
 
 
 @pytest.fixture
-def execution_context(locate_artifact: Mock) -> ExecutionContext:
+def execution_context(locate_artifact: Mock, tmp_path: Path) -> ExecutionContext:
     assert locate_artifact, "Fixture locate_artifact is not explicitly used in this fixture, but is required by the fixture chain."
     env = Mock(spec=ExecutionContext)
+    env.project_root_dir = tmp_path
     env.variant_name = "mock_variant"
     env.components = [
         Component(
@@ -40,7 +41,7 @@ def execution_context(locate_artifact: Mock) -> ExecutionContext:
         ),
     ]
     env.include_directories = [Path("/mock/include/dir")]
-    env.create_artifacts_locator.return_value = ProjectArtifactsLocator(Path("/mock/project/root"), "mock_variant", "mock_platform", "mock_build_type")
+    env.create_artifacts_locator.return_value = ProjectArtifactsLocator(tmp_path, "mock_variant", "mock_platform", "mock_build_type")
     env.data_registry = DataRegistry()
     return env
 

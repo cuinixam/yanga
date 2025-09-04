@@ -18,8 +18,10 @@ from typing import Union
 from py_app_dev.core.cmd_line import Command, register_arguments_for_config_dataclass
 from py_app_dev.core.logging import logger
 
+from yanga.cmake.artifacts_locator import ComponentBuildArtifact
 from yanga.cmake.generator import GeneratedFile
 from yanga.domain.config import BaseConfigJSONMixin, StringableEnum
+from yanga.domain.reports import ReportConfig
 
 from .base import create_config
 
@@ -58,7 +60,7 @@ def _deserialize_component_objects(raw: object) -> list[Path]:
 
 
 @dataclass
-class CommandArgs(BaseConfigJSONMixin):
+class ComponentCommandArgs(BaseConfigJSONMixin):
     component_objects: list[Path] = field(
         metadata={
             "help": "List of object files for the component",
@@ -73,14 +75,14 @@ class CommandArgs(BaseConfigJSONMixin):
     )
 
 
-class GcovrConfigCommand(Command):
+class CreateComponentGcovrConfigCommand(Command):
     def __init__(self) -> None:
-        super().__init__("gcovr_config", "Create a component specific gcovr configuration file.")
+        super().__init__("gcovr_config_component", "Create a component specific gcovr configuration file.")
         self.logger = logger.bind()
 
     def run(self, args: Namespace) -> int:
         self.logger.info(f"Running {self.name} with args {args}")
-        config = create_config(CommandArgs, args)
+        config = create_config(ComponentCommandArgs, args)
         if config.component_objects:
             object_directory = config.component_objects[0].parent
         else:
@@ -96,7 +98,40 @@ class GcovrConfigCommand(Command):
         return 0
 
     def _register_arguments(self, parser: ArgumentParser) -> None:
-        register_arguments_for_config_dataclass(parser, CommandArgs)
+        register_arguments_for_config_dataclass(parser, ComponentCommandArgs)
+
+
+@dataclass
+class VariantCommandArgs(BaseConfigJSONMixin):
+    variant_report_config: Path = field(metadata={"help": "Variant report configuration"})
+    output_file: Path = field(metadata={"help": "Output Gcovr configuration file."})
+
+
+class CreateVariantGcovrConfigCommand(Command):
+    def __init__(self) -> None:
+        super().__init__("gcovr_config_variant", "Create a variant gcovr configuration file to collect all components json reports.")
+        self.logger = logger.bind()
+
+    def run(self, args: Namespace) -> int:
+        self.logger.info(f"Running {self.name} with args {args}")
+        config = create_config(VariantCommandArgs, args)
+
+        report_config = ReportConfig.from_json_file(config.variant_report_config)
+
+        # Only include components which have coverage results
+        coverage_json_files = [component.build_dir.joinpath(ComponentBuildArtifact.COVERAGE_JSON.path) for component in report_config.components if component.coverage_results]
+
+        # Create a gcovr config file
+        gcovr_cfg_lines = [
+            f"root = {report_config.project_dir.as_posix()}",
+            *[f"add-tracefile = {coverage_json.as_posix()}" for coverage_json in coverage_json_files],
+        ]
+
+        GeneratedFile(config.output_file, "\n".join(gcovr_cfg_lines) + "\n").to_file()
+        return 0
+
+    def _register_arguments(self, parser: ArgumentParser) -> None:
+        register_arguments_for_config_dataclass(parser, VariantCommandArgs)
 
 
 @dataclass

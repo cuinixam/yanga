@@ -39,6 +39,7 @@ class ReportConfigCommand(Command):
         report_config = ReportConfig.from_json_file(cli_args.variant_report_config)
         # Search in the report_config components the component that has the name and replace the components with the filter one
         report_config.components = [next(component for component in report_config.components if component.name == cli_args.component_name)]
+        report_config.variant_config = None
         # Update component name to signal that this report config is for a specific component
         report_config.component_name = cli_args.component_name
         GeneratedFile(cli_args.output_file, report_config.to_json_string()).to_file()

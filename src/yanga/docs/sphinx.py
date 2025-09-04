@@ -41,24 +41,28 @@ class SphinxReportConfig(ReportConfig):
         content.append("```\n")
         return "\n".join(content)
 
+    def _collect_files_from_config(self, config: Any) -> list[str]:
+        """Helper method to collect and relativize file paths from a configuration object."""
+        content = []
+        file_attributes = ["docs_files", "test_results", "coverage_results", "lint_results", "sources", "other_files"]
+
+        for attr in file_attributes:
+            if hasattr(config, attr):
+                files = getattr(config, attr)
+                for file in files:
+                    content.append(f"{self._relativize_path(file)}")
+        return content
+
     def get_component_files_list(self, component_name: str) -> list[str]:
         component = next((comp for comp in self.components if comp.name == component_name), None)
         if not component:
             return []
-        content = []
-        for file in component.docs_files:
-            content.append(f"{self._relativize_path(file)}")
-        for file in component.test_results:
-            content.append(f"{self._relativize_path(file)}")
-        for file in component.coverage_results:
-            content.append(f"{self._relativize_path(file)}")
-        for file in component.lint_results:
-            content.append(f"{self._relativize_path(file)}")
-        for file in component.sources:
-            content.append(f"{self._relativize_path(file)}")
-        for file in component.other_files:
-            content.append(f"{self._relativize_path(file)}")
-        return content
+        return self._collect_files_from_config(component)
+
+    def get_variant_files_list(self) -> list[str]:
+        if not self.variant_config:
+            return []
+        return self._collect_files_from_config(self.variant_config)
 
     @property
     def say_hello(self) -> str:

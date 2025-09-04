@@ -5,7 +5,7 @@ from typing import Any, Optional
 
 from mashumaro import DataClassDictMixin
 
-from yanga.cmake.artifacts_locator import CMakeArtifactsLocator
+from yanga.cmake.artifacts_locator import CMakeArtifactsLocator, ComponentBuildArtifact
 from yanga.domain.component_analyzer import ComponentAnalyzer
 from yanga.domain.components import Component
 from yanga.domain.config import MockingConfiguration
@@ -34,6 +34,14 @@ from .cmake_backend import (
     CMakeVariable,
 )
 from .generator import CMakeGenerator
+
+
+@dataclass
+class CoverageRelevantFile:
+    """Used to register files relevant for the merged coverage report."""
+
+    target: UserRequest
+    json_report: CMakePath
 
 
 class GTestCMakeArtifactsLocator(CMakeArtifactsLocator):
@@ -179,7 +187,7 @@ class CMakeMockupCreator:
                 ).target_name,
                 f"Generate mockup sources for {self.gtest_cmake_component.name}",
                 [],
-                generate_mockup_cmake_cmd.outputs,  # type: ignore
+                generate_mockup_cmake_cmd.outputs,
             )
         )
         return elements
@@ -232,7 +240,6 @@ class GTestComponentCMakeGenerator:
         if not component_generator_config.use_global_includes:
             include_dirs: list[CMakePath] = gtest_cmake_component.get_include_directories()
             # Add the component-specific build directory for the component to find the generated mockup sources
-            component_build_dir = self.artifacts_locator.get_component_build_dir(component.name)
             include_dirs.append(component_build_dir)
             if include_dirs:
                 # Determine visibility: use PRIVATE for executables with sources, INTERFACE for header-only
@@ -258,7 +265,7 @@ class GTestComponentCMakeGenerator:
                 name=component_coverage_target.target_name,
                 description=f"Generate coverage report for {component.name}",
                 commands=[],
-                depends=coverage_cmd.outputs,  # type: ignore
+                depends=coverage_cmd.outputs,
             )
         )
 
@@ -266,10 +273,16 @@ class GTestComponentCMakeGenerator:
         self.execution_context.data_registry.insert(
             ReportRelevantFiles(
                 target=component_coverage_target,
-                files_to_be_included=[
-                    component_build_dir.joinpath("coverage.md").to_path(),
-                ],
+                files_to_be_included=[self.artifacts_locator.get_component_build_artifact(component.name, ComponentBuildArtifact.COVERAGE_DOC).to_path()],
                 file_type=ReportRelevantFileType.COVERAGE_RESULT,
+            ),
+            component_coverage_target.target_name,
+        )
+        # Register the component coverage json report as relevant for the merged coverage report
+        self.execution_context.data_registry.insert(
+            CoverageRelevantFile(
+                target=component_coverage_target,
+                json_report=self.artifacts_locator.get_component_build_artifact(component.name, ComponentBuildArtifact.COVERAGE_JSON),
             ),
             component_coverage_target.target_name,
         )
@@ -289,7 +302,7 @@ class GTestComponentCMakeGenerator:
                     ).target_name,
                     f"Execute tests for {component.name}",
                     [],
-                    execute_tests_command.outputs,  # type: ignore
+                    execute_tests_command.outputs,
                     True,
                 ),
                 CMakeCustomTarget(
@@ -300,7 +313,7 @@ class GTestComponentCMakeGenerator:
                     ).target_name,
                     f"Execute tests for {component.name}",
                     [],
-                    execute_tests_command.outputs,  # type: ignore
+                    execute_tests_command.outputs,
                     True,
                 ),
             ]
@@ -360,8 +373,8 @@ class GTestComponentCMakeGenerator:
     def create_coverage_report(self, component_name: str, execute_tests_command: CMakeCustomCommand, sources: list[Path]) -> CMakeCustomCommand:
         component_build_dir = self.artifacts_locator.get_component_build_dir(component_name)
         gcovr_config_file = component_build_dir.joinpath("gcovr.cfg")
-        gcovr_json_file = component_build_dir.joinpath("coverage.json")
-        coverage_doc_file = component_build_dir.joinpath("coverage.md")
+        gcovr_json_file = self.artifacts_locator.get_component_build_artifact(component_name, ComponentBuildArtifact.COVERAGE_JSON)
+        coverage_doc_file = self.artifacts_locator.get_component_build_artifact(component_name, ComponentBuildArtifact.COVERAGE_DOC)
         # We need to generate the html report in a subdirectory to be able to link it relatively from the markdown file
         coverage_doc_file_relative_path = coverage_doc_file.to_path().relative_to(self.artifacts_locator.project_root_dir).parent.as_posix()
         gcovr_html_dir = self.artifacts_locator.get_component_reports_dir(component_name).joinpath(coverage_doc_file_relative_path).joinpath("coverage")
@@ -370,12 +383,12 @@ class GTestComponentCMakeGenerator:
         return CMakeCustomCommand(
             description=f"Generate coverage report for component {component_name}",
             outputs=[gcovr_config_file, gcovr_json_file, gcovr_html_file, coverage_doc_file],
-            depends=execute_tests_command.outputs,  # type: ignore
+            depends=execute_tests_command.outputs,
             commands=[
                 CMakeCommand(
                     "yanga_cmd",
                     [
-                        "gcovr_config",
+                        "gcovr_config_component",
                         "--component-objects",
                         f"$<TARGET_OBJECTS:{component_name}>",
                         "--source-files",
@@ -447,11 +460,12 @@ class GTestCMakeGenerator(CMakeGenerator):
     def generate(self) -> list[CMakeElement]:
         elements: list[CMakeElement] = []
         elements.append(CMakeComment(f"Generated by {self.__class__.__name__}"))
-        elements.extend(self.create_variant_cmake_elements())
+        elements.extend(self.create_gtest_integration_cmake_elements())
         elements.extend(self.create_components_cmake_elements())
+        elements.extend(self.create_variant_cmake_elements())
         return elements
 
-    def create_variant_cmake_elements(self) -> list[CMakeElement]:
+    def create_gtest_integration_cmake_elements(self) -> list[CMakeElement]:
         elements: list[CMakeElement] = []
         elements.append(CMakeVariable("CMAKE_CXX_STANDARD", "14"))
         elements.append(CMakeVariable("CMAKE_CXX_STANDARD_REQUIRED", "ON"))
@@ -489,4 +503,75 @@ class GTestCMakeGenerator(CMakeGenerator):
         component_generator = GTestComponentCMakeGenerator(self.execution_context, self.output_dir, self.config_obj)
         for component in self.execution_context.components:
             elements.extend(component_generator.generate(component))
+        return elements
+
+    def create_variant_cmake_elements(self) -> list[CMakeElement]:
+        elements: list[CMakeElement] = []
+        # Collect all coverage json reports for the variant coverage report
+        coverage_relevant_json_reports = [entry.json_report for entry in self.execution_context.data_registry.find_data(CoverageRelevantFile)]
+        gcovr_config_file = self.artifacts_locator.cmake_build_dir.joinpath("gcovr.cfg")
+        coverage_doc_file = self.artifacts_locator.get_build_artifact(ComponentBuildArtifact.COVERAGE_DOC)
+        # We need to generate the html report in a subdirectory to be able to link it relatively from the markdown file
+        coverage_doc_file_relative_path = coverage_doc_file.to_path().relative_to(self.artifacts_locator.project_root_dir).parent.as_posix()
+        gcovr_html_dir = self.artifacts_locator.cmake_variant_reports_dir.joinpath(coverage_doc_file_relative_path).joinpath("coverage")
+        gcovr_html_file = gcovr_html_dir.joinpath("index.html")
+
+        coverage_cmd = CMakeCustomCommand(
+            description="Generate coverage report for the variant",
+            outputs=[gcovr_config_file, coverage_doc_file, gcovr_html_file],
+            depends=coverage_relevant_json_reports,
+            commands=[
+                CMakeCommand(
+                    "yanga_cmd",
+                    [
+                        "gcovr_config_variant",
+                        "--variant-report-config",
+                        self.artifacts_locator.variant_report_config,
+                        "--output-file",
+                        gcovr_config_file,
+                    ],
+                ),
+                CMakeCommand(
+                    "yanga_cmd",
+                    [
+                        "gcovr_doc",
+                        "--output-file",
+                        coverage_doc_file,
+                    ],
+                ),
+                CMakeCommand(
+                    "gcovr",
+                    [
+                        "--config",
+                        gcovr_config_file,
+                        "--html",
+                        "--html-details",
+                        "--output",
+                        gcovr_html_file,
+                    ],
+                ),
+            ],
+        )
+        elements.append(coverage_cmd)
+        variant_coverage_target = UserRequest(
+            UserRequestScope.VARIANT,
+            target=UserRequestTarget.COVERAGE,
+        )
+        elements.append(
+            CMakeCustomTarget(
+                name=variant_coverage_target.target_name,
+                description="Generate variant coverage report",
+                commands=[],
+                depends=coverage_cmd.outputs,
+            )
+        )
+        # Register the variant coverage md report as relevant for the variant report
+        self.execution_context.data_registry.insert(
+            ReportRelevantFiles(
+                target=variant_coverage_target,
+                files_to_be_included=[coverage_doc_file.to_path()],
+                file_type=ReportRelevantFileType.COVERAGE_RESULT,
+            ),
+            variant_coverage_target.target_name,
+        )
         return elements

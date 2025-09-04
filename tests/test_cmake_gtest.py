@@ -34,7 +34,7 @@ def test_generate(gtest_cmake_generator: GTestCMakeGenerator) -> None:
 def test_create_variant_cmake_elements(
     gtest_cmake_generator: GTestCMakeGenerator,
 ) -> None:
-    elements = gtest_cmake_generator.create_variant_cmake_elements()
+    elements = gtest_cmake_generator.create_gtest_integration_cmake_elements()
     assert elements
 
 
@@ -95,7 +95,7 @@ def test_automock_disabled_generates_no_mock_targets(execution_context: Executio
 def test_use_global_includes_disabled_generates_no_global_include_directories(execution_context: ExecutionContext, output_dir: Path) -> None:
     """Verify that when use_global_includes is disabled, no global include directories are generated."""
     # Global include directories should not be generated in the variant elements
-    variant_elements = GTestCMakeGenerator(execution_context, output_dir, {"use_global_includes": False}).create_variant_cmake_elements()
+    variant_elements = GTestCMakeGenerator(execution_context, output_dir, {"use_global_includes": False}).create_gtest_integration_cmake_elements()
 
     # Check that no CMakeIncludeDirectories is present in variant elements
     include_directories = find_elements_of_type(variant_elements, CMakeIncludeDirectories)
@@ -105,7 +105,7 @@ def test_use_global_includes_disabled_generates_no_global_include_directories(ex
 def test_use_global_includes_enabled_generates_global_include_directories(execution_context: ExecutionContext, output_dir: Path) -> None:
     """Verify that when use_global_includes is enabled (default), global include directories are generated."""
     # Global include directories should be generated in the variant elements
-    variant_elements = GTestCMakeGenerator(execution_context, output_dir, {"use_global_includes": True}).create_variant_cmake_elements()
+    variant_elements = GTestCMakeGenerator(execution_context, output_dir, {"use_global_includes": True}).create_gtest_integration_cmake_elements()
 
     # Check that CMakeIncludeDirectories is present in variant elements
     include_directories = find_elements_of_type(variant_elements, CMakeIncludeDirectories)

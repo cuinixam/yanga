@@ -47,11 +47,11 @@ class ReportRelevantFiles(BaseConfigJSONMixin):
 
 
 @dataclass
-class ComponentReportConfig(BaseConfigJSONMixin):
-    """Configuration for a single component to be used by the report generation tools (e.g., Sphinx)."""
+class VariantReportConfig(BaseConfigJSONMixin):
+    """Variant configuration to be used by the report generation tools (e.g., Sphinx)."""
 
-    name: str
     files: list[ReportRelevantFiles]
+    build_dir: Path
 
     @property
     def docs_files(self) -> list[Path]:
@@ -92,6 +92,13 @@ class ComponentReportConfig(BaseConfigJSONMixin):
 
 
 @dataclass
+class ComponentReportConfig(VariantReportConfig):
+    """Configuration for a single component to be used by the report generation tools (e.g., Sphinx)."""
+
+    name: str
+
+
+@dataclass
 class ReportConfig(BaseConfigJSONMixin):
     """Configuration use by the report generation tools (e.g., Sphinx)."""
 
@@ -101,6 +108,7 @@ class ReportConfig(BaseConfigJSONMixin):
     # Updated only for single component reports
     component_name: str | None = None
     components: list[ComponentReportConfig] = field(default_factory=list)
+    variant_config: VariantReportConfig | None = None
 
     @property
     def has_component_scope(self) -> bool:
@@ -120,5 +128,7 @@ class ReportConfig(BaseConfigJSONMixin):
         result = []
         for comp in self.components:
             result.extend(comp.all_files)
+        if self.variant_config:
+            result.extend(self.variant_config.all_files)
         # Make result unique and keep order
         return list(dict.fromkeys(result))

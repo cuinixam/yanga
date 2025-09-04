@@ -1,7 +1,7 @@
 from pathlib import Path
 from typing import Any, Optional
 
-from yanga.cmake.artifacts_locator import CMakeArtifactsLocator
+from yanga.cmake.artifacts_locator import CMakeArtifactsLocator, ComponentBuildArtifact
 from yanga.cmake.cmake_backend import CMakeCommand, CMakeComment, CMakeCustomCommand, CMakeCustomTarget, CMakeElement, CMakePath
 from yanga.cmake.generator import CMakeGenerator
 from yanga.domain.component_analyzer import ComponentAnalyzer
@@ -80,7 +80,7 @@ class CppCheckCMakeGenerator(CMakeGenerator):
         for component in self.execution_context.components:
             component_analyzer = ComponentAnalyzer([component], self.execution_context.create_artifacts_locator())
             sources = component_analyzer.collect_sources()
-            component_compile_commands_file = self.artifacts_locator.get_component_compile_commands(component.name)
+            component_compile_commands_file = self.artifacts_locator.get_component_build_artifact(component.name, ComponentBuildArtifact.COMPILE_COMMANDS)
             xml_report_file = self.artifacts_locator.get_component_build_dir(component.name).joinpath("cppcheck_report.xml")
             md_report_file = self.artifacts_locator.get_component_build_dir(component.name).joinpath("cppcheck_report.md")
 

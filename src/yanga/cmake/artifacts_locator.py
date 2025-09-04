@@ -1,7 +1,18 @@
+from enum import Enum
 from pathlib import Path
 
 from yanga.cmake.cmake_backend import CMakePath
 from yanga.domain.execution_context import ExecutionContext
+
+
+class ComponentBuildArtifact(Enum):
+    REPORT_CONFIG = "report_config.json"
+    COMPILE_COMMANDS = "component_compile_commands.json"
+    COVERAGE_JSON = "coverage.json"
+    COVERAGE_DOC = "coverage.md"
+
+    def __init__(self, path: str) -> None:
+        self.path = path
 
 
 class CMakeArtifactsLocator:
@@ -26,8 +37,8 @@ class CMakeArtifactsLocator:
     def get_component_reports_dir(self, component_name: str) -> CMakePath:
         return self.get_component_build_dir(component_name).joinpath("reports")
 
-    def get_component_compile_commands(self, component_name: str) -> CMakePath:
-        return self.get_component_build_dir(component_name).joinpath("component_compile_commands.json")
+    def get_build_artifact(self, artifact: ComponentBuildArtifact) -> CMakePath:
+        return self.cmake_build_dir.joinpath(artifact.path)
 
-    def get_component_report_config(self, component_name: str) -> CMakePath:
-        return self.get_component_build_dir(component_name).joinpath("report_config.json")
+    def get_component_build_artifact(self, component_name: str, artifact: ComponentBuildArtifact) -> CMakePath:
+        return self.get_component_build_dir(component_name).joinpath(artifact.path)

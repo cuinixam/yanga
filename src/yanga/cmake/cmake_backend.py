@@ -1,4 +1,5 @@
 from abc import ABC, abstractmethod
+from collections.abc import Sequence
 from dataclasses import dataclass, field
 from enum import Enum, auto
 from pathlib import Path
@@ -302,7 +303,7 @@ class CMakeExecuteProcess(CMakeElement):
 
 
 class CMakeDepends(CMakeElement):
-    def __init__(self, depends: list[str | CMakePath]) -> None:
+    def __init__(self, depends: Sequence[str | CMakePath]) -> None:
         super().__init__()
         self.depends = depends
 
@@ -323,7 +324,7 @@ class CMakeByproducts(CMakeElement):
 class CMakeCustomCommand(CMakeElement):
     description: str
     outputs: list[CMakePath]
-    depends: list[str | CMakePath]
+    depends: Sequence[str | CMakePath]
     commands: list[CMakeCommand]
 
     def to_string(self) -> str:
@@ -348,7 +349,7 @@ class CMakeCustomTarget(CMakeElement):
         name: str,
         description: str,
         commands: list[CMakeCommand],
-        depends: Optional[list[str | CMakePath]] = None,
+        depends: Optional[Sequence[str | CMakePath]] = None,
         default_target: bool = False,
         byproducts: Optional[list[CMakePath]] = None,
     ) -> None:
