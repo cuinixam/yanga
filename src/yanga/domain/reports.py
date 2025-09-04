@@ -12,14 +12,24 @@ from .execution_context import UserRequest
 
 
 class ReportRelevantFileType(StringableEnum):
-    """Describes the type of files relevant for reports generation."""
+    """
+    Describes the type of files relevant for reports generation.
 
+    These are all Markdown or reStructuredText files to be included in the report.
+    The exception are the HTML files, which are copied as-is.
+    """
+
+    #: Component documentation files (e.g., reStructuredText or Markdown files)
     DOCS = auto()
+    #: Component source files documentation that shall be included in the report
     SOURCES = auto()
     TEST_RESULT = auto()
     LINT_RESULT = auto()
     COVERAGE_RESULT = auto()
+    #: These are files that do not fit in any of the other categories but are still relevant for the report
     OTHER = auto()
+    #: Generated html files that are relevant for the report and shall be copied as-is
+    HTML = auto()
 
 
 @dataclass

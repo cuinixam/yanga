@@ -16,6 +16,10 @@ class CMakeArtifactsLocator:
         self.compile_commands_file = self.cmake_build_dir.joinpath("compile_commands.json")
         self.variant_report_config = self.cmake_build_dir.joinpath("report_config.json")
 
+    @property
+    def project_root_dir(self) -> Path:
+        return self.artifacts_locator.project_root_dir
+
     def get_component_build_dir(self, component_name: str) -> CMakePath:
         return self.cmake_build_dir.joinpath(component_name)
 

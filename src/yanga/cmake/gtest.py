@@ -15,6 +15,7 @@ from yanga.domain.execution_context import (
     UserRequestScope,
     UserRequestTarget,
 )
+from yanga.domain.reports import ReportRelevantFiles, ReportRelevantFileType
 
 from .cmake_backend import (
     CMakeAddExecutable,
@@ -246,17 +247,31 @@ class GTestComponentCMakeGenerator:
         # Generate coverage report
         coverage_cmd = self.create_coverage_report(component.name, execute_tests_command, productive_sources)
         elements.append(coverage_cmd)
+        component_coverage_target = UserRequest(
+            UserRequestScope.COMPONENT,
+            component_name=component.name,
+            target=UserRequestTarget.COVERAGE,
+        )
+
         elements.append(
             CMakeCustomTarget(
-                name=UserRequest(
-                    UserRequestScope.COMPONENT,
-                    component_name=component.name,
-                    target=UserRequestTarget.COVERAGE,
-                ).target_name,
+                name=component_coverage_target.target_name,
                 description=f"Generate coverage report for {component.name}",
                 commands=[],
                 depends=coverage_cmd.outputs,  # type: ignore
             )
+        )
+
+        # Register the component coverage md report as relevant for the component report
+        self.execution_context.data_registry.insert(
+            ReportRelevantFiles(
+                target=component_coverage_target,
+                files_to_be_included=[
+                    component_build_dir.joinpath("coverage.md").to_path(),
+                ],
+                file_type=ReportRelevantFileType.COVERAGE_RESULT,
+            ),
+            component_coverage_target.target_name,
         )
 
         # Create the component mockup sources
@@ -344,14 +359,17 @@ class GTestComponentCMakeGenerator:
 
     def create_coverage_report(self, component_name: str, execute_tests_command: CMakeCustomCommand, sources: list[Path]) -> CMakeCustomCommand:
         component_build_dir = self.artifacts_locator.get_component_build_dir(component_name)
-        component_reports_dir = self.artifacts_locator.get_component_reports_dir(component_name)
         gcovr_config_file = component_build_dir.joinpath("gcovr.cfg")
         gcovr_json_file = component_build_dir.joinpath("coverage.json")
-        gcovr_html_dir = component_reports_dir.joinpath("coverage")
+        coverage_doc_file = component_build_dir.joinpath("coverage.md")
+        # We need to generate the html report in a subdirectory to be able to link it relatively from the markdown file
+        coverage_doc_file_relative_path = coverage_doc_file.to_path().relative_to(self.artifacts_locator.project_root_dir).parent.as_posix()
+        gcovr_html_dir = self.artifacts_locator.get_component_reports_dir(component_name).joinpath(coverage_doc_file_relative_path).joinpath("coverage")
         gcovr_html_file = gcovr_html_dir.joinpath("index.html")
+
         return CMakeCustomCommand(
             description=f"Generate coverage report for component {component_name}",
-            outputs=[gcovr_config_file, gcovr_json_file, gcovr_html_file],
+            outputs=[gcovr_config_file, gcovr_json_file, gcovr_html_file, coverage_doc_file],
             depends=execute_tests_command.outputs,  # type: ignore
             commands=[
                 CMakeCommand(
@@ -364,6 +382,14 @@ class GTestComponentCMakeGenerator:
                         *[CMakePath(src) for src in sources],
                         "--output-file",
                         gcovr_config_file,
+                    ],
+                ),
+                CMakeCommand(
+                    "yanga_cmd",
+                    [
+                        "gcovr_doc",
+                        "--output-file",
+                        coverage_doc_file,
                     ],
                 ),
                 CMakeCommand(

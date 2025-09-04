@@ -7,6 +7,7 @@ It gets from the command line:
 - output path
 """
 
+import textwrap
 from argparse import ArgumentParser, Namespace
 from collections.abc import Iterator
 from dataclasses import dataclass, field
@@ -72,7 +73,7 @@ class CommandArgs(BaseConfigJSONMixin):
     )
 
 
-class GcovConfigCommand(Command):
+class GcovrConfigCommand(Command):
     def __init__(self) -> None:
         super().__init__("gcovr_config", "Create a component specific gcovr configuration file.")
         self.logger = logger.bind()
@@ -96,3 +97,32 @@ class GcovConfigCommand(Command):
 
     def _register_arguments(self, parser: ArgumentParser) -> None:
         register_arguments_for_config_dataclass(parser, CommandArgs)
+
+
+@dataclass
+class DocCommandArgs(BaseConfigJSONMixin):
+    output_file: Path = field(
+        metadata={"help": "Output doc file."},
+    )
+
+
+class GcovrDocCommand(Command):
+    def __init__(self) -> None:
+        super().__init__("gcovr_doc", "Create a component documentation file to include the gcovr generated report.")
+        self.logger = logger.bind()
+
+    def run(self, args: Namespace) -> int:
+        self.logger.info(f"Running {self.name} with args {args}")
+        config = create_config(DocCommandArgs, args)
+        GeneratedFile(
+            config.output_file,
+            textwrap.dedent("""\
+                        # Code Coverage
+
+                        <a href="./coverage/index.html">Report</a>
+                        """),
+        ).to_file()
+        return 0
+
+    def _register_arguments(self, parser: ArgumentParser) -> None:
+        register_arguments_for_config_dataclass(parser, DocCommandArgs)
