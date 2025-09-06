@@ -56,10 +56,26 @@ def test_cmake_library():
     assert cmake_library.to_string() == "add_library(test_lib OBJECT lib1.cpp lib2.cpp)"
 
 
+def test_cmake_library_with_compile_options():
+    files = [Path("lib1.cpp"), Path("lib2.cpp")]
+    compile_options = ["-ggdb", "--coverage"]
+    cmake_library = CMakeLibrary("test", files, compile_options=compile_options)
+    expected = "add_library(test_lib OBJECT lib1.cpp lib2.cpp)\ntarget_compile_options(test_lib PRIVATE -ggdb --coverage)"
+    assert cmake_library.to_string() == expected
+
+
 def test_cmake_object_library():
     files = [Path("obj1.cpp"), Path("obj2.cpp")]
     cmake_object_library = CMakeObjectLibrary("obj", files)
     assert cmake_object_library.to_string() == "add_library(obj_lib OBJECT obj1.cpp obj2.cpp)"
+
+
+def test_cmake_object_library_with_compile_options():
+    files = [Path("obj1.cpp"), Path("obj2.cpp")]
+    compile_options = ["-O2", "-Wall"]
+    cmake_object_library = CMakeObjectLibrary("obj", files, compile_options=compile_options)
+    expected = "add_library(obj_lib OBJECT obj1.cpp obj2.cpp)\ntarget_compile_options(obj_lib PRIVATE -O2 -Wall)"
+    assert cmake_object_library.to_string() == expected
 
 
 def test_cmake_path():

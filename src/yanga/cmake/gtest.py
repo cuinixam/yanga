@@ -219,7 +219,14 @@ class GTestComponentCMakeGenerator:
         productive_sources = component_analyzer.collect_sources()
 
         # Always create the component productive sources object library
-        component_sources_object_library = CMakeObjectLibrary(gtest_cmake_component.partial_link_name, productive_sources)
+        component_sources_object_library = CMakeObjectLibrary(
+            name=gtest_cmake_component.partial_link_name,
+            files=productive_sources,
+            compile_options=[
+                "-ggdb",  # Include detailed debug information to be able to debug the executable.
+                "--coverage",  # Enable coverage tracking information to be generated.
+            ],
+        )
         elements.append(component_sources_object_library)
         # Add include directories specific to this component plus the component build dir to find generated mockup sources
         include_dirs: list[CMakePath] = [component_build_dir, *gtest_cmake_component.get_include_directories()]
@@ -263,7 +270,7 @@ class GTestComponentCMakeGenerator:
             elements.append(execute_tests_command)
 
             # Generate coverage report
-            coverage_cmd = self.create_coverage_report(component.name, execute_tests_command, productive_sources)
+            coverage_cmd = self.create_coverage_report(component.name, execute_tests_command, productive_sources, component_sources_object_library.target_name)
             elements.append(coverage_cmd)
             component_coverage_target = UserRequest(
                 UserRequestScope.COMPONENT,
@@ -350,14 +357,13 @@ class GTestComponentCMakeGenerator:
 
     def add_executable(self, component_name: str, sources: list[Path], component_object_library: str) -> CMakeAddExecutable:
         return CMakeAddExecutable(
-            f"{component_name}",
-            [CMakePath(source) for source in sources],
-            ["GTest::gtest_main", "GTest::gmock_main", "pthread", component_object_library],
-            [
+            name=f"{component_name}",
+            sources=[CMakePath(source) for source in sources],
+            libraries=["GTest::gtest_main", "GTest::gmock_main", "pthread", component_object_library],
+            compile_options=[
                 "-ggdb",  # Include detailed debug information to be able to debug the executable.
-                "--coverage",  # Enable coverage tracking information to be generated.
             ],
-            ["--coverage"],  # Enable coverage analysis.
+            link_options=["--coverage"],  # Enable coverage analysis.
         )
 
     def run_executable(self, component_name: str, component_executable_name: str) -> CMakeCustomCommand:
@@ -383,7 +389,13 @@ class GTestComponentCMakeGenerator:
             [command],
         )
 
-    def create_coverage_report(self, component_name: str, execute_tests_command: CMakeCustomCommand, sources: list[Path]) -> CMakeCustomCommand:
+    def create_coverage_report(
+        self,
+        component_name: str,
+        execute_tests_command: CMakeCustomCommand,
+        sources: list[Path],
+        component_object_library: str,
+    ) -> CMakeCustomCommand:
         component_build_dir = self.artifacts_locator.get_component_build_dir(component_name)
         gcovr_config_file = component_build_dir.joinpath("gcovr.cfg")
         gcovr_json_file = self.artifacts_locator.get_component_build_artifact(component_name, BuildArtifact.COVERAGE_JSON)
@@ -403,7 +415,7 @@ class GTestComponentCMakeGenerator:
                     [
                         "gcovr_config_component",
                         "--component-objects",
-                        f"$<TARGET_OBJECTS:{component_name}>",
+                        f"$<TARGET_OBJECTS:{component_object_library}>",
                         "--source-files",
                         *[CMakePath(src) for src in sources],
                         "--output-file",

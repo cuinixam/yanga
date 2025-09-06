@@ -79,6 +79,10 @@ class ReportCMakeGenerator(CMakeGenerator):
                     UserRequest(UserRequestScope.COMPONENT, target=UserRequestTarget.RESULTS, component_name=component.name).target_name
                     for component in self.execution_context.components
                 ],
+                UserRequest(
+                    UserRequestScope.VARIANT,
+                    target=UserRequestTarget.COVERAGE,
+                ).target_name,
             ],
         )
         elements.append(results_target)

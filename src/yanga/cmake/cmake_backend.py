@@ -72,25 +72,33 @@ class CMakeLibrary(CMakeElement):
         name: str,
         files: list[Path] | None = None,
         type: LibraryType = LibraryType.OBJECT,
+        compile_options: list[str] | None = None,
     ) -> None:
         self.name = name
         self.files = files if files else []
         self.type = type
+        self.compile_options = compile_options if compile_options else []
 
     @property
     def target_name(self) -> str:
         return f"{self.name}_lib"
 
     def to_string(self) -> str:
-        return f"add_library({self.target_name} {self.type.name} {self._get_files_string()})"
+        content = f"add_library({self.target_name} {self.type.name} {self._get_files_string()})"
+        if self.compile_options:
+            content += "\n" + self._add_compile_options()
+        return content
 
     def _get_files_string(self) -> str:
         return " ".join([file.as_posix() for file in self.files])
 
+    def _add_compile_options(self) -> str:
+        return f"target_compile_options({self.target_name} PRIVATE " + " ".join(self.compile_options) + ")"
+
 
 class CMakeObjectLibrary(CMakeLibrary):
-    def __init__(self, name: str, files: list[Path] | None = None) -> None:
-        super().__init__(name, files, LibraryType.OBJECT)
+    def __init__(self, name: str, files: list[Path] | None = None, compile_options: list[str] | None = None) -> None:
+        super().__init__(name, files, LibraryType.OBJECT, compile_options)
 
 
 @dataclass

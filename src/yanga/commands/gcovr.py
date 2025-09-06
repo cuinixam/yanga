@@ -7,6 +7,7 @@ It gets from the command line:
 - output path
 """
 
+import os
 import textwrap
 from argparse import ArgumentParser, Namespace
 from collections.abc import Iterator
@@ -83,14 +84,15 @@ class CreateComponentGcovrConfigCommand(Command):
     def run(self, args: Namespace) -> int:
         self.logger.info(f"Running {self.name} with args {args}")
         config = create_config(ComponentCommandArgs, args)
+        # Determine the object directory as the common parent of the object files
         if config.component_objects:
-            object_directory = config.component_objects[0].parent
+            object_directory = os.path.commonpath([obj.parent for obj in config.component_objects])
         else:
             self.logger.error("No component object files provided.")
             return 1
         # Create a gcovr config file
         gcovr_cfg_lines = [
-            f"root = {object_directory.as_posix()}",
+            f"root = {Path(object_directory).as_posix()}",
             *[f"filter = {source_file.as_posix()}" for source_file in config.source_files],
         ]
 
