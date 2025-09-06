@@ -94,7 +94,6 @@ class GTestCMakeComponent:
         return self.component_analyzer.is_testable()
 
     def get_include_directories(self) -> list[CMakePath]:
-        """TODO: Every component shall define its own dependencies. Collecting all include directories is not correct."""
         collector = ComponentAnalyzer(
             self.execution_context.components,
             self.execution_context.create_artifacts_locator(),
@@ -104,34 +103,31 @@ class GTestCMakeComponent:
 
 
 class CMakeMockupCreator:
-    def __init__(self, gtest_cmake_component: GTestCMakeComponent, artifacts_locator: GTestCMakeArtifactsLocator, mocking_config: Optional[MockingConfiguration]):
+    def __init__(
+        self,
+        gtest_cmake_component: GTestCMakeComponent,
+        component_object_library_target: str,
+        artifacts_locator: GTestCMakeArtifactsLocator,
+        mocking_config: Optional[MockingConfiguration],
+    ):
         self.artifacts_locator = artifacts_locator
         self.gtest_cmake_component = gtest_cmake_component
         self.mocking_config = mocking_config
+        self.component_object_library_target = component_object_library_target
 
     def generate(self) -> list[CMakeElement]:
         elements: list[CMakeElement] = []
         # Create the partial link library containing only the productive sources to be able to find the required mocks
         sources = [CMakePath(source) for source in self.gtest_cmake_component.component_analyzer.collect_sources()]
-        component_sources_object_library = CMakeObjectLibrary(self.gtest_cmake_component.partial_link_name, self.gtest_cmake_component.component_analyzer.collect_sources())
-        elements.append(component_sources_object_library)
-        # Add include directories specific to this component
-        include_dirs: list[CMakePath] = self.gtest_cmake_component.get_include_directories()
         # Add the component-specific build directory for the component to find the generated mockup sources
         component_build_dir = self.artifacts_locator.get_component_build_dir(self.gtest_cmake_component.name)
-        include_dirs.append(component_build_dir)
-        if include_dirs:
-            # Determine visibility: use PRIVATE for libraries with sources, INTERFACE for header-only
-            visibility = "INTERFACE" if not sources else "PRIVATE"
-            target_includes = CMakeTargetIncludeDirectories(component_sources_object_library.target_name, include_dirs, visibility)
-            elements.append(target_includes)
         # Custom command to create the partial link library
         partial_link_obj = component_build_dir.joinpath(f"{self.gtest_cmake_component.partial_link_name}.o")
         custom_command = CMakeCustomCommand(
-            "Create partial link library containing only the productive sources",
-            [partial_link_obj],
-            [component_sources_object_library.target_name],
-            [
+            description="Create partial link library containing only the productive sources",
+            outputs=[partial_link_obj],
+            depends=[self.component_object_library_target],
+            commands=[
                 CMakeCommand(
                     "${CMAKE_CXX_COMPILER}",
                     [
@@ -139,7 +135,7 @@ class CMakeMockupCreator:
                         "-nostdlib",
                         "-o",
                         partial_link_obj,
-                        f"$<TARGET_OBJECTS:{component_sources_object_library.target_name}>",
+                        f"$<TARGET_OBJECTS:{self.component_object_library_target}>",
                     ],
                 )
             ],
@@ -212,44 +208,56 @@ class GTestComponentCMakeGenerator:
     def generate(self, component: Component) -> list[CMakeElement]:
         component_generator_config = self._determine_component_generator_config(component)
 
+        component_build_dir = self.artifacts_locator.get_component_build_dir(component.name)
         gtest_cmake_component = GTestCMakeComponent(component, self.execution_context)
         component_analyzer = gtest_cmake_component.component_analyzer
-        mockup_generator = None
-        if component_generator_config.automock:
-            mockup_generator = CMakeMockupCreator(gtest_cmake_component, self.artifacts_locator, component_generator_config.mocking)
+
         elements: list[CMakeElement] = []
         elements.append(CMakeComment(f"Component {component.name}"))
 
         # Create the component executable
         productive_sources = component_analyzer.collect_sources()
 
+        # Always create the component productive sources object library
+        component_sources_object_library = CMakeObjectLibrary(gtest_cmake_component.partial_link_name, productive_sources)
+        elements.append(component_sources_object_library)
+        # Add include directories specific to this component plus the component build dir to find generated mockup sources
+        include_dirs: list[CMakePath] = [component_build_dir, *gtest_cmake_component.get_include_directories()]
+        if include_dirs and not component_generator_config.use_global_includes:
+            # Determine visibility: use PRIVATE for libraries with sources, INTERFACE for header-only
+            visibility = "INTERFACE" if not productive_sources else "PRIVATE"
+            target_includes = CMakeTargetIncludeDirectories(component_sources_object_library.target_name, include_dirs, visibility)
+            elements.append(target_includes)
+
+        mockup_generator = None
+        if component_generator_config.automock:
+            mockup_generator = CMakeMockupCreator(
+                gtest_cmake_component,
+                component_sources_object_library.target_name,
+                self.artifacts_locator,
+                component_generator_config.mocking,
+            )
+
         # Components without tests will just be compiled
-        if not component_analyzer.is_testable():
-            all_sources = productive_sources
-        else:
-            all_sources = productive_sources + component_analyzer.collect_test_sources()
+        if component_analyzer.is_testable():
+            all_sources = component_analyzer.collect_test_sources()
             if mockup_generator:
                 all_sources += mockup_generator.get_mockup_sources()
-        test_executable = self.add_executable(gtest_cmake_component.executable_name, all_sources)
-        elements.append(test_executable)
+            test_executable = self.add_executable(gtest_cmake_component.executable_name, all_sources, component_sources_object_library.target_name)
+            elements.append(test_executable)
 
-        # Set the executable output directory to the component-specific directory
-        component_build_dir = self.artifacts_locator.get_component_build_dir(component.name)
-        target_properties = CMakeSetTargetProperties(test_executable.name, {"RUNTIME_OUTPUT_DIRECTORY": component_build_dir})
-        elements.append(target_properties)
+            # Set the executable output directory to the component-specific directory
+            component_build_dir = self.artifacts_locator.get_component_build_dir(component.name)
+            target_properties = CMakeSetTargetProperties(test_executable.name, {"RUNTIME_OUTPUT_DIRECTORY": component_build_dir})
+            elements.append(target_properties)
 
-        # Add component-specific include directories when global includes are disabled
-        if not component_generator_config.use_global_includes:
-            include_dirs: list[CMakePath] = gtest_cmake_component.get_include_directories()
-            # Add the component-specific build directory for the component to find the generated mockup sources
-            include_dirs.append(component_build_dir)
-            if include_dirs:
+            # Add component-specific include directories when global includes are disabled
+            if include_dirs and not component_generator_config.use_global_includes:
                 # Determine visibility: use PRIVATE for executables with sources, INTERFACE for header-only
                 visibility = "INTERFACE" if not all_sources else "PRIVATE"
                 target_includes = CMakeTargetIncludeDirectories(test_executable.name, include_dirs, visibility)
                 elements.append(target_includes)
 
-        if component_analyzer.is_testable():
             # Create the custom target to execute the tests
             execute_tests_command = self.run_executable(component.name, test_executable.name)
             elements.append(execute_tests_command)
@@ -322,7 +330,7 @@ class GTestComponentCMakeGenerator:
                 ]
             )
         else:
-            elements.append(CMakeComment(f"Component {component.name} is not testable. No test sources found."))
+            elements.append(CMakeComment(f"Component {component.name} is not testable, only compiling sources."))
         elements.append(CMakeEmptyLine())
 
         return elements
@@ -340,11 +348,11 @@ class GTestComponentCMakeGenerator:
                     result.mocking.exclude_symbol_patterns = component.testing.mocking.exclude_symbol_patterns
         return result
 
-    def add_executable(self, component_name: str, sources: list[Path]) -> CMakeAddExecutable:
+    def add_executable(self, component_name: str, sources: list[Path], component_object_library: str) -> CMakeAddExecutable:
         return CMakeAddExecutable(
             f"{component_name}",
             [CMakePath(source) for source in sources],
-            ["GTest::gtest_main", "GTest::gmock_main", "pthread"],
+            ["GTest::gtest_main", "GTest::gmock_main", "pthread", component_object_library],
             [
                 "-ggdb",  # Include detailed debug information to be able to debug the executable.
                 "--coverage",  # Enable coverage tracking information to be generated.

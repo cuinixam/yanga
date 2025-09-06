@@ -43,8 +43,10 @@ def test_cmake_build_components_file(
 ) -> None:
     elements = gtest_cmake_generator.create_components_cmake_elements()
 
-    executables = assert_elements_of_type(elements, CMakeAddExecutable, 2)
-    assert {executable.name for executable in executables} == {"CompA", "CompBNotTestable"}
+    object_libraries = assert_elements_of_type(elements, CMakeObjectLibrary, 2)
+    assert {lib.name for lib in object_libraries} == {"CompA_PC", "CompBNotTestable_PC"}
+    executable = assert_element_of_type(elements, CMakeAddExecutable)
+    assert executable.name == "CompA"
     targets = assert_elements_of_type(elements, CMakeCustomTarget, 4)
     assert {target.name for target in targets} == {"CompA_mockup", "CompA_test", "CompA_build", "CompA_coverage"}
 
@@ -60,10 +62,9 @@ def test_automock_enabled_by_default(execution_context: ExecutionContext, output
     targets = assert_elements_of_type(elements, CMakeCustomTarget, 5)
     assert {target.name for target in targets} == {"CompA_mockup", "CompA_test", "CompA_build", "CompA_coverage", "coverage"}
     # Expect the partial link library required to find the symbols to be mocked
-    object_library = assert_element_of_type(elements, CMakeObjectLibrary)
-    assert object_library.name == "CompA_PC"
     executable = assert_element_of_type(elements, CMakeAddExecutable, lambda exec: exec.name == "CompA")
-    assert [str(source) for source in executable.sources] == ["compA_source.cpp", "test_compA_source.cpp", f"{output_dir.as_posix()}/CompA/mockup_CompA.cc"]
+    assert [str(source) for source in executable.sources] == ["test_compA_source.cpp", f"{output_dir.as_posix()}/CompA/mockup_CompA.cc"]
+    assert set(executable.libraries) == {"GTest::gtest_main", "GTest::gmock_main", "pthread", "CompA_PC_lib"}
     custom_command = assert_element_of_type(elements, CMakeCustomCommand, lambda cmd: cmd.description.startswith("Run the test executable"))
     assert len(custom_command.commands) == 1
     # The command should now be the full path to the executable in the component directory
@@ -86,10 +87,12 @@ def test_automock_disabled_generates_no_mock_targets(execution_context: Executio
     assert {target.name for target in targets} == {"CompA_test", "CompA_build", "CompA_coverage", "coverage"}
 
     # No partial link library should be generated.
-    assert_elements_of_type(elements, CMakeObjectLibrary, 0)
+    object_libraries = assert_elements_of_type(elements, CMakeObjectLibrary, 2)
+    assert {lib.target_name for lib in object_libraries} == {"CompA_PC_lib", "CompBNotTestable_PC_lib"}
 
     executable = assert_element_of_type(elements, CMakeAddExecutable, lambda exec: exec.name == "CompA")
-    assert [str(source) for source in executable.sources] == ["compA_source.cpp", "test_compA_source.cpp"]
+    assert [str(source) for source in executable.sources] == ["test_compA_source.cpp"]
+    assert set(executable.libraries) == {"GTest::gtest_main", "GTest::gmock_main", "pthread", "CompA_PC_lib"}
 
 
 def test_use_global_includes_disabled_generates_no_global_include_directories(execution_context: ExecutionContext, output_dir: Path) -> None:
@@ -122,8 +125,8 @@ def test_use_global_includes_disabled_adds_component_specific_include_directorie
     elements = GTestCMakeGenerator(execution_context, output_dir, {"use_global_includes": False}).generate()
 
     # Find the executable
-    executables = assert_elements_of_type(elements, CMakeAddExecutable, 2)
-    assert {executable.name for executable in executables} == {"CompA", "CompBNotTestable"}
+    executable = assert_element_of_type(elements, CMakeAddExecutable)
+    assert executable.name == "CompA"
 
     # Check that CMakeTargetIncludeDirectories elements are generated
     target_includes = find_elements_of_type(elements, CMakeTargetIncludeDirectories)
