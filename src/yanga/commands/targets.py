@@ -92,12 +92,12 @@ class TargetDependencyTreeBuilder:
 
         # Add grouped custom commands
         for cmd_info in custom_command_deps.values():
-            cmd_target: Target = cmd_info["target"]  # type: ignore[assignment]
+            cmd_target: Target = cmd_info["target"]
             if cmd_target.name in visited:
                 parts.append("<li><strong>custom command</strong> (see above)</li>")
                 continue
             visited.add(cmd_target.name)
-            outputs_used = sorted(cmd_info["outputs"])  # type: ignore[index]
+            outputs_used = sorted(cmd_info["outputs"])
             outputs_used_str = f" (uses: {', '.join(outputs_used)})" if outputs_used else ""
             cmd_description = f" - {cmd_target.description}" if cmd_target.description else ""
             if cmd_target.depends:

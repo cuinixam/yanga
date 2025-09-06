@@ -1,5 +1,6 @@
 """Tests for the CppCheck HTML report command."""
 
+import textwrap
 from pathlib import Path
 from typing import Callable
 
@@ -144,12 +145,18 @@ def test_extract_code_context_with_file(get_test_data_path: Callable[[str], Path
 
     context = _extract_code_context(location, 2)
 
-    # Check that we get the expected format with line numbers
-    assert ">>> " in context  # Marker for the target line
-    assert "16:" in context  # Line number
-    assert "*ptr = 42;" in context  # The actual problematic line
-    assert "int *ptr = NULL;" in context  # Line before (line 15)
-    assert "return 0;" in context  # Line after (line 17)
+    # Check that we get the expected MyST code-block directive
+    assert context == textwrap.dedent("""\
+        ```{code-block} c
+        :linenos:
+        :lineno-start: 14
+        :emphasize-lines: 3
+            printf("x = %d\\n", x); // use of uninitialized variable
+            int *ptr = NULL;
+            *ptr = 42; // dereference of null pointer
+            return 0;
+        }
+        ```""")
 
 
 def test_create_doc_structure_with_code_context(get_test_data_path: Callable[[str], Path]) -> None:
@@ -177,7 +184,10 @@ def test_create_doc_structure_with_code_context(get_test_data_path: Callable[[st
 
     # Check code content
     code_content = issue_section.content[1]
-    assert isinstance(code_content, CodeContent)
-    assert code_content.language == "c"
-    assert "*ptr = 42;" in code_content.code
-    assert ">>> " in code_content.code  # Target line marker
+    # MyST directive is injected as plain text content
+    assert isinstance(code_content, TextContent)
+    text = code_content.text
+    assert text.startswith("```{code-block} c")
+    assert ":linenos:" in text
+    assert ":emphasize-lines:" in text
+    assert "*ptr = 42;" in text

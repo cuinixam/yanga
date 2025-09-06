@@ -135,7 +135,12 @@ def _create_file_section(file_path: Path, file_errors: list[CppCheckError], cont
         if primary_location:
             code_context = _extract_code_context(primary_location, context_lines)
             if code_context:
-                issue_section.add_content(CodeContent(code_context, "c"))
+                # If extraction failed (returns error comment) keep previous formatting via CodeContent
+                if code_context.startswith("// Could not read file"):
+                    issue_section.add_content(CodeContent(code_context, "c"))
+                else:
+                    # Provide full MyST directive block directly so use TextContent
+                    issue_section.add_content(TextContent(code_context))
 
         file_section.add_subsection(issue_section)
 
@@ -143,30 +148,49 @@ def _create_file_section(file_path: Path, file_errors: list[CppCheckError], cont
 
 
 def _extract_code_context(location: Location, context_lines: int) -> str:
-    """Extract code context around the specified location."""
+    """
+    Extract code context around the specified location and format it as a MyST code-block directive.
+
+    Returns a full MyST fenced directive block, e.g.::
+
+        ```{code-block} c
+        :linenos:
+        :lineno-start: 42
+        :emphasize-lines: 3
+        <code>
+        ```
+
+    If the file can't be read, returns an error comment string starting with
+    ``// Could not read file`` so callers may decide on fallback formatting.
+    """
     try:
         with open(location.file, encoding="utf-8") as file:
             lines = file.readlines()
 
-        # Convert to 0-based indexing
-        target_line = location.line - 1
-        if target_line < 0 or target_line >= len(lines):
+        target_line_index = location.line - 1  # 0-based
+        if target_line_index < 0 or target_line_index >= len(lines):
             return ""
 
-        # Calculate range with context
-        start_line = max(0, target_line - context_lines)
-        end_line = min(len(lines), target_line + context_lines + 1)
+        # Determine slice
+        start_index = max(0, target_line_index - context_lines)
+        end_index = min(len(lines), target_line_index + context_lines + 1)
 
-        # Extract lines and add line numbers
-        context_lines_list = []
-        for i in range(start_line, end_line):
-            line_num = i + 1
-            line_content = lines[i].rstrip()
-            marker = ">>> " if i == target_line else "    "
-            context_lines_list.append(f"{marker}{line_num:4d}: {line_content}")
+        snippet = [lines[i].rstrip("\n") for i in range(start_index, end_index)]
 
-        return "\n".join(context_lines_list)
+        # Relative line to emphasize inside snippet (1-based within snippet)
+        emphasize_relative = (target_line_index - start_index) + 1
+        lineno_start = start_index + 1  # original file line number for first snippet line
 
+        # Build MyST code-block directive
+        directive_header = [
+            "```{code-block} c",
+            ":linenos:",
+            f":lineno-start: {lineno_start}",
+            f":emphasize-lines: {emphasize_relative}",
+        ]
+        directive_body = "\n".join(snippet)
+        myst_block = "\n".join(directive_header) + "\n" + directive_body + "\n```"
+        return myst_block
     except (FileNotFoundError, OSError, UnicodeDecodeError):
         return f"// Could not read file: {location.file} at line {location.line}"
 
