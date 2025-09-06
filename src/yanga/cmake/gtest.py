@@ -217,17 +217,19 @@ class GTestComponentCMakeGenerator:
         mockup_generator = None
         if component_generator_config.automock:
             mockup_generator = CMakeMockupCreator(gtest_cmake_component, self.artifacts_locator, component_generator_config.mocking)
-        # Skip components without tests
-        if not component_analyzer.is_testable():
-            return []
         elements: list[CMakeElement] = []
         elements.append(CMakeComment(f"Component {component.name}"))
 
         # Create the component executable
         productive_sources = component_analyzer.collect_sources()
-        all_sources = productive_sources + component_analyzer.collect_test_sources()
-        if mockup_generator:
-            all_sources += mockup_generator.get_mockup_sources()
+
+        # Components without tests will just be compiled
+        if not component_analyzer.is_testable():
+            all_sources = productive_sources
+        else:
+            all_sources = productive_sources + component_analyzer.collect_test_sources()
+            if mockup_generator:
+                all_sources += mockup_generator.get_mockup_sources()
         test_executable = self.add_executable(gtest_cmake_component.executable_name, all_sources)
         elements.append(test_executable)
 
@@ -247,77 +249,80 @@ class GTestComponentCMakeGenerator:
                 target_includes = CMakeTargetIncludeDirectories(test_executable.name, include_dirs, visibility)
                 elements.append(target_includes)
 
-        # Create the custom target to execute the tests
-        execute_tests_command = self.run_executable(component.name, test_executable.name)
-        elements.append(execute_tests_command)
+        if component_analyzer.is_testable():
+            # Create the custom target to execute the tests
+            execute_tests_command = self.run_executable(component.name, test_executable.name)
+            elements.append(execute_tests_command)
 
-        # Generate coverage report
-        coverage_cmd = self.create_coverage_report(component.name, execute_tests_command, productive_sources)
-        elements.append(coverage_cmd)
-        component_coverage_target = UserRequest(
-            UserRequestScope.COMPONENT,
-            component_name=component.name,
-            target=UserRequestTarget.COVERAGE,
-        )
-
-        elements.append(
-            CMakeCustomTarget(
-                name=component_coverage_target.target_name,
-                description=f"Generate coverage report for {component.name}",
-                commands=[],
-                depends=coverage_cmd.outputs,
+            # Generate coverage report
+            coverage_cmd = self.create_coverage_report(component.name, execute_tests_command, productive_sources)
+            elements.append(coverage_cmd)
+            component_coverage_target = UserRequest(
+                UserRequestScope.COMPONENT,
+                component_name=component.name,
+                target=UserRequestTarget.COVERAGE,
             )
-        )
 
-        # Register the component coverage md report as relevant for the component report
-        self.execution_context.data_registry.insert(
-            ReportRelevantFiles(
-                target=component_coverage_target,
-                files_to_be_included=[self.artifacts_locator.get_component_build_artifact(component.name, ComponentBuildArtifact.COVERAGE_DOC).to_path()],
-                file_type=ReportRelevantFileType.COVERAGE_RESULT,
-            ),
-            component_coverage_target.target_name,
-        )
-        # Register the component coverage json report as relevant for the merged coverage report
-        self.execution_context.data_registry.insert(
-            CoverageRelevantFile(
-                target=component_coverage_target,
-                json_report=self.artifacts_locator.get_component_build_artifact(component.name, ComponentBuildArtifact.COVERAGE_JSON),
-            ),
-            component_coverage_target.target_name,
-        )
-
-        # Create the component mockup sources
-        if mockup_generator:
-            elements.extend(mockup_generator.generate())
-
-        # Create the component custom targets
-        elements.extend(
-            [
+            elements.append(
                 CMakeCustomTarget(
-                    UserRequest(
-                        UserRequestScope.COMPONENT,
-                        component_name=component.name,
-                        target=UserRequestTarget.TEST,
-                    ).target_name,
-                    f"Execute tests for {component.name}",
-                    [],
-                    execute_tests_command.outputs,
-                    True,
+                    name=component_coverage_target.target_name,
+                    description=f"Generate coverage report for {component.name}",
+                    commands=[],
+                    depends=coverage_cmd.outputs,
+                )
+            )
+
+            # Register the component coverage md report as relevant for the component report
+            self.execution_context.data_registry.insert(
+                ReportRelevantFiles(
+                    target=component_coverage_target,
+                    files_to_be_included=[self.artifacts_locator.get_component_build_artifact(component.name, ComponentBuildArtifact.COVERAGE_DOC).to_path()],
+                    file_type=ReportRelevantFileType.COVERAGE_RESULT,
                 ),
-                CMakeCustomTarget(
-                    UserRequest(
-                        UserRequestScope.COMPONENT,
-                        component_name=component.name,
-                        target=UserRequestTarget.BUILD,
-                    ).target_name,
-                    f"Execute tests for {component.name}",
-                    [],
-                    execute_tests_command.outputs,
-                    True,
+                component_coverage_target.target_name,
+            )
+            # Register the component coverage json report as relevant for the merged coverage report
+            self.execution_context.data_registry.insert(
+                CoverageRelevantFile(
+                    target=component_coverage_target,
+                    json_report=self.artifacts_locator.get_component_build_artifact(component.name, ComponentBuildArtifact.COVERAGE_JSON),
                 ),
-            ]
-        )
+                component_coverage_target.target_name,
+            )
+
+            # Create the component mockup sources
+            if mockup_generator:
+                elements.extend(mockup_generator.generate())
+
+            # Create the component custom targets
+            elements.extend(
+                [
+                    CMakeCustomTarget(
+                        UserRequest(
+                            UserRequestScope.COMPONENT,
+                            component_name=component.name,
+                            target=UserRequestTarget.TEST,
+                        ).target_name,
+                        f"Execute tests for {component.name}",
+                        [],
+                        execute_tests_command.outputs,
+                        True,
+                    ),
+                    CMakeCustomTarget(
+                        UserRequest(
+                            UserRequestScope.COMPONENT,
+                            component_name=component.name,
+                            target=UserRequestTarget.BUILD,
+                        ).target_name,
+                        f"Execute tests for {component.name}",
+                        [],
+                        execute_tests_command.outputs,
+                        True,
+                    ),
+                ]
+            )
+        else:
+            elements.append(CMakeComment(f"Component {component.name} is not testable. No test sources found."))
         elements.append(CMakeEmptyLine())
 
         return elements
