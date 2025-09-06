@@ -1,6 +1,26 @@
 # CHANGELOG
 
 
+## v2.10.0 (2025-09-06)
+
+### Features
+
+- Add coverage to component report
+  ([`8a9aac7`](https://github.com/cuinixam/yanga/commit/8a9aac70b47d90ef6104a3332fd8e80614ec19c9))
+
+- Create variant coverage report
+  ([`ad8fc78`](https://github.com/cuinixam/yanga/commit/ad8fc788e05365c7b232c652bf0ff0dbbb28e0de))
+
+- Generate build targets data
+  ([`42e401f`](https://github.com/cuinixam/yanga/commit/42e401f0c7e0746b44568546f527b1be8dced21a))
+
+- Generate targets dependencies docs
+  ([`83c5f3b`](https://github.com/cuinixam/yanga/commit/83c5f3b3b4155e6a07e88571c3f242b49ce3ad6d))
+
+- Not testable components can be compiled and lint
+  ([`12cbc0d`](https://github.com/cuinixam/yanga/commit/12cbc0d6d540e37a14dd2f6cdef0520d83b6afa1))
+
+
 ## v2.9.0 (2025-09-02)
 
 ### Bug Fixes
