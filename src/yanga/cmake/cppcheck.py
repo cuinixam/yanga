@@ -1,7 +1,7 @@
 from pathlib import Path
 from typing import Any, Optional
 
-from yanga.cmake.artifacts_locator import CMakeArtifactsLocator, ComponentBuildArtifact
+from yanga.cmake.artifacts_locator import BuildArtifact, CMakeArtifactsLocator
 from yanga.cmake.cmake_backend import CMakeCommand, CMakeComment, CMakeCustomCommand, CMakeCustomTarget, CMakeElement, CMakePath
 from yanga.cmake.generator import CMakeGenerator
 from yanga.domain.component_analyzer import ComponentAnalyzer
@@ -28,7 +28,7 @@ class CppCheckCMakeGenerator(CMakeGenerator):
 
     def create_variant_cmake_elements(self) -> list[CMakeElement]:
         elements: list[CMakeElement] = []
-        compile_commands_file = self.artifacts_locator.compile_commands_file
+        compile_commands_file = self.artifacts_locator.get_build_artifact(BuildArtifact.COMPILE_COMMANDS)
         xml_report_file = self.artifacts_locator.cmake_build_dir.joinpath("cppcheck_report.xml")
         md_report_file = self.artifacts_locator.cmake_build_dir.joinpath("cppcheck_report.md")
         compile_filter_command = CMakeCustomCommand(
@@ -70,7 +70,7 @@ class CppCheckCMakeGenerator(CMakeGenerator):
                 ).target_name,
                 "Lint the entire variant",
                 [],
-                compile_filter_command.outputs,  # type: ignore
+                compile_filter_command.outputs,
             )
         )
         return elements
@@ -80,7 +80,7 @@ class CppCheckCMakeGenerator(CMakeGenerator):
         for component in self.execution_context.components:
             component_analyzer = ComponentAnalyzer([component], self.execution_context.create_artifacts_locator())
             sources = component_analyzer.collect_sources()
-            component_compile_commands_file = self.artifacts_locator.get_component_build_artifact(component.name, ComponentBuildArtifact.COMPILE_COMMANDS)
+            component_compile_commands_file = self.artifacts_locator.get_component_build_artifact(component.name, BuildArtifact.COMPILE_COMMANDS)
             xml_report_file = self.artifacts_locator.get_component_build_dir(component.name).joinpath("cppcheck_report.xml")
             md_report_file = self.artifacts_locator.get_component_build_dir(component.name).joinpath("cppcheck_report.md")
 
@@ -95,7 +95,7 @@ class CppCheckCMakeGenerator(CMakeGenerator):
                         [
                             "filter_compile_commands",
                             "--compilation-database",
-                            self.artifacts_locator.compile_commands_file,
+                            self.artifacts_locator.get_build_artifact(BuildArtifact.COMPILE_COMMANDS),
                             "--source-files",
                             *[CMakePath(src) for src in sources],
                             "--output-file",
@@ -139,7 +139,7 @@ class CppCheckCMakeGenerator(CMakeGenerator):
                     component_lint_target.target_name,
                     f"Lint the {component.name} component",
                     [],
-                    compile_filter_command.outputs,  # type: ignore
+                    compile_filter_command.outputs,
                 )
             )
             # Register the component lint md report as relevant for the component report

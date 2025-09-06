@@ -5,7 +5,7 @@ from typing import Any, Optional
 
 from mashumaro import DataClassDictMixin
 
-from yanga.cmake.artifacts_locator import CMakeArtifactsLocator, ComponentBuildArtifact
+from yanga.cmake.artifacts_locator import BuildArtifact, CMakeArtifactsLocator
 from yanga.domain.component_analyzer import ComponentAnalyzer
 from yanga.domain.components import Component
 from yanga.domain.config import MockingConfiguration
@@ -276,7 +276,7 @@ class GTestComponentCMakeGenerator:
             self.execution_context.data_registry.insert(
                 ReportRelevantFiles(
                     target=component_coverage_target,
-                    files_to_be_included=[self.artifacts_locator.get_component_build_artifact(component.name, ComponentBuildArtifact.COVERAGE_DOC).to_path()],
+                    files_to_be_included=[self.artifacts_locator.get_component_build_artifact(component.name, BuildArtifact.COVERAGE_DOC).to_path()],
                     file_type=ReportRelevantFileType.COVERAGE_RESULT,
                 ),
                 component_coverage_target.target_name,
@@ -285,7 +285,7 @@ class GTestComponentCMakeGenerator:
             self.execution_context.data_registry.insert(
                 CoverageRelevantFile(
                     target=component_coverage_target,
-                    json_report=self.artifacts_locator.get_component_build_artifact(component.name, ComponentBuildArtifact.COVERAGE_JSON),
+                    json_report=self.artifacts_locator.get_component_build_artifact(component.name, BuildArtifact.COVERAGE_JSON),
                 ),
                 component_coverage_target.target_name,
             )
@@ -378,8 +378,8 @@ class GTestComponentCMakeGenerator:
     def create_coverage_report(self, component_name: str, execute_tests_command: CMakeCustomCommand, sources: list[Path]) -> CMakeCustomCommand:
         component_build_dir = self.artifacts_locator.get_component_build_dir(component_name)
         gcovr_config_file = component_build_dir.joinpath("gcovr.cfg")
-        gcovr_json_file = self.artifacts_locator.get_component_build_artifact(component_name, ComponentBuildArtifact.COVERAGE_JSON)
-        coverage_doc_file = self.artifacts_locator.get_component_build_artifact(component_name, ComponentBuildArtifact.COVERAGE_DOC)
+        gcovr_json_file = self.artifacts_locator.get_component_build_artifact(component_name, BuildArtifact.COVERAGE_JSON)
+        coverage_doc_file = self.artifacts_locator.get_component_build_artifact(component_name, BuildArtifact.COVERAGE_DOC)
         # We need to generate the html report in a subdirectory to be able to link it relatively from the markdown file
         coverage_doc_file_relative_path = coverage_doc_file.to_path().relative_to(self.artifacts_locator.project_root_dir).parent.as_posix()
         gcovr_html_dir = self.artifacts_locator.get_component_reports_dir(component_name).joinpath(coverage_doc_file_relative_path).joinpath("coverage")
@@ -515,7 +515,7 @@ class GTestCMakeGenerator(CMakeGenerator):
         # Collect all coverage json reports for the variant coverage report
         coverage_relevant_json_reports = [entry.json_report for entry in self.execution_context.data_registry.find_data(CoverageRelevantFile)]
         gcovr_config_file = self.artifacts_locator.cmake_build_dir.joinpath("gcovr.cfg")
-        coverage_doc_file = self.artifacts_locator.get_build_artifact(ComponentBuildArtifact.COVERAGE_DOC)
+        coverage_doc_file = self.artifacts_locator.get_build_artifact(BuildArtifact.COVERAGE_DOC)
         # We need to generate the html report in a subdirectory to be able to link it relatively from the markdown file
         coverage_doc_file_relative_path = coverage_doc_file.to_path().relative_to(self.artifacts_locator.project_root_dir).parent.as_posix()
         gcovr_html_dir = self.artifacts_locator.cmake_variant_reports_dir.joinpath(coverage_doc_file_relative_path).joinpath("coverage")
@@ -531,7 +531,7 @@ class GTestCMakeGenerator(CMakeGenerator):
                     [
                         "gcovr_config_variant",
                         "--variant-report-config",
-                        self.artifacts_locator.variant_report_config,
+                        self.artifacts_locator.get_build_artifact(BuildArtifact.REPORT_CONFIG),
                         "--output-file",
                         gcovr_config_file,
                     ],

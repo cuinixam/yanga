@@ -29,4 +29,14 @@
 {% endfor %}
 
 
+```{toctree}
+:maxdepth: 1
+
+{% for file in report_config.get_variant_files_list() %}
+{{ file }}
+{% endfor %}
+
+```
+
+
 {% endif %}

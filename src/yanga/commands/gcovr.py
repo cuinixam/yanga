@@ -18,7 +18,7 @@ from typing import Union
 from py_app_dev.core.cmd_line import Command, register_arguments_for_config_dataclass
 from py_app_dev.core.logging import logger
 
-from yanga.cmake.artifacts_locator import ComponentBuildArtifact
+from yanga.cmake.artifacts_locator import BuildArtifact
 from yanga.cmake.generator import GeneratedFile
 from yanga.domain.config import BaseConfigJSONMixin, StringableEnum
 from yanga.domain.reports import ReportData
@@ -119,7 +119,7 @@ class CreateVariantGcovrConfigCommand(Command):
         report_config = ReportData.from_json_file(config.variant_report_config)
 
         # Only include components which have coverage results
-        coverage_json_files = [component.build_dir.joinpath(ComponentBuildArtifact.COVERAGE_JSON.path) for component in report_config.components if component.coverage_results]
+        coverage_json_files = [component.build_dir.joinpath(BuildArtifact.COVERAGE_JSON.path) for component in report_config.components if component.coverage_results]
 
         # Create a gcovr config file
         gcovr_cfg_lines = [

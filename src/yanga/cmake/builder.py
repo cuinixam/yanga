@@ -6,13 +6,14 @@ from py_app_dev.core.find import find_elements_of_type
 from py_app_dev.core.logging import logger
 from py_app_dev.core.pipeline import PipelineLoader
 
-from yanga.cmake.artifacts_locator import CMakeArtifactsLocator
+from yanga.cmake.artifacts_locator import BuildArtifact, CMakeArtifactsLocator
 from yanga.domain.execution_context import ExecutionContext
 from yanga.domain.reports import ComponentReportConfig, ReportData, ReportRelevantFiles, VariantReportConfig
-from yanga.domain.targets import Target, TargetsData
+from yanga.domain.targets import Target, TargetsData, TargetType
 
 from .cmake_backend import (
     CMakeAddExecutable,
+    CMakeCustomCommand,
     CMakeCustomTarget,
     CMakeMinimumVersion,
     CMakeObjectLibrary,
@@ -56,7 +57,7 @@ class CMakeBuildSystemGenerator:
 
     @property
     def report_config_file(self) -> CMakePath:
-        return self.artifacts_locator.variant_report_config
+        return self.artifacts_locator.get_build_artifact(BuildArtifact.REPORT_CONFIG)
 
     @property
     def variant_name(self) -> str:
@@ -156,7 +157,7 @@ class CMakeBuildSystemGenerator:
         Create a json file that contains the CMake target dependencies tree for the current variant and each component.
 
         Parse all cmake files, search for the custom targets and their dependencies, and create a json file.
-        I want to use this file later to create a graph of the targets and their dependencies.
+        This file is required to create a graph of the targets and their dependencies.
         """
         targets: list[Target] = []
 
@@ -164,6 +165,30 @@ class CMakeBuildSystemGenerator:
         all_elements = []
         for cmake_file in cmake_files:
             all_elements.extend(cmake_file.content)
+
+        # Find all custom commands
+        custom_commands = find_elements_of_type(all_elements, CMakeCustomCommand)
+        for custom_command in custom_commands:
+            dependencies = []
+            outputs = []
+
+            # Extract dependencies
+            if custom_command.depends:
+                dependencies.extend([str(dep) for dep in custom_command.depends])
+
+            # Extract outputs
+            if custom_command.outputs:
+                outputs.extend([str(output) for output in custom_command.outputs])
+
+            targets.append(
+                Target(
+                    name=f"cmd_{custom_command.description.replace(' ', '_').lower()}",
+                    description=custom_command.description,
+                    depends=dependencies,
+                    outputs=outputs,
+                    target_type=TargetType.CUSTOM_COMMAND,
+                )
+            )
 
         # Find all custom targets
         custom_targets = find_elements_of_type(all_elements, CMakeCustomTarget)
@@ -179,7 +204,7 @@ class CMakeBuildSystemGenerator:
             if custom_target.byproducts:
                 outputs.extend([str(byproduct) for byproduct in custom_target.byproducts])
 
-            targets.append(Target(name=custom_target.name, description=custom_target.description, depends=dependencies, outputs=outputs))
+            targets.append(Target(name=custom_target.name, description=custom_target.description, depends=dependencies, outputs=outputs, target_type=TargetType.CUSTOM_TARGET))
 
         # Find all executables
         executables = find_elements_of_type(all_elements, CMakeAddExecutable)
@@ -196,6 +221,7 @@ class CMakeBuildSystemGenerator:
                     description=f"Executable target: {executable.name}",
                     depends=dependencies,
                     outputs=[executable.name],  # The executable itself is the output
+                    target_type=TargetType.EXECUTABLE,
                 )
             )
 
@@ -208,6 +234,7 @@ class CMakeBuildSystemGenerator:
                     description=f"Object library: {obj_lib.name}",
                     depends=[],  # Object libraries typically don't have explicit dependencies in our structure
                     outputs=[obj_lib.target_name],
+                    target_type=TargetType.OBJECT_LIBRARY,
                 )
             )
 

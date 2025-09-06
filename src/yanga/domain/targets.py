@@ -3,11 +3,21 @@ import json
 import traceback
 from collections.abc import Sequence
 from dataclasses import dataclass, field
+from enum import auto
 from pathlib import Path
 
 from py_app_dev.core.exceptions import UserNotificationException
 
-from yanga.domain.config import BaseConfigJSONMixin
+from yanga.domain.config import BaseConfigJSONMixin, StringableEnum, stringable_enum_field_metadata
+
+
+class TargetType(StringableEnum):
+    """Types of CMake targets for better categorization and filtering."""
+
+    CUSTOM_TARGET = auto()
+    CUSTOM_COMMAND = auto()
+    EXECUTABLE = auto()
+    OBJECT_LIBRARY = auto()
 
 
 @dataclass
@@ -18,6 +28,7 @@ class Target(BaseConfigJSONMixin):
     description: str | None = None
     depends: Sequence[str | Path] = field(default_factory=list)
     outputs: Sequence[str | Path] = field(default_factory=list)
+    target_type: TargetType = field(default=TargetType.CUSTOM_TARGET, metadata=stringable_enum_field_metadata(TargetType))
 
 
 @dataclass

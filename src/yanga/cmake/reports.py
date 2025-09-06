@@ -1,8 +1,8 @@
 from pathlib import Path
 from typing import Any, Optional
 
-from yanga.cmake.artifacts_locator import CMakeArtifactsLocator, ComponentBuildArtifact
-from yanga.cmake.cmake_backend import CMakeCommand, CMakeComment, CMakeCustomTarget, CMakeElement, CMakePath
+from yanga.cmake.artifacts_locator import BuildArtifact, CMakeArtifactsLocator
+from yanga.cmake.cmake_backend import CMakeCommand, CMakeComment, CMakeCustomCommand, CMakeCustomTarget, CMakeElement, CMakePath
 from yanga.cmake.generator import CMakeGenerator
 from yanga.docs.sphinx import SphinxConfig
 from yanga.domain.component_analyzer import ComponentAnalyzer
@@ -31,6 +31,40 @@ class ReportCMakeGenerator(CMakeGenerator):
         elements: list[CMakeElement] = []
         variant_report_dir = self.artifacts_locator.cmake_variant_reports_dir
 
+        # Create custom command to generate the targets data documentation
+        targets_data_doc_file = self.artifacts_locator.cmake_build_dir.joinpath("targets_data.md")
+        targets_data_file = self.artifacts_locator.get_build_artifact(BuildArtifact.TARGETS_DATA)
+        targets_data_cmd = CMakeCustomCommand(
+            description="Generate variant targets data documentation",
+            depends=[targets_data_file],
+            outputs=[targets_data_doc_file],
+            commands=[
+                CMakeCommand(
+                    "yanga_cmd",
+                    [
+                        "targets_doc",
+                        "--variant-targets-data-file",
+                        targets_data_file,
+                        "--output-file",
+                        targets_data_doc_file,
+                    ],
+                ),
+            ],
+        )
+        elements.append(targets_data_cmd)
+
+        # Register the variant targets data documentation file as relevant for the variant report
+        variant_user_request = UserRequest(UserRequestScope.VARIANT, target=UserRequestTarget.DOCS)
+        self.execution_context.data_registry.insert(
+            ReportRelevantFiles(
+                target=variant_user_request,
+                files_to_be_included=[targets_data_doc_file.to_path()],
+                file_type=ReportRelevantFileType.OTHER,
+            ),
+            variant_user_request.target_name,
+        )
+
+        # Create variant results target to collect all component and variant results relevant for the report
         results_target = CMakeCustomTarget(
             name=UserRequest(
                 UserRequestScope.VARIANT,
@@ -39,7 +73,8 @@ class ReportCMakeGenerator(CMakeGenerator):
             description=f"Run all targets for all component results for {self.execution_context.variant_name}",
             commands=[],
             depends=[
-                self.artifacts_locator.variant_report_config,
+                self.artifacts_locator.get_build_artifact(BuildArtifact.REPORT_CONFIG),
+                *targets_data_cmd.outputs,
                 *[
                     UserRequest(UserRequestScope.COMPONENT, target=UserRequestTarget.RESULTS, component_name=component.name).target_name
                     for component in self.execution_context.components
@@ -68,7 +103,7 @@ class ReportCMakeGenerator(CMakeGenerator):
                         [
                             "-E",
                             "env",
-                            f"{SphinxConfig.REPORT_CONFIGURATION_FILE_ENV_NAME}={self.artifacts_locator.variant_report_config}",
+                            f"{SphinxConfig.REPORT_CONFIGURATION_FILE_ENV_NAME}={self.artifacts_locator.get_build_artifact(BuildArtifact.REPORT_CONFIG)}",
                             "--",
                             "sphinx-build",
                             "-E",
@@ -80,7 +115,7 @@ class ReportCMakeGenerator(CMakeGenerator):
                     ),
                 ],
                 depends=[
-                    self.artifacts_locator.variant_report_config,
+                    self.artifacts_locator.get_build_artifact(BuildArtifact.REPORT_CONFIG),
                     results_target.name,
                 ],
             )
@@ -92,7 +127,7 @@ class ReportCMakeGenerator(CMakeGenerator):
         for component in self.execution_context.components:
             component_analyzer = ComponentAnalyzer([component], self.execution_context.create_artifacts_locator())
             component_build_dir = self.artifacts_locator.get_component_build_dir(component.name)
-            report_config_output_file = self.artifacts_locator.get_component_build_artifact(component.name, ComponentBuildArtifact.REPORT_CONFIG)
+            report_config_output_file = self.artifacts_locator.get_component_build_artifact(component.name, BuildArtifact.REPORT_CONFIG)
             docs_source_files = [CMakePath(source) for source in component_analyzer.collect_docs_sources()]
             source_files: list[CMakePath] = [CMakePath(source) for source in [*component_analyzer.collect_sources(), *component_analyzer.collect_test_sources()]]
             source_files_output_md = [component_build_dir.joinpath(f"{source_file.to_path().name}.md") for source_file in source_files]
@@ -116,12 +151,12 @@ class ReportCMakeGenerator(CMakeGenerator):
                                 "--output-file",
                                 output_md,
                                 "--compilation-database",
-                                self.artifacts_locator.compile_commands_file,
+                                self.artifacts_locator.get_build_artifact(BuildArtifact.COMPILE_COMMANDS),
                             ],
                         )
                         for source_file, output_md in zip(source_files, source_files_output_md)
                     ],
-                    depends=[self.artifacts_locator.compile_commands_file],
+                    depends=[self.artifacts_locator.get_build_artifact(BuildArtifact.COMPILE_COMMANDS)],
                     byproducts=source_files_output_md,
                 )
             )
@@ -162,7 +197,7 @@ class ReportCMakeGenerator(CMakeGenerator):
                     description=f"Execute targets to get all results for component {component.name}",
                     commands=[],
                     depends=[
-                        self.artifacts_locator.variant_report_config,
+                        self.artifacts_locator.get_build_artifact(BuildArtifact.REPORT_CONFIG),
                         *[target.target_name for target in result_targets],
                     ],
                 )
@@ -196,7 +231,7 @@ class ReportCMakeGenerator(CMakeGenerator):
                                 "--output-file",
                                 report_config_output_file,
                                 "--variant-report-config",
-                                self.artifacts_locator.variant_report_config,
+                                self.artifacts_locator.get_build_artifact(BuildArtifact.REPORT_CONFIG),
                             ],
                         ),
                         CMakeCommand(
