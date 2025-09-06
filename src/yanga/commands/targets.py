@@ -7,7 +7,7 @@ from typing import Any
 
 from clanguru.doc_generator import DocStructure, MarkdownFormatter, Section, TextContent
 from py_app_dev.core.cmd_line import Command, register_arguments_for_config_dataclass
-from py_app_dev.core.logging import logger
+from py_app_dev.core.logging import logger, time_it
 
 from yanga.cmake.generator import GeneratedFile
 from yanga.domain.config import BaseConfigJSONMixin
@@ -43,104 +43,85 @@ class TargetDependencyTreeBuilder:
         return root_targets
 
     def generate_target_tree_html(self, target: Target, visited: set[str] | None = None) -> str:
-        """Generate HTML tree for a target and its dependencies."""
+        """
+        Generate HTML tree for a target and its dependencies.
+
+        Optimized to minimize string concatenation overhead by using list appends
+        and joining at the end (significant when documenting many targets).
+        """
         if visited is None:
             visited = set()
 
         if target.name in visited:
-            # For custom commands, show a reference to avoid duplication
             if target.target_type == TargetType.CUSTOM_COMMAND:
                 return "<li><strong>custom command</strong> (see above)</li>"
-            else:
-                return f"<li><strong>{target.name}</strong> (circular dependency)</li>"
+            return f"<li><strong>{target.name}</strong> (circular dependency)</li>"
 
         visited.add(target.name)
 
-        # Create the main target entry
-        if target.target_type == TargetType.CUSTOM_COMMAND:
-            display_name = "custom command"
-        else:
-            display_name = target.name
-
+        display_name = "custom command" if target.target_type == TargetType.CUSTOM_COMMAND else target.name
         description = f" - {target.description}" if target.description else ""
         outputs_str = f" -> [{', '.join(str(out) for out in target.outputs)}]" if target.outputs else ""
 
+        # Fast path: no dependencies
         if not target.depends:
-            result = f"<li><strong>{display_name}</strong>{description}{outputs_str}</li>"
-        else:
-            result = f"""<li>
-<details>
-<summary><strong>{display_name}</strong>{description}{outputs_str}</summary>
-<ul>"""
+            return f"<li><strong>{display_name}</strong>{description}{outputs_str}</li>"
 
-            # Group dependencies by custom command
-            custom_command_deps: dict[str, dict[str, Any]] = {}  # custom_command_name -> set of output files
-            regular_deps: list[str | Target] = []
+        parts: list[str] = [
+            "<li>",
+            "<details>",
+            f"<summary><strong>{display_name}</strong>{description}{outputs_str}</summary>",
+            "<ul>",
+        ]
 
-            for dep_name in target.depends:
-                # First try to find by target name
-                dep_target = self.targets_by_name.get(str(dep_name))
+        custom_command_deps: dict[str, dict[str, Any]] = {}
+        regular_deps: list[str | Target] = []
 
-                # If not found by name, try to find by output file
-                if not dep_target:
-                    dep_target = self.outputs_to_targets.get(str(dep_name))
+        for dep_name in target.depends:
+            dep_name_str = str(dep_name)
+            dep_target = self.targets_by_name.get(dep_name_str) or self.outputs_to_targets.get(dep_name_str)
 
-                if dep_target:
-                    if dep_target.target_type == TargetType.CUSTOM_COMMAND:
-                        # Group this output under the custom command
-                        if dep_target.name not in custom_command_deps:
-                            custom_command_deps[dep_target.name] = {"target": dep_target, "outputs": set()}
-                        custom_command_deps[dep_target.name]["outputs"].add(str(dep_name))
+            if dep_target:
+                if dep_target.target_type == TargetType.CUSTOM_COMMAND:
+                    info = custom_command_deps.setdefault(dep_target.name, {"target": dep_target, "outputs": set()})
+                    info["outputs"].add(dep_name_str)
+                else:
+                    regular_deps.append(dep_target)
+            else:
+                regular_deps.append(dep_name_str)
+
+        # Add grouped custom commands
+        for cmd_info in custom_command_deps.values():
+            cmd_target: Target = cmd_info["target"]  # type: ignore[assignment]
+            if cmd_target.name in visited:
+                parts.append("<li><strong>custom command</strong> (see above)</li>")
+                continue
+            visited.add(cmd_target.name)
+            outputs_used = sorted(cmd_info["outputs"])  # type: ignore[index]
+            outputs_used_str = f" (uses: {', '.join(outputs_used)})" if outputs_used else ""
+            cmd_description = f" - {cmd_target.description}" if cmd_target.description else ""
+            if cmd_target.depends:
+                parts.extend(["<li>", "<details>", f"<summary><strong>custom command</strong>{cmd_description}{outputs_used_str}</summary>", "<ul>"])
+                for dep_name in cmd_target.depends:
+                    dep_name_str = str(dep_name)
+                    dep_dep_target = self.targets_by_name.get(dep_name_str) or self.outputs_to_targets.get(dep_name_str)
+                    if dep_dep_target:
+                        parts.append(self.generate_target_tree_html(dep_dep_target, visited))
                     else:
-                        regular_deps.append(dep_target)
-                else:
-                    regular_deps.append(str(dep_name))
+                        parts.append(f"<li>{dep_name} (external dependency)</li>")
+                parts.append("</ul></details></li>")
+            else:
+                parts.append(f"<li><strong>custom command</strong>{cmd_description}{outputs_used_str}</li>")
 
-            # Add grouped custom commands
-            for _, cmd_info in custom_command_deps.items():
-                cmd_target = cmd_info["target"]
-                if cmd_target.name not in visited:
-                    visited.add(cmd_target.name)
-                    outputs_used = sorted(cmd_info["outputs"])
-                    outputs_str = f" (uses: {', '.join(outputs_used)})" if outputs_used else ""
-                    description = f" - {cmd_target.description}" if cmd_target.description else ""
+        # Add regular dependencies
+        for dep in regular_deps:
+            if isinstance(dep, str):
+                parts.append(f"<li>{dep} (external dependency)</li>")
+            else:
+                parts.append(self.generate_target_tree_html(dep, visited))
 
-                    # If the custom command has dependencies, show them in a collapsible tree
-                    if cmd_target.depends:
-                        result += f"""<li>
-<details>
-<summary><strong>custom command</strong>{description}{outputs_str}</summary>
-<ul>"""
-                        # Show dependencies of the custom command
-                        for dep_name in cmd_target.depends:
-                            # First try to find by target name
-                            dep_target = self.targets_by_name.get(str(dep_name))
-
-                            # If not found by name, try to find by output file
-                            if not dep_target:
-                                dep_target = self.outputs_to_targets.get(str(dep_name))
-
-                            if dep_target:
-                                result += self.generate_target_tree_html(dep_target, visited)
-                            else:
-                                result += f"<li>{dep_name} (external dependency)</li>"
-
-                        result += "</ul></details></li>"
-                    else:
-                        result += f"<li><strong>custom command</strong>{description}{outputs_str}</li>"
-                else:
-                    result += "<li><strong>custom command</strong> (see above)</li>"
-
-            # Add regular dependencies
-            for dep in regular_deps:
-                if isinstance(dep, str):
-                    result += f"<li>{dep} (external dependency)</li>"
-                else:
-                    result += self.generate_target_tree_html(dep, visited)
-
-            result += "</ul></details></li>"
-
-        return result
+        parts.append("</ul></details></li>")
+        return "".join(parts)
 
 
 class TargetDocumentationGenerator:
@@ -151,32 +132,31 @@ class TargetDocumentationGenerator:
         self.tree_builder = TargetDependencyTreeBuilder(targets_data)
 
     def create_doc_structure(self) -> DocStructure:
-        """Create a DocStructure for target dependencies documentation."""
+        """
+        Create a DocStructure for target dependencies documentation.
+
+        Optimizations:
+        - Compute root targets once (was computed twice).
+        - Pass pre-computed root targets to summary section.
+        """
         doc = DocStructure("Target Dependencies Documentation")
-
-        # Add summary section
-        self._add_summary_section(doc)
-
-        # Add root targets sections
         root_targets = self.tree_builder.find_root_targets()
+        self._add_summary_section(doc, root_targets)
         if root_targets:
             self._add_root_targets_sections(doc, root_targets)
-
         return doc
 
-    def _add_summary_section(self, doc: DocStructure) -> None:
-        """Add summary statistics section."""
-        summary_section = Section("Summary")
-
+    def _add_summary_section(self, doc: DocStructure, root_targets: list[Target]) -> None:
+        """Add summary statistics section using pre-computed root targets."""
         total_targets = len(self.targets_data.targets)
-        root_targets = self.tree_builder.find_root_targets()
-
-        summary_text = f"- **Total targets**: {total_targets}\n"
-        summary_text += f"- **Root targets (CMakeCustomTargets only)**: {len(root_targets)}\n\n"
-        summary_text += "This document provides an overview of CMake custom target dependencies. Only CMakeCustomTargets are shown as root targets."
-
-        summary_section.add_content(TextContent(summary_text))
-        doc.add_section(summary_section)
+        summary_text = (
+            f"- **Total targets**: {total_targets}\n"
+            f"- **Root targets (CMakeCustomTargets only)**: {len(root_targets)}\n\n"
+            "This document provides an overview of CMake custom target dependencies. Only CMakeCustomTargets are shown as root targets."
+        )
+        section = Section("Summary")
+        section.add_content(TextContent(summary_text))
+        doc.add_section(section)
 
     def _add_root_targets_sections(self, doc: DocStructure, root_targets: list[Target]) -> None:
         """Add sections for each root target with dependency trees."""
@@ -230,6 +210,7 @@ class TargetsDocCommand(Command):
         super().__init__("targets_doc", "Create a variant targets data documentation file with collapsible dependency trees.")
         self.logger = logger.bind()
 
+    @time_it("targets_doc command")
     def run(self, args: Namespace) -> int:
         self.logger.info(f"Running {self.name} with args {args}")
         cmd_args = create_config(CommandArgs, args)
