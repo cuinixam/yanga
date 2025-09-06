@@ -16,7 +16,7 @@ from py_app_dev.core.logging import logger
 
 from yanga.cmake.generator import GeneratedFile
 from yanga.domain.config import BaseConfigJSONMixin
-from yanga.domain.reports import ReportConfig
+from yanga.domain.reports import ReportData
 
 from .base import create_config
 
@@ -36,7 +36,7 @@ class ReportConfigCommand(Command):
     def run(self, args: Namespace) -> int:
         self.logger.info(f"Running {self.name} with args {args}")
         cli_args = create_config(CommandArgs, args)
-        report_config = ReportConfig.from_json_file(cli_args.variant_report_config)
+        report_config = ReportData.from_json_file(cli_args.variant_report_config)
         # Search in the report_config components the component that has the name and replace the components with the filter one
         report_config.components = [next(component for component in report_config.components if component.name == cli_args.component_name)]
         report_config.variant_config = None

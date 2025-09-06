@@ -99,7 +99,7 @@ class ComponentReportConfig(VariantReportConfig):
 
 
 @dataclass
-class ReportConfig(BaseConfigJSONMixin):
+class ReportData(BaseConfigJSONMixin):
     """Configuration use by the report generation tools (e.g., Sphinx)."""
 
     variant: str
@@ -115,7 +115,7 @@ class ReportConfig(BaseConfigJSONMixin):
         return self.component_name is not None
 
     @classmethod
-    def from_json_file(cls, file_path: Path) -> "ReportConfig":
+    def from_json_file(cls, file_path: Path) -> "ReportData":
         try:
             result = cls.from_dict(json.loads(file_path.read_text()))
         except Exception as e:

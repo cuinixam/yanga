@@ -2,15 +2,20 @@ from pathlib import Path
 from typing import Optional
 
 from py_app_dev.core.exceptions import UserNotificationException
+from py_app_dev.core.find import find_elements_of_type
 from py_app_dev.core.logging import logger
 from py_app_dev.core.pipeline import PipelineLoader
 
 from yanga.cmake.artifacts_locator import CMakeArtifactsLocator
 from yanga.domain.execution_context import ExecutionContext
-from yanga.domain.reports import ComponentReportConfig, ReportConfig, ReportRelevantFiles, VariantReportConfig
+from yanga.domain.reports import ComponentReportConfig, ReportData, ReportRelevantFiles, VariantReportConfig
+from yanga.domain.targets import Target, TargetsData
 
 from .cmake_backend import (
+    CMakeAddExecutable,
+    CMakeCustomTarget,
     CMakeMinimumVersion,
+    CMakeObjectLibrary,
     CMakePath,
     CMakeProject,
     CMakeVariable,
@@ -59,9 +64,12 @@ class CMakeBuildSystemGenerator:
 
     def generate(self) -> list[GeneratedFileIf]:
         files: list[GeneratedFileIf] = []
-        files.append(self.create_config_cmake_file())
-        files.append(self.create_variant_cmake_file())
+        cmake_files: list[CMakeFile] = []
+        cmake_files.append(self.create_config_cmake_file())
+        cmake_files.append(self.create_variant_cmake_file())
+        files.extend(cmake_files)
         files.append(self.create_report_config_file())
+        files.append(self.create_target_dependencies_file(cmake_files))
         return files
 
     def create_cmake_lists(self) -> CMakeFile:
@@ -123,7 +131,7 @@ class CMakeBuildSystemGenerator:
                     components_data[entry.target.component_name] = [entry]
             else:
                 variant_data.append(entry)
-        config = ReportConfig(
+        config = ReportData(
             variant=self.execution_context.variant_name or "",
             platform=self.execution_context.platform.name if self.execution_context.platform else "",
             project_dir=self.execution_context.project_root_dir,
@@ -142,3 +150,69 @@ class CMakeBuildSystemGenerator:
                 build_dir=self.artifacts_locator.cmake_build_dir.to_path(),
             )
         return GeneratedFile(self.report_config_file.to_path(), config.to_json_string())
+
+    def create_target_dependencies_file(self, cmake_files: list[CMakeFile]) -> GeneratedFileIf:
+        """
+        Create a json file that contains the CMake target dependencies tree for the current variant and each component.
+
+        Parse all cmake files, search for the custom targets and their dependencies, and create a json file.
+        I want to use this file later to create a graph of the targets and their dependencies.
+        """
+        targets: list[Target] = []
+
+        # Extract all elements from cmake files
+        all_elements = []
+        for cmake_file in cmake_files:
+            all_elements.extend(cmake_file.content)
+
+        # Find all custom targets
+        custom_targets = find_elements_of_type(all_elements, CMakeCustomTarget)
+        for custom_target in custom_targets:
+            dependencies = []
+            outputs = []
+
+            # Extract dependencies
+            if custom_target.depends:
+                dependencies.extend([str(dep) for dep in custom_target.depends])
+
+            # Extract outputs/byproducts
+            if custom_target.byproducts:
+                outputs.extend([str(byproduct) for byproduct in custom_target.byproducts])
+
+            targets.append(Target(name=custom_target.name, description=custom_target.description, depends=dependencies, outputs=outputs))
+
+        # Find all executables
+        executables = find_elements_of_type(all_elements, CMakeAddExecutable)
+        for executable in executables:
+            dependencies = []
+
+            # Add library dependencies
+            if executable.libraries:
+                dependencies.extend(executable.libraries)
+
+            targets.append(
+                Target(
+                    name=executable.name,
+                    description=f"Executable target: {executable.name}",
+                    depends=dependencies,
+                    outputs=[executable.name],  # The executable itself is the output
+                )
+            )
+
+        # Find all object libraries
+        object_libraries = find_elements_of_type(all_elements, CMakeObjectLibrary)
+        for obj_lib in object_libraries:
+            targets.append(
+                Target(
+                    name=obj_lib.target_name,
+                    description=f"Object library: {obj_lib.name}",
+                    depends=[],  # Object libraries typically don't have explicit dependencies in our structure
+                    outputs=[obj_lib.target_name],
+                )
+            )
+
+        targets_data = TargetsData(targets=targets)
+        return GeneratedFile(
+            self.cmake_current_list_dir.joinpath("targets_data.json").to_path(),
+            targets_data.to_json_string(),
+        )

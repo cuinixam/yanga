@@ -34,7 +34,7 @@ def test_cmake_build_system_generator_creates_config_file() -> None:
         generator = CMakeBuildSystemGenerator(execution_context, output_dir)
         files = generator.generate()
 
-        assert len(files) == 3
+        assert len(files) == 4
 
         # Find the config.cmake file
         config_file = assert_element_of_type(files, CMakeFile, lambda f: f.path.as_posix().endswith("config.cmake"))
@@ -68,7 +68,7 @@ def test_cmake_build_system_generator_creates_empty_config_file() -> None:
         generator = CMakeBuildSystemGenerator(execution_context, output_dir)
         files = generator.generate()
 
-        assert len(files) == 3
+        assert len(files) == 4
 
         # Find the config.cmake file
         config_file = assert_element_of_type(files, CMakeFile, lambda f: f.path.as_posix().endswith("config.cmake"))

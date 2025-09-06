@@ -9,14 +9,14 @@ from typing import Any, Optional
 
 from py_app_dev.core.exceptions import UserNotificationException
 
-from yanga.domain.reports import ReportConfig
+from yanga.domain.reports import ReportData
 
 
 def _relativize_path(file: Path, project_dir: Path) -> str:
     return file.absolute().relative_to(project_dir).as_posix()
 
 
-class SphinxReportConfig(ReportConfig):
+class SphinxReportConfig(ReportData):
     @classmethod
     def from_json_file(cls, file_path: Path) -> "SphinxReportConfig":
         try:

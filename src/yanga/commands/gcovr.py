@@ -21,7 +21,7 @@ from py_app_dev.core.logging import logger
 from yanga.cmake.artifacts_locator import ComponentBuildArtifact
 from yanga.cmake.generator import GeneratedFile
 from yanga.domain.config import BaseConfigJSONMixin, StringableEnum
-from yanga.domain.reports import ReportConfig
+from yanga.domain.reports import ReportData
 
 from .base import create_config
 
@@ -116,7 +116,7 @@ class CreateVariantGcovrConfigCommand(Command):
         self.logger.info(f"Running {self.name} with args {args}")
         config = create_config(VariantCommandArgs, args)
 
-        report_config = ReportConfig.from_json_file(config.variant_report_config)
+        report_config = ReportData.from_json_file(config.variant_report_config)
 
         # Only include components which have coverage results
         coverage_json_files = [component.build_dir.joinpath(ComponentBuildArtifact.COVERAGE_JSON.path) for component in report_config.components if component.coverage_results]
