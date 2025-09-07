@@ -29,20 +29,22 @@ class ProjectArtifactsLocator:
         self.venv_scripts_dir = self.project_root_dir.joinpath(".venv").joinpath(scripts_dir)
 
     def locate_artifact(self, artifact: str, first_search_paths: list[Optional[Path]]) -> Path:
-        search_paths = []
+        search_paths: list[Optional[Path]] = []
         for path in first_search_paths:
             if path:
                 search_paths.append(path.parent if path.is_file() else path)
-        for dir in [
-            *search_paths,
-            self.variant_dir,
-            self.project_root_dir,
-            self.platforms_dir,
-        ]:
+        search_paths.extend(
+            [
+                self.variant_dir,
+                self.project_root_dir,
+                self.platforms_dir,
+            ]
+        )
+        for dir in search_paths:
             if dir and (artifact_path := Path(dir).joinpath(artifact)).exists():
                 return artifact_path
         else:
-            raise UserNotificationException(f"Artifact '{artifact}' not found in the project.")
+            raise UserNotificationException(f"Artifact '{artifact}' not found in the project. Searched paths: {', '.join(str(p) for p in search_paths if p is not None)}")
 
     @staticmethod
     def determine_variant_build_dir(variant_name: Optional[str], platform_name: Optional[str], build_type: Optional[str], build_dir: Path) -> Path:
