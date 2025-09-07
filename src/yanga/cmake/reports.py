@@ -149,13 +149,15 @@ class ReportCMakeGenerator(CMakeGenerator):
                         CMakeCommand(
                             "clanguru",
                             [
-                                "generate",
+                                "docs",
                                 "--source-file",
                                 source_file,
                                 "--output-file",
                                 output_md,
                                 "--compilation-database",
                                 self.artifacts_locator.get_build_artifact(BuildArtifact.COMPILE_COMMANDS),
+                                "--format",
+                                "myst",
                             ],
                         )
                         for source_file, output_md in zip(source_files, source_files_output_md)
