@@ -176,7 +176,7 @@ wheels = [
 
 [[package]]
 name = "clanguru"
-version = "0.12.0"
+version = "0.12.1"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "jinja2" },
@@ -186,9 +186,9 @@ dependencies = [
     { name = "py-app-dev" },
     { name = "typer" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/7a/0e/a4719fd81ee36c38b0f4e99ed6b82c45ec30c9e3edd75fcfa412719cada2/clanguru-0.12.0.tar.gz", hash = "sha256:f57452428fdc67d20a947edc60a4782fb8a307d66ce244b59429efe95393ea03", size = 26533, upload-time = "2025-09-07T11:49:45.832Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/c4/4c/edcb4fca1c0028f2fd2a22f875ba215b9b100df7f6ff49d947e3ce1c6d8c/clanguru-0.12.1.tar.gz", hash = "sha256:a517214828242a07d63c2b29240d12ea56ac0374f04daf44669c3fbc3e9750ee", size = 26561, upload-time = "2025-09-07T16:40:10.307Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/37/a0/3272ba4951c7732dacd03bfecf6526d30f9256170809b13da3e86e85a572/clanguru-0.12.0-py3-none-any.whl", hash = "sha256:7f8b0e0e27d6455f77100d88ff0ff0fb299ebc586b3dc924aa9afd56c488f34f", size = 29162, upload-time = "2025-09-07T11:49:44.578Z" },
+    { url = "https://files.pythonhosted.org/packages/6a/c8/9f8d416582831fc961503a9321bb5ebb80e0f1676c362a0c16abd0481090/clanguru-0.12.1-py3-none-any.whl", hash = "sha256:20f90483a80d1b4cd1bb716b90c8df5b4070823e3eab5cfeb8de40e299a16148", size = 29187, upload-time = "2025-09-07T16:40:09.187Z" },
 ]
 
 [[package]]
@@ -557,7 +557,7 @@ name = "exceptiongroup"
 version = "1.3.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
-    { name = "typing-extensions", marker = "python_full_version < '3.11'" },
+    { name = "typing-extensions", marker = "python_full_version < '3.13'" },
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/0b/9f/a65090624ecf468cdca03533906e7c69ed7588582240cfe7cc9e770b50eb/exceptiongroup-1.3.0.tar.gz", hash = "sha256:b241f5885f560bc56a59ee63ca4c6a8bfa46ae4ad651af316d4e81817bb9fd88", size = 29749, upload-time = "2025-05-10T17:42:51.123Z" }
 wheels = [

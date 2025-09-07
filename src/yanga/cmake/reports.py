@@ -144,7 +144,9 @@ class ReportCMakeGenerator(CMakeGenerator):
             test_results = any(
                 entry
                 for entry in self.execution_context.data_registry.find_data(ReportRelevantFiles)
-                if entry.file_type == ReportRelevantFileType.TEST_RESULT and entry.target.component_name == component.name
+                # TODO: when test results are registered, use the TEST_RESULT type.
+                #       Currently, we assume that tests were executed if there are coverage results
+                if entry.file_type == ReportRelevantFileType.COVERAGE_RESULT and entry.target.component_name == component.name
             )
             if test_results:
                 source_files.extend([CMakePath(source) for source in component_analyzer.collect_test_sources()])
