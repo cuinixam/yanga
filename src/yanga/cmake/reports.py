@@ -139,7 +139,15 @@ class ReportCMakeGenerator(CMakeGenerator):
             component_build_dir = self.artifacts_locator.get_component_build_dir(component.name)
             report_config_output_file = self.artifacts_locator.get_component_build_artifact(component.name, BuildArtifact.REPORT_CONFIG)
             docs_source_files = [CMakePath(source) for source in component_analyzer.collect_docs_sources()]
-            source_files: list[CMakePath] = [CMakePath(source) for source in [*component_analyzer.collect_sources(), *component_analyzer.collect_test_sources()]]
+            source_files: list[CMakePath] = [CMakePath(source) for source in component_analyzer.collect_sources()]
+            # Check if there are any test results registered for the component
+            test_results = any(
+                entry
+                for entry in self.execution_context.data_registry.find_data(ReportRelevantFiles)
+                if entry.file_type == ReportRelevantFileType.TEST_RESULT and entry.target.component_name == component.name
+            )
+            if test_results:
+                source_files.extend([CMakePath(source) for source in component_analyzer.collect_test_sources()])
             source_files_output_md = [component_build_dir.joinpath(f"{source_file.to_path().name}.md") for source_file in source_files]
             component_docs_target = UserRequest(
                 UserRequestScope.COMPONENT,
