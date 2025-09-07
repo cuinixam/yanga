@@ -63,8 +63,25 @@ class ReportCMakeGenerator(CMakeGenerator):
             ),
             variant_user_request.target_name,
         )
+        # Check if there are any coverage reports registered for the variant
+        coverage_reports = any(
+            entry
+            for entry in self.execution_context.data_registry.find_data(ReportRelevantFiles)
+            if entry.file_type == ReportRelevantFileType.COVERAGE_RESULT and entry.target.scope == UserRequestScope.VARIANT
+        )
 
         # Create variant results target to collect all component and variant results relevant for the report
+        results_target_depends: list[str | CMakePath] = [
+            self.artifacts_locator.get_build_artifact(BuildArtifact.REPORT_CONFIG),
+            *targets_data_cmd.outputs,
+            *[
+                UserRequest(UserRequestScope.COMPONENT, target=UserRequestTarget.RESULTS, component_name=component.name).target_name
+                for component in self.execution_context.components
+            ],
+        ]
+        if coverage_reports:
+            results_target_depends.append(UserRequest(UserRequestScope.VARIANT, target=UserRequestTarget.COVERAGE).target_name)
+
         results_target = CMakeCustomTarget(
             name=UserRequest(
                 UserRequestScope.VARIANT,
@@ -72,18 +89,7 @@ class ReportCMakeGenerator(CMakeGenerator):
             ).target_name,
             description=f"Run all targets for all component results for {self.execution_context.variant_name}",
             commands=[],
-            depends=[
-                self.artifacts_locator.get_build_artifact(BuildArtifact.REPORT_CONFIG),
-                *targets_data_cmd.outputs,
-                *[
-                    UserRequest(UserRequestScope.COMPONENT, target=UserRequestTarget.RESULTS, component_name=component.name).target_name
-                    for component in self.execution_context.components
-                ],
-                UserRequest(
-                    UserRequestScope.VARIANT,
-                    target=UserRequestTarget.COVERAGE,
-                ).target_name,
-            ],
+            depends=results_target_depends,
         )
         elements.append(results_target)
         elements.append(
