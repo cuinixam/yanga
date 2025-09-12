@@ -12,7 +12,7 @@ from yanga.cmake.cmake_backend import CMakeComment
 from yanga.docs.sphinx import SphinxReportConfig
 from yanga.domain.config import PlatformConfig
 from yanga.domain.execution_context import ExecutionContext, UserRequest, UserRequestScope, UserRequestTarget
-from yanga.domain.reports import ComponentReportConfig, ReportRelevantFiles, ReportRelevantFileType
+from yanga.domain.reports import ComponentReportData, ReportRelevantFiles, ReportRelevantFileType
 
 
 @pytest.fixture
@@ -97,8 +97,8 @@ def test_create_report_config_file_empty_registry(env: ExecutionContext) -> None
 
     config_data = json.loads(generated_file.to_string())
 
-    assert config_data["variant"] == "mock_variant"
-    assert config_data["platform"] == ""
+    assert config_data["variant_name"] == "mock_variant"
+    assert config_data["platform_name"] == ""
     assert config_data["components"] == []
 
 
@@ -171,18 +171,18 @@ def test_create_report_config_file_with_components(env_with_platform: ExecutionC
 
     config_data = SphinxReportConfig.from_dict(json.loads(generated_file.to_string()))
 
-    assert config_data.variant == "mock_variant"
-    assert config_data.platform == "test_platform"
+    assert config_data.variant_name == "mock_variant"
+    assert config_data.platform_name == "test_platform"
     assert len(config_data.components) == 2
 
     # Find component1 and component2 in the config
-    component1_config = assert_element_of_type(config_data.components, ComponentReportConfig, lambda c: c.name == "component1")
+    component1_config = assert_element_of_type(config_data.components, ComponentReportData, lambda c: c.name == "component1")
 
     # Check component1 has docs and component sources
     assert set(component1_config.docs_files) == {Path("component1/docs/file1.md"), Path("component1/docs/file2.md")}
     assert set(component1_config.sources) == {Path("component1/src/main.cpp"), Path("component1/src/utils.cpp")}
 
-    component2_config = assert_element_of_type(config_data.components, ComponentReportConfig, lambda c: c.name == "component2")
+    component2_config = assert_element_of_type(config_data.components, ComponentReportData, lambda c: c.name == "component2")
     assert set(component2_config.test_results) == {Path("component2/test_results.xml")}
 
     # Verify other fields are empty lists for both components

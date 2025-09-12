@@ -8,7 +8,7 @@ from py_app_dev.core.pipeline import PipelineLoader
 
 from yanga.cmake.artifacts_locator import BuildArtifact, CMakeArtifactsLocator
 from yanga.domain.execution_context import ExecutionContext
-from yanga.domain.reports import ComponentReportConfig, ReportData, ReportRelevantFiles, VariantReportConfig
+from yanga.domain.reports import ComponentReportData, FeaturesReportRelevantFile, ReportData, ReportRelevantFiles, VariantReportData
 from yanga.domain.targets import Target, TargetsData, TargetType
 
 from .cmake_backend import (
@@ -133,11 +133,11 @@ class CMakeBuildSystemGenerator:
             else:
                 variant_data.append(entry)
         config = ReportData(
-            variant=self.execution_context.variant_name or "",
-            platform=self.execution_context.platform.name if self.execution_context.platform else "",
+            variant_name=self.execution_context.variant_name or "",
+            platform_name=self.execution_context.platform.name if self.execution_context.platform else "",
             project_dir=self.execution_context.project_root_dir,
             components=[
-                ComponentReportConfig(
+                ComponentReportData(
                     name=component_name,
                     files=files,
                     build_dir=self.artifacts_locator.get_component_build_dir(component_name).to_path(),
@@ -146,10 +146,14 @@ class CMakeBuildSystemGenerator:
             ],
         )
         if variant_data:
-            config.variant_config = VariantReportConfig(
+            config.variant_data = VariantReportData(
                 files=variant_data,
                 build_dir=self.artifacts_locator.cmake_build_dir.to_path(),
             )
+        features_config_file = self.execution_context.data_registry.find_data(FeaturesReportRelevantFile)
+        if features_config_file:
+            # TODO: Handle multiple feature config files?
+            config.features_json_config = features_config_file[0].json_config_file
         return GeneratedFile(self.report_config_file.to_path(), config.to_json_string())
 
     def create_target_dependencies_file(self, cmake_files: list[CMakeFile]) -> GeneratedFileIf:

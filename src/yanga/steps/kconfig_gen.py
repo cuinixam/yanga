@@ -2,13 +2,13 @@ from pathlib import Path
 from typing import Any, Optional
 
 from clanguru.doc_generator import DocStructure, MarkdownFormatter, Section, TextContent
-from kspl.generate import FileWriter, HeaderWriter
+from kspl.generate import FileWriter, HeaderWriter, JsonWriter
 from kspl.kconfig import ConfigElementType, ConfigurationData, KConfig, TriState
 from py_app_dev.core.logging import logger
 from pypeline.domain.pipeline import PipelineStep
 
 from yanga.domain.execution_context import ExecutionContext, IncludeDirectoriesProvider, UserRequest, UserRequestScope, UserRequestTarget
-from yanga.domain.reports import ReportRelevantFiles, ReportRelevantFileType
+from yanga.domain.reports import FeaturesReportRelevantFile, ReportRelevantFiles, ReportRelevantFileType
 
 
 class FeaturesDocumentationWriter(FileWriter):
@@ -115,6 +115,10 @@ class KConfigGen(PipelineStep[ExecutionContext]):
         return self.output_dir.joinpath("autoconf.h")
 
     @property
+    def json_config_file(self) -> Path:
+        return self.output_dir.joinpath("autoconf.json")
+
+    @property
     def features_doc_file(self) -> Path:
         return self.output_dir.joinpath("autoconf.md")
 
@@ -131,6 +135,12 @@ class KConfigGen(PipelineStep[ExecutionContext]):
         self.input_files = kconfig.get_parsed_files()
         config = kconfig.collect_config_data()
         HeaderWriter(self.header_file).write(config)
+        JsonWriter(self.json_config_file).write(config)
+        # Register the JSON config file as relevant for configuring the report generation
+        self.execution_context.data_registry.insert(
+            FeaturesReportRelevantFile(provider=self.get_name(), json_config_file=self.json_config_file),
+            self.get_name(),
+        )
         FeaturesDocumentationWriter(self.features_doc_file).write(config)
         # Register the documentation file as relevant for the variant report
         self.execution_context.data_registry.insert(
@@ -153,7 +163,7 @@ class KConfigGen(PipelineStep[ExecutionContext]):
         return self.execution_context.user_config_files + self.input_files
 
     def get_outputs(self) -> list[Path]:
-        return [self.header_file, self.features_doc_file]
+        return [self.header_file, self.features_doc_file, self.json_config_file]
 
     def update_execution_context(self) -> None:
         # Update the include directories for the subsequent steps

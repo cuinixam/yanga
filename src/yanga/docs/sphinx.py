@@ -60,9 +60,9 @@ class SphinxReportConfig(ReportData):
         return self._collect_files_from_config(component)
 
     def get_variant_files_list(self) -> list[str]:
-        if not self.variant_config:
+        if not self.variant_data:
             return []
-        return self._collect_files_from_config(self.variant_config)
+        return self._collect_files_from_config(self.variant_data)
 
     @property
     def say_hello(self) -> str:
@@ -75,7 +75,7 @@ class SphinxConfig:
     REPORT_CONFIGURATION_FILE_ENV_NAME = "REPORT_CONFIGURATION_FILE"
 
     def __init__(self) -> None:
-        self.report_config = self._load_report_config_data()
+        self.report_data = self._load_report_config_data()
 
     def _load_report_config_data(self) -> Optional[SphinxReportConfig]:
         report_config_file_path_str = os.environ.get(self.REPORT_CONFIGURATION_FILE_ENV_NAME, None)
@@ -88,17 +88,17 @@ class SphinxConfig:
 
     @property
     def project(self) -> str:
-        return self.report_config.variant if self.report_config else "Unknown"
+        return self.report_data.variant_name if self.report_data else "Unknown"
 
     @property
     def html_context(self) -> dict[str, Any]:
-        return {"report_config": self.report_config}
+        return {"report_data": self.report_data}
 
     @property
     def include_patterns(self) -> list[str]:
         """Collect all files from the report config."""
-        if self.report_config:
-            return [_relativize_path(file, self.report_config.project_dir) for file in self.report_config.collect_all_files()]
+        if self.report_data:
+            return [_relativize_path(file, self.report_data.project_dir) for file in self.report_data.collect_all_files()]
         return []
 
     @staticmethod

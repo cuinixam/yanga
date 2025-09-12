@@ -1,14 +1,26 @@
+from __future__ import annotations
+
 import io
 import json
 import traceback
 from dataclasses import dataclass, field
 from enum import auto
+from functools import cached_property
 from pathlib import Path
+from typing import Any
 
 from py_app_dev.core.exceptions import UserNotificationException
 
 from .config import BaseConfigJSONMixin, StringableEnum, stringable_enum_field_metadata
 from .execution_context import UserRequest
+
+
+@dataclass
+class FeaturesReportRelevantFile:
+    #: Provider name
+    provider: str
+    # Json configuration file generated with all selected features and their values
+    json_config_file: Path
 
 
 class ReportRelevantFileType(StringableEnum):
@@ -47,7 +59,7 @@ class ReportRelevantFiles(BaseConfigJSONMixin):
 
 
 @dataclass
-class VariantReportConfig(BaseConfigJSONMixin):
+class VariantReportData(BaseConfigJSONMixin):
     """Variant configuration to be used by the report generation tools (e.g., Sphinx)."""
 
     files: list[ReportRelevantFiles]
@@ -92,8 +104,8 @@ class VariantReportConfig(BaseConfigJSONMixin):
 
 
 @dataclass
-class ComponentReportConfig(VariantReportConfig):
-    """Configuration for a single component to be used by the report generation tools (e.g., Sphinx)."""
+class ComponentReportData(VariantReportData):
+    """The component report data is the same as a variant data but with a name."""
 
     name: str
 
@@ -102,20 +114,22 @@ class ComponentReportConfig(VariantReportConfig):
 class ReportData(BaseConfigJSONMixin):
     """Configuration use by the report generation tools (e.g., Sphinx)."""
 
-    variant: str
-    platform: str
+    variant_name: str
+    platform_name: str
     project_dir: Path
     # Updated only for single component reports
     component_name: str | None = None
-    components: list[ComponentReportConfig] = field(default_factory=list)
-    variant_config: VariantReportConfig | None = None
+    components: list[ComponentReportData] = field(default_factory=list)
+    variant_data: VariantReportData | None = None
+    #: JSON configuration file generated with all selected features and their values. The content of this file will be accessed with the `features` property
+    features_json_config: Path | None = None
 
     @property
     def has_component_scope(self) -> bool:
         return self.component_name is not None
 
     @classmethod
-    def from_json_file(cls, file_path: Path) -> "ReportData":
+    def from_json_file(cls, file_path: Path) -> ReportData:
         try:
             result = cls.from_dict(json.loads(file_path.read_text()))
         except Exception as e:
@@ -128,7 +142,27 @@ class ReportData(BaseConfigJSONMixin):
         result = []
         for comp in self.components:
             result.extend(comp.all_files)
-        if self.variant_config:
-            result.extend(self.variant_config.all_files)
+        if self.variant_data:
+            result.extend(self.variant_data.all_files)
         # Make result unique and keep order
         return list(dict.fromkeys(result))
+
+    @cached_property
+    def features(self) -> dict[str, Any]:
+        """
+        Return the features configuration, read once.
+
+        The JSON file is parsed on first access and the result cached for the
+        lifetime of this instance. Later file changes are intentionally ignored.
+        """
+        file_path = self.features_json_config
+        if not file_path or not file_path.is_file():
+            return {}
+        try:
+            parsed: dict[str, Any] = json.loads(file_path.read_text())
+            # Return a shallow copy to shield internal cache from mutation
+            return dict(parsed)
+        except Exception as e:  # pragma: no cover - defensive path
+            output = io.StringIO()
+            traceback.print_exc(file=output)
+            raise UserNotificationException(output.getvalue()) from e
