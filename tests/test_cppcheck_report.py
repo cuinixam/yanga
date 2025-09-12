@@ -147,7 +147,7 @@ def test_extract_code_context_with_file(get_test_data_path: Callable[[str], Path
 
     # Check that we get the expected MyST code-block directive
     assert context == textwrap.dedent("""\
-        ```{code-block} c
+        ```{code-block}
         :linenos:
         :lineno-start: 14
         :emphasize-lines: 3
@@ -187,7 +187,7 @@ def test_create_doc_structure_with_code_context(get_test_data_path: Callable[[st
     # MyST directive is injected as plain text content
     assert isinstance(code_content, TextContent)
     text = code_content.text
-    assert text.startswith("```{code-block} c")
+    assert text.startswith("```{code-block}")
     assert ":linenos:" in text
     assert ":emphasize-lines:" in text
     assert "*ptr = 42;" in text

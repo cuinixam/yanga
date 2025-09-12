@@ -153,7 +153,7 @@ def _extract_code_context(location: Location, context_lines: int) -> str:
 
     Returns a full MyST fenced directive block, e.g.::
 
-        ```{code-block} c
+        ```{code-block}
         :linenos:
         :lineno-start: 42
         :emphasize-lines: 3
@@ -183,7 +183,7 @@ def _extract_code_context(location: Location, context_lines: int) -> str:
 
         # Build MyST code-block directive
         directive_header = [
-            "```{code-block} c",
+            "```{code-block}",
             ":linenos:",
             f":lineno-start: {lineno_start}",
             f":emphasize-lines: {emphasize_relative}",
