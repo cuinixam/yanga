@@ -6,6 +6,8 @@ from typing import Any, Optional
 from mashumaro import DataClassDictMixin
 
 from yanga.cmake.artifacts_locator import BuildArtifact, CMakeArtifactsLocator
+from yanga.cmake.coverage import CoverageArtifactsLocator, CoverageRelevantFile
+from yanga.domain.artifacts import ProjectArtifactsLocator
 from yanga.domain.component_analyzer import ComponentAnalyzer
 from yanga.domain.components import Component
 from yanga.domain.config import MockingConfiguration
@@ -36,19 +38,11 @@ from .cmake_backend import (
 from .generator import CMakeGenerator
 
 
-@dataclass
-class CoverageRelevantFile:
-    """Used to register files relevant for the merged coverage report."""
-
-    target: UserRequest
-    json_report: CMakePath
-
-
 class GTestCMakeArtifactsLocator(CMakeArtifactsLocator):
     """Defines the paths to the CMake artifacts for GTest."""
 
-    def __init__(self, output_dir: Path, execution_context: ExecutionContext) -> None:
-        super().__init__(output_dir, execution_context)
+    def __init__(self, output_dir: Path, project_artifact_locator: ProjectArtifactsLocator) -> None:
+        super().__init__(output_dir, project_artifact_locator)
         self.cmake_gtest_dir = CMakePath(self.artifacts_locator.locate_artifact("gtest", [self.artifacts_locator.build_dir]))
 
 
@@ -202,7 +196,7 @@ class CMakeMockupCreator:
 class GTestComponentCMakeGenerator:
     def __init__(self, execution_context: ExecutionContext, output_dir: Path, config: GTestCMakeGeneratorConfig) -> None:
         self.execution_context = execution_context
-        self.artifacts_locator = GTestCMakeArtifactsLocator(output_dir, execution_context)
+        self.artifacts_locator = GTestCMakeArtifactsLocator(output_dir, execution_context.create_artifacts_locator())
         self.config = config
 
     def generate(self, component: Component) -> list[CMakeElement]:
@@ -396,13 +390,12 @@ class GTestComponentCMakeGenerator:
         sources: list[Path],
         component_object_library: str,
     ) -> CMakeCustomCommand:
-        component_build_dir = self.artifacts_locator.get_component_build_dir(component_name)
+        artifacts_locator = CoverageArtifactsLocator.from_cmake_artifacts_locator(self.artifacts_locator)
+        component_build_dir = artifacts_locator.get_component_build_dir(component_name)
         gcovr_config_file = component_build_dir.joinpath("gcovr.cfg")
-        gcovr_json_file = self.artifacts_locator.get_component_build_artifact(component_name, BuildArtifact.COVERAGE_JSON)
-        coverage_doc_file = self.artifacts_locator.get_component_build_artifact(component_name, BuildArtifact.COVERAGE_DOC)
-        # We need to generate the html report in a subdirectory to be able to link it relatively from the markdown file
-        coverage_doc_file_relative_path = coverage_doc_file.to_path().relative_to(self.artifacts_locator.project_root_dir).parent.as_posix()
-        gcovr_html_dir = self.artifacts_locator.get_component_reports_dir(component_name).joinpath(coverage_doc_file_relative_path).joinpath("coverage")
+        gcovr_json_file = artifacts_locator.get_component_build_artifact(component_name, BuildArtifact.COVERAGE_JSON)
+        coverage_doc_file = artifacts_locator.get_component_build_artifact(component_name, BuildArtifact.COVERAGE_DOC)
+        gcovr_html_dir = artifacts_locator.get_component_coverage_html_dir(component_name)
         gcovr_html_file = gcovr_html_dir.joinpath("index.html")
 
         return CMakeCustomCommand(
@@ -471,7 +464,7 @@ class GTestCMakeGenerator(CMakeGenerator):
 
     def __init__(self, execution_context: ExecutionContext, output_dir: Path, config: Optional[dict[str, Any]] = None) -> None:
         super().__init__(execution_context, output_dir, config)
-        self.artifacts_locator = GTestCMakeArtifactsLocator(output_dir, execution_context)
+        self.artifacts_locator = GTestCMakeArtifactsLocator(output_dir, execution_context.create_artifacts_locator())
 
     @property
     def variant_name(self) -> Optional[str]:

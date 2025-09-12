@@ -45,7 +45,7 @@ class CMakeBuildSystemGenerator:
         self.output_dir = output_dir
         # The directory where the CMakeLists.txt file is located
         self.cmake_current_list_dir = CMakePath(self.output_dir, "CMAKE_CURRENT_LIST_DIR")
-        self.artifacts_locator = CMakeArtifactsLocator(output_dir, execution_context)
+        self.artifacts_locator = CMakeArtifactsLocator(output_dir, execution_context.create_artifacts_locator())
 
     @property
     def variant_cmake_file(self) -> CMakePath:

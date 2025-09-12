@@ -2,7 +2,7 @@ from enum import Enum
 from pathlib import Path
 
 from yanga.cmake.cmake_backend import CMakePath
-from yanga.domain.execution_context import ExecutionContext
+from yanga.domain.artifacts import ProjectArtifactsLocator
 
 
 class BuildArtifact(Enum):
@@ -19,9 +19,9 @@ class BuildArtifact(Enum):
 class CMakeArtifactsLocator:
     """Defines the paths to the CMake artifacts."""
 
-    def __init__(self, output_dir: Path, execution_context: ExecutionContext) -> None:
+    def __init__(self, output_dir: Path, project_artifact_locator: ProjectArtifactsLocator) -> None:
         # The directory where the build files will be generated
-        self.artifacts_locator = execution_context.create_artifacts_locator()
+        self.artifacts_locator = project_artifact_locator
         self.cmake_build_dir = CMakePath(output_dir, "CMAKE_BUILD_DIR")
         self.cmake_project_dir = CMakePath(self.artifacts_locator.project_root_dir)
         self.cmake_variant_reports_dir = self.cmake_build_dir.joinpath("reports")
