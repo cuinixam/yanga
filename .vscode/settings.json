@@ -41,6 +41,7 @@
     "cppcheck",
     "gcovr",
     "gcov",
-    "stringable"
+    "stringable",
+    "kconfig"
   ]
 }
