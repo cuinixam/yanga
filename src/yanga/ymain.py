@@ -10,6 +10,7 @@ from yanga import __version__
 from yanga.commands.run import RunCommand, RunCommandConfig
 from yanga.gui import YangaGui
 from yanga.kickstart.create import KickstartProject
+from yanga.yview import KConfigView
 
 package_name = "yanga"
 
@@ -25,7 +26,7 @@ def version(
         raise typer.Exit()
 
 
-@app.command()
+@app.command(help="Initialize a new YANGA project in the specified directory.")
 @time_it("init")
 def init(
     project_dir: Path = typer.Option(Path.cwd().absolute(), help="The project directory"),  # noqa: B008
@@ -34,7 +35,7 @@ def init(
     KickstartProject(project_dir, force).run()
 
 
-@app.command()
+@app.command(help="Run the build pipeline for a specific variant and component.")
 @time_it("run")
 def run(
     project_dir: Path = typer.Option(Path.cwd().absolute(), help="The project directory"),  # noqa: B008,
@@ -91,12 +92,20 @@ def run(
     )
 
 
-@app.command()
+@app.command(help="Launch the YANGA GUI to build variants and components.")
 @time_it("gui")
 def gui(
     project_dir: Path = typer.Option(Path.cwd().absolute(), help="The project directory"),  # noqa: B008
 ) -> None:
     YangaGui(project_dir).run()
+
+
+@app.command(help="View the variants feature configurations.")
+@time_it("view")
+def view(
+    project_dir: Path = typer.Option(Path.cwd().absolute(), help="The project directory"),  # noqa: B008
+) -> None:
+    KConfigView(project_dir).run()
 
 
 def main() -> int:

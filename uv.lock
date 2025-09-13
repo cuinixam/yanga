@@ -489,6 +489,15 @@ toml = [
 ]
 
 [[package]]
+name = "ctktooltip"
+version = "0.8"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/a7/4d/0a9e703b0be6b36a12920c2f993c704a36a58df62552686d76a8c9e3886a/CTkToolTip-0.8.tar.gz", hash = "sha256:08596120b12c8fa9b9bff2931a3aef3a29719380def9a0a50380c3b6852b4564", size = 8043, upload-time = "2023-08-08T09:41:18.159Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/ae/b6/83d939da1d3e7d6b1202a8fe205b3fc08ef7a570dd6dfc18026bf144594c/CTkToolTip-0.8-py3-none-any.whl", hash = "sha256:dd91fc208596e14d0eea03eaa57b0d6095be995538ce2b87538e4266fa7a753d", size = 8137, upload-time = "2023-08-08T09:41:16.299Z" },
+]
+
+[[package]]
 name = "customtkinter"
 version = "5.2.2"
 source = { registry = "https://pypi.org/simple" }
@@ -813,16 +822,17 @@ wheels = [
 
 [[package]]
 name = "kspl"
-version = "1.5.1"
+version = "1.8.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
+    { name = "ctktooltip" },
     { name = "customtkinter" },
     { name = "kconfiglib" },
     { name = "py-app-dev" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/68/02/247d1d68e7f5ab980b9b1fc7195080dd3fe32e9e3008a4d7b253f854a1b0/kspl-1.5.1.tar.gz", hash = "sha256:94d00c755deafdc380fcf66f36dffa4cd8c4ccf6a9ca9e93fc5bfefb552be691", size = 17996, upload-time = "2025-09-12T20:07:59.806Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/92/7f/f4e6fb4da06c2c7818411bbfba05eecbcde903a4fc41ef83c38037b8a8f8/kspl-1.8.0.tar.gz", hash = "sha256:6662b2bb11fec9977e774e2acca7345693758bcbfc1906d8e785e12504a1844d", size = 19695, upload-time = "2025-09-13T15:29:39.71Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/65/94/6748a67e6bd6700bcb2cf9efa1f243b927da0a645c20e91b7bd84aec62d8/kspl-1.5.1-py3-none-any.whl", hash = "sha256:ba5117e28ea063760639c57d99fca400629baa460e7cc2f4f5dc0a94dca93515", size = 18994, upload-time = "2025-09-12T20:07:58.346Z" },
+    { url = "https://files.pythonhosted.org/packages/71/79/2a8fcdf2f2a668f4af2cbe7a21c318b44c2cbae565ac48061e3a26cdf266/kspl-1.8.0-py3-none-any.whl", hash = "sha256:d57c1fa7ca90e78645bccf0d5ab539119c604a51dc8a8b3e79c053ccbe770460", size = 20596, upload-time = "2025-09-13T15:29:38.579Z" },
 ]
 
 [[package]]
@@ -1597,11 +1607,11 @@ wheels = [
 
 [[package]]
 name = "pyparsing"
-version = "3.2.3"
+version = "3.2.4"
 source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/bb/22/f1129e69d94ffff626bdb5c835506b3a5b4f3d070f17ea295e12c2c6f60f/pyparsing-3.2.3.tar.gz", hash = "sha256:b9c13f1ab8b3b542f72e28f634bad4de758ab3ce4546e4301970ad6fa77c38be", size = 1088608, upload-time = "2025-03-25T05:01:28.114Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/98/c9/b4594e6a81371dfa9eb7a2c110ad682acf985d96115ae8b25a1d63b4bf3b/pyparsing-3.2.4.tar.gz", hash = "sha256:fff89494f45559d0f2ce46613b419f632bbb6afbdaed49696d322bcf98a58e99", size = 1098809, upload-time = "2025-09-13T05:47:19.732Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/05/e7/df2285f3d08fee213f2d041540fa4fc9ca6c2d44cf36d3a035bf2a8d2bcc/pyparsing-3.2.3-py3-none-any.whl", hash = "sha256:a749938e02d6fd0b59b356ca504a24982314bb090c383e3cf201c95ef7e2bfcf", size = 111120, upload-time = "2025-03-25T05:01:24.908Z" },
+    { url = "https://files.pythonhosted.org/packages/53/b8/fbab973592e23ae313042d450fc26fa24282ebffba21ba373786e1ce63b4/pyparsing-3.2.4-py3-none-any.whl", hash = "sha256:91d0fcde680d42cd031daf3a6ba20da3107e08a75de50da58360e7d94ab24d36", size = 113869, upload-time = "2025-09-13T05:47:17.863Z" },
 ]
 
 [[package]]

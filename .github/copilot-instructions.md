@@ -33,7 +33,7 @@ pypeline run  # Bootstraps project and runs full pipeline
 
 ### VS Code Integration
 Use predefined tasks via Command Palette:
-- "Tasks: Run Task" → "run tests" 
+- "Tasks: Run Task" → "run tests"
 - "Tasks: Run Task" → "run pre-commit checks"
 - "Tasks: Run Task" → "generate docs"
 
