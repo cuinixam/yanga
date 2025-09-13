@@ -566,7 +566,7 @@ name = "exceptiongroup"
 version = "1.3.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
-    { name = "typing-extensions", marker = "python_full_version < '3.11'" },
+    { name = "typing-extensions", marker = "python_full_version < '3.13'" },
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/0b/9f/a65090624ecf468cdca03533906e7c69ed7588582240cfe7cc9e770b50eb/exceptiongroup-1.3.0.tar.gz", hash = "sha256:b241f5885f560bc56a59ee63ca4c6a8bfa46ae4ad651af316d4e81817bb9fd88", size = 29749, upload-time = "2025-05-10T17:42:51.123Z" }
 wheels = [
@@ -822,7 +822,7 @@ wheels = [
 
 [[package]]
 name = "kspl"
-version = "1.8.0"
+version = "1.8.1"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "ctktooltip" },
@@ -830,9 +830,9 @@ dependencies = [
     { name = "kconfiglib" },
     { name = "py-app-dev" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/92/7f/f4e6fb4da06c2c7818411bbfba05eecbcde903a4fc41ef83c38037b8a8f8/kspl-1.8.0.tar.gz", hash = "sha256:6662b2bb11fec9977e774e2acca7345693758bcbfc1906d8e785e12504a1844d", size = 19695, upload-time = "2025-09-13T15:29:39.71Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/aa/3e/34b592622576ff9a71be02a14b785a615740f0b3921df816223e8a347d0c/kspl-1.8.1.tar.gz", hash = "sha256:f82f49eb8180af088229ac8223f52c1605df020547618c7663620eb925ac093f", size = 19775, upload-time = "2025-09-13T16:04:25.382Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/71/79/2a8fcdf2f2a668f4af2cbe7a21c318b44c2cbae565ac48061e3a26cdf266/kspl-1.8.0-py3-none-any.whl", hash = "sha256:d57c1fa7ca90e78645bccf0d5ab539119c604a51dc8a8b3e79c053ccbe770460", size = 20596, upload-time = "2025-09-13T15:29:38.579Z" },
+    { url = "https://files.pythonhosted.org/packages/a9/8c/a4ef25f37fb89d43ba4426acf391e00f748374cd7f5439b8645958f54ade/kspl-1.8.1-py3-none-any.whl", hash = "sha256:eaed84161caee9a8b08460975adb0e93bbb7ec374321be33398b9c901d5b8304", size = 20680, upload-time = "2025-09-13T16:04:24.013Z" },
 ]
 
 [[package]]
