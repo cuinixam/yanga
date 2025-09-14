@@ -157,8 +157,8 @@ class YangaProjectSlurper:
         artifacts_locator = ProjectArtifactsLocator(self.project_dir, variant_name, None, None)
         return artifacts_locator.locate_artifact(variant.features_selection_file, [variant.file]) if variant.features_selection_file else None
 
-    def get_variant_components(self, variant_name: str) -> list[Component]:
-        return self._collect_variant_components(self.get_variant_config(variant_name))
+    def get_variant_components(self, variant_name: str, platform_name: Optional[str] = None) -> list[Component]:
+        return self._collect_variant_components(self.get_variant_config(variant_name), platform_name)
 
     def get_platform(self, platform_name: Optional[str]) -> Optional[PlatformConfig]:
         if not platform_name:
@@ -168,16 +168,26 @@ class YangaProjectSlurper:
             raise UserNotificationException(f"Platform '{platform_name}' not found in the configuration.")
         return platform
 
-    def _collect_variant_components(self, variant: VariantConfig) -> list[Component]:
+    def _collect_variant_components(self, variant: VariantConfig, platform_name: Optional[str] = None) -> list[Component]:
         """
         Collect all components for the given variant.
 
         Look for components in the component pool and add them to the list.
+        Platform-specific components from the variant's platforms configuration are also included.
         """
         components = []
         if not variant.components:
             raise UserNotificationException(f"Variant '{variant.name}' is empty (no 'components' found).")
-        for component_name in variant.components:
+
+        # Collect base variant components
+        component_names = variant.components.copy()
+
+        # Add platform-specific components if available
+        if platform_name and variant.platforms and platform_name in variant.platforms:
+            platform_config = variant.platforms[platform_name]
+            component_names.extend(platform_config.components)
+
+        for component_name in component_names:
             component_config = self.components_configs_pool.get(component_name, None)
             if not component_config:
                 raise UserNotificationException(f"Component '{component_name}' not found in the configuration.")

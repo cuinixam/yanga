@@ -13,6 +13,7 @@ from yanga.domain.targets import Target, TargetsData, TargetType
 
 from .cmake_backend import (
     CMakeAddExecutable,
+    CMakeComment,
     CMakeCustomCommand,
     CMakeCustomTarget,
     CMakeMinimumVersion,
@@ -112,7 +113,7 @@ class CMakeBuildSystemGenerator:
         cmake_file = CMakeFile(self.config_cmake_file.to_path())
         config_generator = ConfigCMakeGenerator(self.execution_context, self.output_dir)
         cmake_file.extend(config_generator.generate())
-        # configure cmake to generate compile commands
+        cmake_file.append(CMakeComment("Enable generation of compile_commands.json for IDEs and code analysis tools"))
         cmake_file.append(CMakeVariable("CMAKE_EXPORT_COMPILE_COMMANDS", "ON", True, "BOOL", "", True))
         return cmake_file
 

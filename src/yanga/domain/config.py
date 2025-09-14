@@ -146,6 +146,16 @@ class PlatformConfig(DataClassDictMixin):
 
 
 @dataclass
+class VariantPlatformsConfig(DataClassDictMixin):
+    """Platform specific configuration, used in case the variant needs to defines specific settings for some platforms."""
+
+    #: Components
+    components: list[str] = field(default_factory=list)
+    #: Generic configuration key-value pairs that will be exported as CMake variables
+    config: dict[str, Any] = field(default_factory=dict)
+
+
+@dataclass
 class VariantConfig(DataClassDictMixin):
     #: Variant name
     name: str
@@ -153,8 +163,8 @@ class VariantConfig(DataClassDictMixin):
     description: Optional[str] = None
     #: Components
     components: list[str] = field(default_factory=list)
-    #: Platform
-    platform: Optional[str] = None
+    #: Platform specific configuration, used in case the variant needs to defines specific settings for some platforms
+    platforms: Optional[dict[str, VariantPlatformsConfig]] = None
     #: Configuration
     features_selection_file: Optional[str] = None
     #: Generic configuration key-value pairs that will be exported as CMake variables

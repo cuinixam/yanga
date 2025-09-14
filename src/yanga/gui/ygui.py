@@ -455,7 +455,7 @@ class YangaPresenter(Presenter):
     def _create_component_names(self, variant_name: str) -> list[str]:
         if self.project_slurper:
             try:
-                components = self.project_slurper.get_variant_components(variant_name)
+                components = self.project_slurper.get_variant_components(variant_name, self.selected_platform)
                 return [component.name for component in components]
             except UserNotificationException as e:
                 self.logger.error(e)
