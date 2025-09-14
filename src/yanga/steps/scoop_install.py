@@ -60,7 +60,10 @@ class ScoopInstall(PipelineStep[ExecutionContext]):
 
     @property
     def output_dir(self) -> Path:
-        return self.execution_context.create_artifacts_locator().variant_build_dir
+        if self.execution_context.variant:
+            return self.execution_context.create_artifacts_locator().variant_build_dir
+        else:
+            return self.artifacts_locator.build_dir
 
     def get_name(self) -> str:
         return self.__class__.__name__
