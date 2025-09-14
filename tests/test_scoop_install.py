@@ -1,7 +1,9 @@
 import json
 from pathlib import Path
 
-from yanga.domain.config import PlatformConfig, ScoopApp, ScoopBucket, ScoopManifest, ScoopManifestFile, VariantConfig
+from py_app_dev.core.scoop_wrapper import ScoopFileElement
+
+from yanga.domain.config import PlatformConfig, ScoopManifest, VariantConfig
 from yanga.domain.execution_context import ExecutionContext, UserVariantRequest
 from yanga.steps.scoop_install import ScoopInstall
 
@@ -22,7 +24,7 @@ def test_scoop_data() -> None:
             },
         ],
     }
-    content = ScoopManifestFile.from_dict(scoop_content)
+    content = ScoopManifest.from_dict(scoop_content)
     assert content.buckets[0].name == "my_bucket"
     assert {app.name for app in content.apps} == {"app1", "app2"}
     # Check serialization back to dict
@@ -69,8 +71,8 @@ def test_scoop_install_with_platform_dependencies(tmp_path: Path) -> None:
     platform = PlatformConfig(
         name="test_platform",
         scoop_manifest=ScoopManifest(
-            buckets=[ScoopBucket.from_dict({"name": "main", "source": "https://github.com/ScoopInstaller/Main"})],
-            apps=[ScoopApp.from_dict({"name": "git", "source": "main", "version": "2.42.0"})],
+            buckets=[ScoopFileElement.from_dict({"name": "main", "source": "https://github.com/ScoopInstaller/Main"})],
+            apps=[ScoopFileElement.from_dict({"name": "git", "source": "main", "version": "2.42.0"})],
         ),
     )
 
@@ -95,8 +97,8 @@ def test_scoop_install_with_variant_dependencies(tmp_path: Path) -> None:
     variant = VariantConfig(
         name="test_variant",
         scoop_manifest=ScoopManifest(
-            buckets=[ScoopBucket.from_dict({"name": "extras", "source": "https://github.com/ScoopInstaller/Extras"})],
-            apps=[ScoopApp.from_dict({"name": "vscode", "source": "extras"})],
+            buckets=[ScoopFileElement.from_dict({"name": "extras", "source": "https://github.com/ScoopInstaller/Extras"})],
+            apps=[ScoopFileElement.from_dict({"name": "vscode", "source": "extras"})],
         ),
     )
 
@@ -121,16 +123,16 @@ def test_scoop_install_merges_platform_and_variant_dependencies(tmp_path: Path) 
     platform = PlatformConfig(
         name="test_platform",
         scoop_manifest=ScoopManifest(
-            buckets=[ScoopBucket.from_dict({"name": "main", "source": "https://github.com/ScoopInstaller/Main"})],
-            apps=[ScoopApp.from_dict({"name": "git", "source": "main", "version": "2.42.0"})],
+            buckets=[ScoopFileElement.from_dict({"name": "main", "source": "https://github.com/ScoopInstaller/Main"})],
+            apps=[ScoopFileElement.from_dict({"name": "git", "source": "main", "version": "2.42.0"})],
         ),
     )
 
     variant = VariantConfig(
         name="test_variant",
         scoop_manifest=ScoopManifest(
-            buckets=[ScoopBucket.from_dict({"name": "extras", "source": "https://github.com/ScoopInstaller/Extras"})],
-            apps=[ScoopApp.from_dict({"name": "vscode", "source": "extras"})],
+            buckets=[ScoopFileElement.from_dict({"name": "extras", "source": "https://github.com/ScoopInstaller/Extras"})],
+            apps=[ScoopFileElement.from_dict({"name": "vscode", "source": "extras"})],
         ),
     )
 
@@ -166,8 +168,8 @@ def test_scoop_install_generates_scoop_manifest(tmp_path: Path) -> None:
     platform = PlatformConfig(
         name="test_platform",
         scoop_manifest=ScoopManifest(
-            buckets=[ScoopBucket.from_dict({"name": "main", "source": "https://github.com/ScoopInstaller/Main"})],
-            apps=[ScoopApp.from_dict({"name": "git", "source": "main", "version": "2.42.0"})],
+            buckets=[ScoopFileElement.from_dict({"name": "main", "source": "https://github.com/ScoopInstaller/Main"})],
+            apps=[ScoopFileElement.from_dict({"name": "git", "source": "main", "version": "2.42.0"})],
         ),
     )
 
@@ -187,14 +189,14 @@ def test_scoop_install_generates_scoop_manifest(tmp_path: Path) -> None:
 
     buckets = content["buckets"]
     assert len(buckets) == 1
-    assert buckets[0]["Name"] == "main"
-    assert buckets[0]["Source"] == "https://github.com/ScoopInstaller/Main"
+    assert buckets[0]["name"] == "main"
+    assert buckets[0]["source"] == "https://github.com/ScoopInstaller/Main"
 
     apps = content["apps"]
     assert len(apps) == 1
-    assert apps[0]["Name"] == "git"
-    assert apps[0]["Source"] == "main"
-    assert apps[0]["Version"] == "2.42.0"
+    assert apps[0]["name"] == "git"
+    assert apps[0]["source"] == "main"
+    assert apps[0]["version"] == "2.42.0"
 
 
 def test_scoop_install_merges_buckets_with_conflicts(tmp_path: Path) -> None:
@@ -203,7 +205,7 @@ def test_scoop_install_merges_buckets_with_conflicts(tmp_path: Path) -> None:
     platform = PlatformConfig(
         name="test_platform",
         scoop_manifest=ScoopManifest(
-            buckets=[ScoopBucket.from_dict({"name": "main", "source": "https://github.com/ScoopInstaller/Main"})],
+            buckets=[ScoopFileElement.from_dict({"name": "main", "source": "https://github.com/ScoopInstaller/Main"})],
             apps=[],
         ),
     )
@@ -211,7 +213,7 @@ def test_scoop_install_merges_buckets_with_conflicts(tmp_path: Path) -> None:
     variant = VariantConfig(
         name="test_variant",
         scoop_manifest=ScoopManifest(
-            buckets=[ScoopBucket.from_dict({"name": "main", "source": "https://github.com/different/main"})],
+            buckets=[ScoopFileElement.from_dict({"name": "main", "source": "https://github.com/different/main"})],
             apps=[],
         ),
     )
@@ -232,8 +234,8 @@ def test_scoop_install_variant_specific_directories(tmp_path: Path) -> None:
     platform = PlatformConfig(
         name="windows_platform",
         scoop_manifest=ScoopManifest(
-            buckets=[ScoopBucket.from_dict({"name": "main", "source": "https://github.com/ScoopInstaller/Main"})],
-            apps=[ScoopApp.from_dict({"name": "git", "source": "main"})],
+            buckets=[ScoopFileElement.from_dict({"name": "main", "source": "https://github.com/ScoopInstaller/Main"})],
+            apps=[ScoopFileElement.from_dict({"name": "git", "source": "main"})],
         ),
     )
 
@@ -265,7 +267,7 @@ def test_scoop_manifest_file_from_file(tmp_path: Path) -> None:
     scoop_file = project_dir / "scoopfile.json"
     scoop_file.write_text(json.dumps(scoop_content, indent=2))
 
-    manifest_file = ScoopManifestFile.from_file(scoop_file)
+    manifest_file = ScoopManifest.from_file(scoop_file)
     assert manifest_file.file == scoop_file
 
     assert len(manifest_file.buckets) == 2

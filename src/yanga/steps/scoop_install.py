@@ -9,10 +9,10 @@ from mashumaro.config import BaseConfig
 from mashumaro.mixins.json import DataClassJSONMixin
 from py_app_dev.core.exceptions import UserNotificationException
 from py_app_dev.core.logging import logger
-from py_app_dev.core.scoop_wrapper import ScoopWrapper
+from py_app_dev.core.scoop_wrapper import ScoopFileElement, ScoopWrapper
 from pypeline.domain.pipeline import PipelineStep
 
-from yanga.domain.config import ScoopApp, ScoopBucket, ScoopManifest, ScoopManifestFile
+from yanga.domain.config import ScoopManifest
 from yanga.domain.execution_context import ExecutionContext
 
 
@@ -86,7 +86,7 @@ class ScoopInstall(PipelineStep[ExecutionContext]):
         # Start with global scoopfile.json if it exists
         if self.global_scoop_manifest_file.exists():
             try:
-                global_manifest_file = ScoopManifestFile.from_file(self.global_scoop_manifest_file)
+                global_manifest_file = ScoopManifest.from_file(self.global_scoop_manifest_file)
 
                 # Merge buckets
                 self._merge_buckets(collected_manifest, global_manifest_file.buckets)
@@ -119,7 +119,7 @@ class ScoopInstall(PipelineStep[ExecutionContext]):
 
         return collected_manifest
 
-    def _merge_buckets(self, target_manifest: ScoopManifest, source_buckets: list[ScoopBucket]) -> None:
+    def _merge_buckets(self, target_manifest: ScoopManifest, source_buckets: list[ScoopFileElement]) -> None:
         """Merge buckets, handling conflicts when same name has different sources."""
         for bucket in source_buckets:
             # Check if a bucket with this name already exists
@@ -138,7 +138,7 @@ class ScoopInstall(PipelineStep[ExecutionContext]):
                 )
                 # Keep the first definition (existing_bucket), ignore the new one
 
-    def _merge_apps(self, target_manifest: ScoopManifest, source_apps: list[ScoopApp]) -> None:
+    def _merge_apps(self, target_manifest: ScoopManifest, source_apps: list[ScoopFileElement]) -> None:
         """Merge apps, avoiding duplicates."""
         for app in source_apps:
             if app not in target_manifest.apps:
@@ -150,28 +150,9 @@ class ScoopInstall(PipelineStep[ExecutionContext]):
             self.logger.info("No Scoop dependencies found. Skipping scoopfile.json generation.")
             return
 
-        scoop_config = {
-            "buckets": [bucket.to_dict() for bucket in manifest.buckets],
-            "apps": [app.to_dict() for app in manifest.apps],
-        }
-
-        # Convert field names to the format expected by ScoopWrapper
-        for bucket in scoop_config["buckets"]:
-            bucket["Name"] = bucket.pop("name")
-            bucket["Source"] = bucket.pop("source")
-
-        for app in scoop_config["apps"]:
-            app["Name"] = app.pop("name")
-            app["Source"] = app.pop("source")
-            # Handle optional version field
-            if "version" in app:
-                app["Version"] = app.pop("version")
-
         # Ensure build directory exists
         self.scoop_manifest_file.parent.mkdir(parents=True, exist_ok=True)
-
-        with open(self.scoop_manifest_file, "w") as f:
-            json.dump(scoop_config, f, indent=2)
+        self.scoop_manifest_file.write_text(manifest.to_json_string())
 
         self.logger.info(f"Generated scoopfile.json with {len(manifest.buckets)} buckets and {len(manifest.apps)} apps")
 

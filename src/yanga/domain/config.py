@@ -5,11 +5,12 @@ from pathlib import Path
 from typing import Any, Callable, Optional
 
 import yaml
-from mashumaro import DataClassDictMixin, field_options
+from mashumaro import DataClassDictMixin
 from mashumaro.config import BaseConfig
 from mashumaro.mixins.json import DataClassJSONMixin
 from py_app_dev.core.exceptions import UserNotificationException
 from py_app_dev.core.pipeline import PipelineConfig as GenericPipelineConfig
+from py_app_dev.core.scoop_wrapper import ScoopFileElement
 from pypeline.domain.pipeline import PipelineConfig
 from yaml.parser import ParserError
 from yaml.scanner import ScannerError
@@ -82,74 +83,17 @@ class WestManifestFile(DataClassDictMixin):
 
 
 @dataclass
-class ScoopBucket(BaseConfigJSONMixin):
-    _name_lc: Optional[str] = field(default=None, metadata=field_options(alias="name"))
-    _name_uc: Optional[str] = field(default=None, metadata=field_options(alias="Name"))
-    #: Source bucket
-    _source_lc: Optional[str] = field(default=None, metadata=field_options(alias="source"))
-    _source_uc: Optional[str] = field(default=None, metadata=field_options(alias="Source"))
-
-    @property
-    def name(self) -> str:
-        if self._name_uc:
-            return self._name_uc
-        elif self._name_lc:
-            return self._name_lc
-        else:
-            raise UserNotificationException("ScoopApp must have a 'Name' or 'name' field defined.")
-
-    @property
-    def source(self) -> str:
-        if self._source_uc:
-            return self._source_uc
-        elif self._source_lc:
-            return self._source_lc
-        else:
-            raise UserNotificationException("ScoopApp must have a 'Source' or 'source' field defined.")
-
-    def __post_init__(self) -> None:
-        if not self._name_lc and not self._name_uc:
-            raise UserNotificationException("ScoopApp must have a 'Name' or 'name' field defined.")
-        if not self._source_lc and not self._source_uc:
-            raise UserNotificationException("ScoopApp must have a 'Source' or 'source' field defined.")
-
-
-@dataclass
-class ScoopApp(ScoopBucket):
-    #: App version
-    _version_lc: Optional[str] = field(default=None, metadata=field_options(alias="version"))
-    _version_uc: Optional[str] = field(default=None, metadata=field_options(alias="Version"))
-
-    @property
-    def version(self) -> Optional[str]:
-        if self._version_uc:
-            return self._version_uc
-        elif self._version_lc:
-            return self._version_lc
-        else:
-            return None
-
-
-@dataclass
-class ScoopManifest(DataClassDictMixin):
+class ScoopManifest(BaseConfigJSONMixin):
     #: Scoop buckets
-    buckets: list[ScoopBucket] = field(default_factory=list)
+    buckets: list[ScoopFileElement] = field(default_factory=list)
     #: Scoop applications
-    apps: list[ScoopApp] = field(default_factory=list)
-
-
-@dataclass
-class ScoopManifestFile(BaseConfigJSONMixin):
-    #: Scoop buckets
-    buckets: list[ScoopBucket] = field(default_factory=list)
-    #: Scoop applications
-    apps: list[ScoopApp] = field(default_factory=list)
+    apps: list[ScoopFileElement] = field(default_factory=list)
     # This field is intended to keep track of where configuration was loaded from and
     # it is automatically added when configuration is loaded from file
     file: Optional[Path] = None
 
     @classmethod
-    def from_file(cls, config_file: Path) -> "ScoopManifestFile":
+    def from_file(cls, config_file: Path) -> "ScoopManifest":
         config_dict = cls.parse_to_dict(config_file)
         return cls.from_dict(config_dict)
 
