@@ -18,6 +18,8 @@ class YangaIni(DataClassDictMixin):
     configuration_file_name: Optional[str] = None
     #: Exclude directories from parsing
     exclude_dirs: list[str] = field(default_factory=list)
+    #: Create .yanga build directory
+    create_yanga_build_dir: bool = True
 
     @classmethod
     def from_toml_or_ini(cls, ini_file: Optional[Path], pyproject_toml: Optional[Path]) -> "YangaIni":
@@ -46,6 +48,8 @@ class YangaIni(DataClassDictMixin):
             for key, value in parser.items(section):
                 if key == "exclude_dirs":
                     config[key] = [x.strip() for x in value.split(",")]
+                elif key == "create_yanga_build_dir":
+                    config[key] = parser.getboolean(section, key)
                 else:
                     config[key] = value
         return config

@@ -249,13 +249,9 @@ def test_scoop_install_variant_specific_directories(tmp_path: Path) -> None:
         collected_dependencies = scoop_install._collect_dependencies()
         scoop_install._generate_scoop_manifest(collected_dependencies)
 
-        expected_scoop_file = project_dir / "build" / variant_name / "windows_platform" / "scoopfile.json"
+        expected_scoop_file = project_dir / ".yanga" / "build" / variant_name / "windows_platform" / "scoopfile.json"
+        assert expected_scoop_file.exists()
         assert scoop_install.scoop_manifest_file == expected_scoop_file
-
-    variant_a_file = project_dir / "build" / "variant_a" / "windows_platform" / "scoopfile.json"
-    variant_b_file = project_dir / "build" / "variant_b" / "windows_platform" / "scoopfile.json"
-    assert variant_a_file.exists()
-    assert variant_b_file.exists()
 
 
 def test_scoop_manifest_file_from_file(tmp_path: Path) -> None:

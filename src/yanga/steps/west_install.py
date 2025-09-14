@@ -164,7 +164,7 @@ class WestInstall(PipelineStep[ExecutionContext]):
                 return 0
 
             # Initialize west workspace with shared external directory
-            # The west.yaml is variant-specific, but dependencies go to shared build/external
+            # The west.yaml is variant-specific, but dependencies go to external dependencies dir
             self.execution_context.create_process_executor(
                 [
                     "west",
@@ -172,7 +172,8 @@ class WestInstall(PipelineStep[ExecutionContext]):
                     "-l",
                     "--mf",
                     self.west_manifest_file.as_posix(),
-                    self.artifacts_locator.external_dependencies_dir.as_posix(),
+                    # For some reason west needs a dummy project to be specified when using -l. No "do not care" directory will ever be created.
+                    self.artifacts_locator.external_dependencies_dir.joinpath("do_not_care").as_posix(),
                 ],
                 cwd=self.project_root_dir,
             ).execute()
@@ -180,7 +181,7 @@ class WestInstall(PipelineStep[ExecutionContext]):
             # Update dependencies in the shared external directory
             self.execution_context.create_process_executor(
                 ["west", "update"],
-                cwd=self.artifacts_locator.external_dependencies_dir.parent,  # build directory
+                cwd=self.artifacts_locator.external_dependencies_dir,
             ).execute()
 
             # Track the created dependency directories

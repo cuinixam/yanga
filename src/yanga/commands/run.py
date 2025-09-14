@@ -99,7 +99,7 @@ class RunCommand(Command):
     @staticmethod
     def create_project_slurper(project_dir: Path) -> YangaProjectSlurper:
         ini_config = YangaIni.from_toml_or_ini(project_dir / "yanga.ini", project_dir / "pyproject.toml")
-        return YangaProjectSlurper(project_dir, ini_config.configuration_file_name)
+        return YangaProjectSlurper(project_dir, ini_config.configuration_file_name, create_yanga_build_dir=ini_config.create_yanga_build_dir, exclude_dirs=ini_config.exclude_dirs)
 
     @staticmethod
     def execute_pipeline_steps(
@@ -130,6 +130,7 @@ class RunCommand(Command):
             features_selection_file=(project_slurper.get_variant_config_file(variant_name) if variant_name else None),
             platform=project_slurper.get_platform(platform_name),
             variant=(project_slurper.get_variant_config(variant_name) if variant_name else None),
+            create_yanga_build_dir=project_slurper.create_yanga_build_dir,
         )
         PipelineStepsExecutor[ExecutionContext](
             execution_context,

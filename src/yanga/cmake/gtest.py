@@ -43,7 +43,7 @@ class GTestCMakeArtifactsLocator(CMakeArtifactsLocator):
 
     def __init__(self, output_dir: Path, project_artifact_locator: ProjectArtifactsLocator) -> None:
         super().__init__(output_dir, project_artifact_locator)
-        self.cmake_gtest_dir = CMakePath(self.artifacts_locator.locate_artifact("gtest", [self.artifacts_locator.build_dir]))
+        self.cmake_gtest_dir = CMakePath(self.artifacts_locator.locate_artifact("gtest", [self.artifacts_locator.external_dependencies_dir]))
 
 
 @dataclass

@@ -126,7 +126,7 @@ class IncludeDirectoriesResolver:
 
 
 class YangaProjectSlurper:
-    def __init__(self, project_dir: Path, configuration_file_name: Optional[str] = None, exclude_dirs: Optional[list[str]] = None) -> None:
+    def __init__(self, project_dir: Path, configuration_file_name: Optional[str] = None, exclude_dirs: Optional[list[str]] = None, create_yanga_build_dir: bool = True) -> None:
         self.logger = logger.bind()
         self.project_dir = project_dir
         self.component_factory = ComponentFactory(self.project_dir)
@@ -139,6 +139,7 @@ class YangaProjectSlurper:
         self.pipeline: Optional[PipelineConfig] = self._find_pipeline_config(self.user_configs)
         self.variants: list[VariantConfig] = self._collect_variants(self.user_configs)
         self.platforms: list[PlatformConfig] = self._collect_platforms(self.user_configs)
+        self.create_yanga_build_dir = create_yanga_build_dir
 
     @property
     def user_config_files(self) -> list[Path]:

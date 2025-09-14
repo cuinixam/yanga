@@ -80,6 +80,7 @@ class ExecutionContext(_ExecutionContext):
         features_selection_file: Optional[Path] = None,
         platform: Optional[PlatformConfig] = None,
         variant: Optional[VariantConfig] = None,
+        create_yanga_build_dir: bool = True,
     ) -> None:
         super().__init__(project_root_dir)
         self.user_request = user_request
@@ -89,6 +90,7 @@ class ExecutionContext(_ExecutionContext):
         self.features_selection_file = features_selection_file
         self.platform = platform
         self.variant = variant
+        self.create_yanga_build_dir = create_yanga_build_dir
         self.include_dirs_providers: list[IncludeDirectoriesProvider] = []
 
     @property
@@ -118,4 +120,5 @@ class ExecutionContext(_ExecutionContext):
             self.variant_name,
             self.platform.name if self.platform else None,
             self.user_request.build_type,
+            create_yanga_build_dir=self.create_yanga_build_dir,
         )

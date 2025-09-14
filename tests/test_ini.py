@@ -14,6 +14,7 @@ def ini_file(tmp_path: Path) -> Path:
     [default]
     configuration_file_name = yanga_from_ini.yaml
     exclude_dirs = .git, .github, .vscode, build, .venv
+    create_yanga_build_dir = True
     """
     ini_file_path = tmp_path / "yanga.ini"
     ini_file_path.write_text(ini_content)
@@ -27,6 +28,7 @@ def toml_file(tmp_path: Path) -> Path:
     [tool.yanga]
     configuration_file_name = "yanga_from_toml.yaml"
     exclude_dirs = [".git", ".github", ".vscode", "build", ".venv"]
+    create_yanga_build_dir = true
     """
     toml_file_path = tmp_path / "pyproject.toml"
     toml_file_path.write_text(toml_content)
@@ -36,14 +38,22 @@ def toml_file(tmp_path: Path) -> Path:
 def test_load_ini_config(ini_file: Path) -> None:
     """Test loading configuration from an INI file."""
     config = YangaIni.load_ini_config(ini_file)
-    expected_config = {"configuration_file_name": "yanga_from_ini.yaml", "exclude_dirs": [".git", ".github", ".vscode", "build", ".venv"]}
+    expected_config = {
+        "configuration_file_name": "yanga_from_ini.yaml",
+        "exclude_dirs": [".git", ".github", ".vscode", "build", ".venv"],
+        "create_yanga_build_dir": True,
+    }
     assert config == expected_config
 
 
 def test_load_toml_config(toml_file: Path) -> None:
     """Test loading configuration from a TOML file."""
     config = YangaIni.load_toml_config(toml_file)
-    expected_config = {"configuration_file_name": "yanga_from_toml.yaml", "exclude_dirs": [".git", ".github", ".vscode", "build", ".venv"]}
+    expected_config = {
+        "configuration_file_name": "yanga_from_toml.yaml",
+        "exclude_dirs": [".git", ".github", ".vscode", "build", ".venv"],
+        "create_yanga_build_dir": True,
+    }
     assert config == expected_config
 
 
