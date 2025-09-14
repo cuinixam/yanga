@@ -18,18 +18,16 @@ components:
 variants:
   - name: EnglishVariant
     description: Say hello in English.
-    bom:
-      components:
-        - main
-        - greeter
+    components:
+      - main
+      - greeter
     config:
       LINKER_SCRIPT: linker.ld
   - name: GermanVariant
     description: Say hello in German.
-    bom:
-      components:
-        - main
-        - greeter
+    components:
+      - main
+      - greeter
     features_selection_file: "config_de.txt"
 
 pipeline:

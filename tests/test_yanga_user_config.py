@@ -51,14 +51,12 @@ def test_load_user_config(tmp_path: Path) -> None:
     variants:
       - name: EnglishVariant
         description: Say hello in English.
-        bom:
-          components:
-            - main
+        components:
+          - main
       - name: GermanVariant
         description: Say hello in German.
-        bom:
-          components:
-            - main
+        components:
+          - main
         features_selection_file: "config_de.txt"
 
     pipeline:

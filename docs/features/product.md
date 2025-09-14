@@ -2,22 +2,20 @@
 
 ## Product Variants
 
-Facilitate the creation and management of different product variants, each with its own Bill of Materials (BOM) and specific configurations.
+Facilitate the creation and management of different product variants, each with its components and specific configurations.
 
 ```{code-block} yaml
 variants:
   - name: EnglishVariant
     description: Say hello in English.
-    bom:
-      components:
-        - main
-        - greeter
+    components:
+      - main
+      - greeter
   - name: GermanVariant
     description: Say hello in German.
-    bom:
-      components:
-        - main
-        - greeter
+    components:
+      - main
+      - greeter
     features_selection_file: "config_de.txt"
 ```
 

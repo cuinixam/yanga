@@ -175,9 +175,9 @@ class YangaProjectSlurper:
         Look for components in the component pool and add them to the list.
         """
         components = []
-        if not variant.bom:
-            raise UserNotificationException(f"Variant '{variant.name}' is empty (no 'bom' found).")
-        for component_name in variant.bom.components:
+        if not variant.components:
+            raise UserNotificationException(f"Variant '{variant.name}' is empty (no 'components' found).")
+        for component_name in variant.components:
             component_config = self.components_configs_pool.get(component_name, None)
             if not component_config:
                 raise UserNotificationException(f"Component '{component_name}' not found in the configuration.")
