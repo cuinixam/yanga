@@ -57,6 +57,13 @@ class RunCommandConfig(CommandConfigBase):
             "action": "store_true",
         },
     )
+    not_interactive: bool = field(
+        default=False,
+        metadata={
+            "help": "Run in non-interactive mode (no prompts).",
+            "action": "store_true",
+        },
+    )
 
 
 class RunCommand(Command):
@@ -75,8 +82,12 @@ class RunCommand(Command):
         if config.print:
             project_slurper.print_project_info()
             return 0
-        variant_name = self.determine_variant_name(config.variant_name, project_slurper.variants)
-        platform_name = self.determine_platform_name(config.platform, project_slurper.platforms)
+        if config.not_interactive:
+            variant_name = config.variant_name
+            platform_name = config.platform
+        else:
+            variant_name = self.determine_variant_name(config.variant_name, project_slurper.variants)
+            platform_name = self.determine_platform_name(config.platform, project_slurper.platforms)
         user_request = UserRequest(
             scope=(UserRequestScope.COMPONENT if config.component_name else UserRequestScope.VARIANT),
             variant_name=variant_name,

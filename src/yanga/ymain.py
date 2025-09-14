@@ -75,6 +75,10 @@ def run(
         False,
         help="Force the execution of a step even if it is not dirty.",
     ),
+    not_interactive: bool = typer.Option(
+        False,
+        help="Run in non-interactive mode (no prompts).",
+    ),
 ) -> None:
     RunCommand().do_run(
         RunCommandConfig(
@@ -88,6 +92,7 @@ def run(
             single,
             print,
             force_run,
+            not_interactive,
         )
     )
 
