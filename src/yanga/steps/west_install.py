@@ -3,10 +3,10 @@ import json
 import traceback
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any, ClassVar, Optional
+from typing import Any, Optional
 
 import yaml
-from mashumaro.config import TO_DICT_ADD_OMIT_NONE_FLAG, BaseConfig
+from mashumaro.config import BaseConfig
 from mashumaro.mixins.json import DataClassJSONMixin
 from py_app_dev.core.exceptions import UserNotificationException
 from py_app_dev.core.logging import logger
@@ -21,9 +21,8 @@ class WestInstallExecutionInfo(DataClassJSONMixin):
     dependency_dirs: list[Path] = field(default_factory=list)
 
     class Config(BaseConfig):
-        """Base configuration for JSON serialization with omitted None values."""
-
-        code_generation_options: ClassVar[list[str]] = [TO_DICT_ADD_OMIT_NONE_FLAG]
+        # Make sure to omit None values during serialization
+        omit_none = True
 
     @classmethod
     def from_json_file(cls, file_path: Path) -> "WestInstallExecutionInfo":
@@ -36,7 +35,7 @@ class WestInstallExecutionInfo(DataClassJSONMixin):
         return result
 
     def to_json_string(self) -> str:
-        return json.dumps(self.to_dict(omit_none=True), indent=2)
+        return json.dumps(self.to_dict(), indent=2)
 
     def to_json_file(self, file_path: Path) -> None:
         file_path.parent.mkdir(parents=True, exist_ok=True)

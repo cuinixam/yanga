@@ -3,7 +3,7 @@
 Download the latest version of Yanga from the [Releases](https://github.com/cuinixam/yanga/releases/latest) page or install it using pip:
 
 ```bash
-pip install yanga
+pipx install yanga
 ```
 
 Run the following command to create a new Yanga project:

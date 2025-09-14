@@ -2,6 +2,7 @@
   "python.testing.pytestArgs": [ "tests" ],
   "python.testing.unittestEnabled": false,
   "python.testing.pytestEnabled": true,
+  "github.copilot.chat.codeGeneration.useInstructionFiles": true,
   "workbench.colorCustomizations": {
     "activityBar.activeBackground": "#fdf4b2",
     "activityBar.background": "#fdf4b2",

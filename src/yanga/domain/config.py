@@ -2,17 +2,29 @@ import json
 from dataclasses import dataclass, field
 from enum import Enum, auto
 from pathlib import Path
-from typing import Any, Callable, ClassVar, Optional
+from typing import Any, Callable, Optional
 
 import yaml
-from mashumaro import DataClassDictMixin
-from mashumaro.config import TO_DICT_ADD_OMIT_NONE_FLAG, BaseConfig
+from mashumaro import DataClassDictMixin, field_options
+from mashumaro.config import BaseConfig
 from mashumaro.mixins.json import DataClassJSONMixin
 from py_app_dev.core.exceptions import UserNotificationException
 from py_app_dev.core.pipeline import PipelineConfig as GenericPipelineConfig
 from pypeline.domain.pipeline import PipelineConfig
 from yaml.parser import ParserError
 from yaml.scanner import ScannerError
+
+
+class BaseConfigJSONMixin(DataClassJSONMixin):
+    class Config(BaseConfig):
+        omit_none = True
+        serialize_by_alias = True
+
+    def to_json_string(self) -> str:
+        return json.dumps(self.to_dict(), indent=2)
+
+    def to_json_file(self, file_path: Path) -> None:
+        file_path.write_text(self.to_json_string())
 
 
 @dataclass
@@ -70,6 +82,90 @@ class WestManifestFile(DataClassDictMixin):
 
 
 @dataclass
+class ScoopBucket(BaseConfigJSONMixin):
+    _name_lc: Optional[str] = field(default=None, metadata=field_options(alias="name"))
+    _name_uc: Optional[str] = field(default=None, metadata=field_options(alias="Name"))
+    #: Source bucket
+    _source_lc: Optional[str] = field(default=None, metadata=field_options(alias="source"))
+    _source_uc: Optional[str] = field(default=None, metadata=field_options(alias="Source"))
+
+    @property
+    def name(self) -> str:
+        if self._name_uc:
+            return self._name_uc
+        elif self._name_lc:
+            return self._name_lc
+        else:
+            raise UserNotificationException("ScoopApp must have a 'Name' or 'name' field defined.")
+
+    @property
+    def source(self) -> str:
+        if self._source_uc:
+            return self._source_uc
+        elif self._source_lc:
+            return self._source_lc
+        else:
+            raise UserNotificationException("ScoopApp must have a 'Source' or 'source' field defined.")
+
+    def __post_init__(self) -> None:
+        if not self._name_lc and not self._name_uc:
+            raise UserNotificationException("ScoopApp must have a 'Name' or 'name' field defined.")
+        if not self._source_lc and not self._source_uc:
+            raise UserNotificationException("ScoopApp must have a 'Source' or 'source' field defined.")
+
+
+@dataclass
+class ScoopApp(ScoopBucket):
+    #: App version
+    _version_lc: Optional[str] = field(default=None, metadata=field_options(alias="version"))
+    _version_uc: Optional[str] = field(default=None, metadata=field_options(alias="Version"))
+
+    @property
+    def version(self) -> Optional[str]:
+        if self._version_uc:
+            return self._version_uc
+        elif self._version_lc:
+            return self._version_lc
+        else:
+            return None
+
+
+@dataclass
+class ScoopManifest(DataClassDictMixin):
+    #: Scoop buckets
+    buckets: list[ScoopBucket] = field(default_factory=list)
+    #: Scoop applications
+    apps: list[ScoopApp] = field(default_factory=list)
+
+
+@dataclass
+class ScoopManifestFile(BaseConfigJSONMixin):
+    #: Scoop buckets
+    buckets: list[ScoopBucket] = field(default_factory=list)
+    #: Scoop applications
+    apps: list[ScoopApp] = field(default_factory=list)
+    # This field is intended to keep track of where configuration was loaded from and
+    # it is automatically added when configuration is loaded from file
+    file: Optional[Path] = None
+
+    @classmethod
+    def from_file(cls, config_file: Path) -> "ScoopManifestFile":
+        config_dict = cls.parse_to_dict(config_file)
+        return cls.from_dict(config_dict)
+
+    @staticmethod
+    def parse_to_dict(config_file: Path) -> dict[str, Any]:
+        try:
+            with open(config_file) as fs:
+                config_dict = json.loads(fs.read())
+                # Add file name to config to keep track of where configuration was loaded from
+                config_dict["file"] = config_file
+            return config_dict
+        except json.JSONDecodeError as e:
+            raise UserNotificationException(f"Failed parsing scoop manifest file '{config_file}'. \nError: {e}") from e
+
+
+@dataclass
 class MockingConfiguration(DataClassDictMixin):
     enabled: Optional[bool] = None
     strict: Optional[bool] = None
@@ -98,6 +194,8 @@ class PlatformConfig(DataClassDictMixin):
     build_types: list[str] = field(default_factory=list)
     #: West dependencies for this platform
     west_manifest: Optional[WestManifest] = None
+    #: Scoop dependencies for this platform
+    scoop_manifest: Optional[ScoopManifest] = None
     # This field is intended to keep track of where configuration was loaded from and
     # it is automatically added when configuration is loaded from file
     file: Optional[Path] = None
@@ -129,6 +227,8 @@ class VariantConfig(DataClassDictMixin):
     config: dict[str, Any] = field(default_factory=dict)
     #: West dependencies for this variant
     west_manifest: Optional[WestManifest] = None
+    #: Scoop dependencies for this variant
+    scoop_manifest: Optional[ScoopManifest] = None
     # This field is intended to keep track of where configuration was loaded from and
     # it is automatically added when configuration is loaded from file
     file: Optional[Path] = None
@@ -241,14 +341,3 @@ class YangaUserConfig(DataClassDictMixin):
             raise UserNotificationException(f"Failed scanning configuration file '{config_file}'. \nError: {e}") from e
         except ParserError as e:
             raise UserNotificationException(f"Failed parsing configuration file '{config_file}'. \nError: {e}") from e
-
-
-class BaseConfigJSONMixin(DataClassJSONMixin):
-    class Config(BaseConfig):
-        code_generation_options: ClassVar[list[str]] = [TO_DICT_ADD_OMIT_NONE_FLAG]
-
-    def to_json_string(self) -> str:
-        return json.dumps(self.to_dict(omit_none=True), indent=2)
-
-    def to_json_file(self, file_path: Path) -> None:
-        file_path.write_text(self.to_json_string())

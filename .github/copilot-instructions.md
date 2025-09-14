@@ -132,3 +132,4 @@ Supports Zephyr West tool for dependency management via `WestManifest` configura
 - Imports: no wildcard; group stdlib/third-party/local, keep modules small and cohesive.
 - Testability: pure functions where possible; pass dependencies, avoid globals/singletons.
 - tests: use `pytest`; keep the tests to a minimum; use parametrized tests when possible; do no add useless comments; the tests shall be self-explanatory.
+- pytest fixtures: use them to avoid code duplication; use `conftest.py` for shared fixtures. Use `tmp_path` in case of file system operations.
