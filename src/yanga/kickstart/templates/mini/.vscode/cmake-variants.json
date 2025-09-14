@@ -2,17 +2,9 @@
   "variant": {
     "choices": {
       "EnglishVariant": {
-        "long": "select to build variant 'EnglishVariant'",
-        "settings": {
-          "VARIANT": "EnglishVariant"
-        },
         "short": "EnglishVariant"
       },
       "GermanVariant": {
-        "long": "select to build variant 'GermanVariant'",
-        "settings": {
-          "VARIANT": "GermanVariant"
-        },
         "short": "GermanVariant"
       }
     },
@@ -23,12 +15,10 @@
     "choices": {
       "Debug": {
         "short": "Debug",
-        "long": "Disable optimizations and include debug information",
         "buildType": "Debug"
       },
       "Release": {
         "short": "Release",
-        "long": "Optimize for speed and exclude debug information",
         "buildType": "Release"
       }
     }

@@ -7,10 +7,12 @@ from py_app_dev.core.exceptions import UserNotificationException
 from py_app_dev.core.logging import logger, setup_logger, time_it
 
 from yanga import __version__
-from yanga.commands.run import RunCommand, RunCommandConfig
-from yanga.gui import YangaGui
-from yanga.kickstart.create import KickstartProject
-from yanga.yview import KConfigView
+
+from .commands.run import RunCommand, RunCommandConfig
+from .gui import YangaGui
+from .kickstart.create import KickstartProject
+from .yide import IDEProjectGenerator
+from .yview import KConfigView
 
 package_name = "yanga"
 
@@ -111,6 +113,14 @@ def view(
     project_dir: Path = typer.Option(Path.cwd().absolute(), help="The project directory"),  # noqa: B008
 ) -> None:
     KConfigView(project_dir).run()
+
+
+@app.command(help="Generate the VS Code project files.")
+@time_it("ide")
+def ide(
+    project_dir: Path = typer.Option(Path.cwd().absolute(), help="The project directory"),  # noqa: B008
+) -> None:
+    IDEProjectGenerator(project_dir).run()
 
 
 def main() -> int:

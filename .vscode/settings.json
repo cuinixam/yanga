@@ -43,6 +43,7 @@
     "gcovr",
     "gcov",
     "stringable",
-    "kconfig"
+    "kconfig",
+    "yide"
   ]
 }
