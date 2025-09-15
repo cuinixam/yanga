@@ -35,12 +35,12 @@ Discover the main features and how it can help you manage your software product 
 :::
 
 :::{grid-item-card} {octicon}`play;1.5em;sd-mr-1` YANGA Presentation
-:link: https://cuinixam.github.io/presentations/yanga/presentation.html
+:link: https://cuinixam.github.io/yanga/presentation.html
 
 Watch the presentation to get an overview of YANGA and its main features.
 
 +++
-[Open »](https://cuinixam.github.io/presentations/yanga/presentation.html)
+[Open »](https://cuinixam.github.io/yanga/presentation.html)
 :::
 
 ::::
@@ -54,13 +54,5 @@ Watch the presentation to get an overview of YANGA and its main features.
 getting_started/index.md
 features/index.md
 internals/index.md
-```
-
-```{toctree}
-:hidden:
-:caption: 📄 About
-
-about/_readme.md
-about/_changelog.md
-
+about/index.md
 ```

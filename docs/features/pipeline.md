@@ -1,246 +1,124 @@
 # {octicon}`workflow;1.5em;sd-mr-1` Pipeline Management
 
+Yanga's build process is orchestrated through a configurable pipeline, a sequence of steps defined in your `yanga.yaml` file. This system allows you to automate everything from dependency installation to code generation and compilation.
+
 ## Pipeline Configuration
 
-Define and manage pipelines for installation, generation, building, and publishing phases with ease.
+You define the pipeline as a list of stages (e.g., `install`, `gen`, `build`). Each stage contains one or more steps, which are Python classes that perform a specific task.
 
-```{code-block} yaml
+A typical pipeline configuration looks like this:
+
+```yaml
 pipeline:
   - install:
-    - step: ScoopInstall
+    - step: WestInstall
+      module: yanga.steps.west_install
   - gen:
-    - step: FeatureModel
+    - step: KConfigGen
+      module: yanga.steps.kconfig_gen
   - build:
-    - step: Configure
-    - step: Build
+    - step: GenerateBuildSystemFiles
+      module: yanga.steps.execute_build
+    - step: ExecuteBuild
+      module: yanga.steps.execute_build
 ```
 
-One can **extend** the pipeline with custom steps. The pipeline is executed in the order defined in the configuration file.
-
-```{code-block} yaml
-:emphasize-lines: 9-10
-pipeline:
-  - install:
-    - step: ScoopInstall
-  - gen:
-    - step: FeatureModel
-  - build:
-    - step: Configure
-    - step: Build
-  - publish:
-    - step: Artifactory
-```
-
-Pipeline steps can be **replaced** with custom steps.
-
-```{code-block} yaml
-:emphasize-lines: 8
-pipeline:
-  - install:
-    - step: ScoopInstall
-  - gen:
-    - step: FeatureModel
-  - build:
-    - step: Configure
-    - step: MyNewBuild
-  - publish:
-    - step: Artifactory
-```
+Each step is defined by its `step` (the class name) and `module` (the Python module where the class is located).
 
 ## Pipeline Execution
 
-**Execution order**
+You run the pipeline using the `yanga run` command. Yanga's smart scheduler determines which steps need to be executed based on whether their inputs have changed or outputs are missing.
 
-All the steps in the pipeline are executed in the order defined in the configuration file.
+*   **Run the full pipeline**: `yanga run`
+*   **Run up to a specific step**: `yanga run --step ExecuteBuild`
+*   **Run only a single step**: `yanga run --step KConfigGen --single`
+*   **Force re-execution of steps**: `yanga run --force-run`
 
-**Execution context**
+## Built-in Pipeline Steps
 
-The execution context is passed to each step in the pipeline. The context contains the configuration, the environment, and the state of the pipeline.
-Every step can modify the context to register new information or to modify the state of the pipeline.
+Yanga includes several pre-built steps to handle common build tasks.
 
-**Dependency management**
+### `WestInstall`
 
-Every step can define its dependencies. The pipeline executor will only run a step only if its dependencies have been changed or one of its outputs is missing.
+**Module:** `yanga.steps.west_install`
 
-**Single step execution**
+**Purpose:** Manages external Git repository dependencies using `west`.
 
-It is possible to execute a single step in the pipeline. This is useful for debugging or for testing a single step.
+This step automatically clones and updates repositories defined in `west_manifest` sections within your platform and variant configurations. It's a powerful way to manage third-party libraries and components.
 
-For more details check the `run` command.
+**Configuration:** Add the step to your pipeline. The dependency details are configured in platforms and variants, as described in the [Software Product Line](#product-dependency-management) documentation.
 
-```{code-block} bash
-yanga run --help
-```
-
-## Yanga Pypeline Steps
-
-### Install Scoop Dependencies Step
-
-The `ScoopInstall` step provides support for platform-specific and variant-specific scoop dependencies, allowing SPL builds to install only the tools needed for specific platforms or variants rather than installing all tools for all platforms.
-
-#### Features
-
-- **Platform-Specific Tools**: Install different tools based on the target platform
-- **Variant-Specific Tools**: Install additional tools for specific build variants
-- **Global Dependencies**: Support for shared tools across all builds via `scoopfile.json`
-- **Conflict Resolution**: Automatic deduplication of dependencies across sources
-- **Efficient Builds**: Only installs tools needed for the specific platform/variant combination
-
-#### Configuration
-
-The step supports three levels of scoop dependency configuration:
-
-**Global Dependencies** (optional)
-```{code-block} json
-:caption: scoopfile.json
-{
-  "buckets": [
-    {
-      "name": "main",
-      "source": "https://github.com/ScoopInstaller/Main"
-    }
-  ],
-  "apps": [
-    {
-      "name": "git",
-      "source": "main"
-    }
-  ]
-}
-```
-
-**Platform-Specific Dependencies**
-```{code-block} yaml
-:caption: Platform configuration
-platforms:
-  - name: windows_msvc
-    description: Windows build with MSVC
-    scoop_manifest:
-      buckets:
-        - name: main
-          source: https://github.com/ScoopInstaller/Main
-      apps:
-        - name: msvc-build-tools
-          source: main
-
-  - name: windows_clang
-    description: Windows build with Clang
-    scoop_manifest:
-      buckets:
-        - name: versions
-          source: https://github.com/ScoopInstaller/Versions
-      apps:
-        - name: mingw-winlibs-llvm-ucrt
-          source: versions
-```
-
-**Variant-Specific Dependencies**
-```{code-block} yaml
-:caption: Variant configuration
-variants:
-  - name: debug_variant
-    platform: windows_clang
-    scoop_manifest:
-      buckets:
-        - name: main
-          source: https://github.com/ScoopInstaller/Main
-      apps:
-        - name: cppcheck
-          source: main
-```
-
-#### Pipeline Integration
-
-```{code-block} yaml
-:caption: Pipeline configuration
+```yaml
 pipeline:
-  install:
+  - install:
+    - step: WestInstall
+      module: yanga.steps.west_install
+```
+
+### `ScoopInstall`
+
+**Module:** `yanga.steps.scoop_install`
+
+**Purpose:** Manages Windows-based tool dependencies using `scoop`.
+
+For projects that require specific tools on Windows (like compilers or build tools), this step reads `scoop_manifest` sections from your configuration and ensures the required tools are installed.
+
+**Configuration:** Add the step to your pipeline. Tool dependencies are configured in platforms and variants.
+
+```yaml
+pipeline:
+  - install:
     - step: ScoopInstall
       module: yanga.steps.scoop_install
 ```
 
-### Install West Dependencies Step
+### `KConfigGen`
 
-The `WestInstall` step provides support for platform-specific and variant-specific West dependencies for Zephyr projects. West is a meta-repository management tool that helps manage multiple Git repositories as part of a larger project. This step allows SPL builds to install only the dependencies needed for specific platforms or variants.
+**Module:** `yanga.steps.kconfig_gen`
 
-#### Features
+**Purpose:** Processes `KConfig` feature models to generate C header files.
 
-- **Platform-Specific Dependencies**: Install different repositories based on the target platform
-- **Variant-Specific Dependencies**: Install additional repositories for specific build variants
-- **Global Dependencies**: Support for shared dependencies across all builds via `west.yaml`
-- **Automatic Merging**: Combines dependencies from global, platform, and variant configurations
-- **Shared External Directory**: All variants share the same external dependencies directory for efficiency
+If your project uses a `KConfig` file for feature management, this step generates an `autoconf.h` file containing C macros for all selected features. This allows you to enable or disable code paths using `#ifdef`.
 
-#### Configuration
+**Configuration:** Add the step to your pipeline, typically in a `gen` stage. The `features_selection_file` is specified in the variant configuration.
 
-The step supports three levels of West dependency configuration:
-
-**Global Dependencies** (optional)
-```{code-block} yaml
-:caption: west.yaml
-manifest:
-  remotes:
-    - name: zephyrproject-rtos
-      url-base: https://github.com/zephyrproject-rtos
-  projects:
-    - name: zephyr
-      remote: zephyrproject-rtos
-      revision: main
-      path: zephyr
-```
-
-**Platform-Specific Dependencies**
-```{code-block} yaml
-:caption: Platform configuration
-platforms:
-  - name: nrf52840dk
-    description: Nordic nRF52840 DK platform
-    west_manifest:
-      remotes:
-        - name: nordicsemi
-          url_base: https://github.com/nrfconnect
-      projects:
-        - name: sdk-nrf
-          remote: nordicsemi
-          revision: v2.5.0
-          path: nrf
-
-  - name: esp32_devkit
-    description: ESP32 development kit platform
-    west_manifest:
-      remotes:
-        - name: espressif
-          url_base: https://github.com/espressif
-      projects:
-        - name: esp-idf
-          remote: espressif
-          revision: v5.1.1
-          path: esp-idf
-```
-
-**Variant-Specific Dependencies**
-```{code-block} yaml
-:caption: Variant configuration
-variants:
-  - name: debug_variant
-    platform: nrf52840dk
-    west_manifest:
-      remotes:
-        - name: googletest
-          url_base: https://github.com/google
-      projects:
-        - name: googletest
-          remote: googletest
-          revision: v1.14.0
-          path: external/gtest
-```
-
-#### Pipeline Integration
-
-```{code-block} yaml
-:caption: Pipeline configuration
+```yaml
 pipeline:
-  install:
-    - step: WestInstall
-      module: yanga.steps.west_install
+  - gen:
+    - step: KConfigGen
+      module: yanga.steps.kconfig_gen
+```
+
+### `GenerateBuildSystemFiles`
+
+**Module:** `yanga.steps.execute_build`
+
+**Purpose:** Generates the project's CMake files.
+
+This crucial step translates your `yanga.yaml` configuration into a functional CMake build system. It runs the `cmake_generators` specified in the current platform's configuration to create `CMakeLists.txt` and other necessary files.
+
+**Configuration:** Add this step to your `build` stage, before `ExecuteBuild`. The behavior of this step is controlled by the [CMake Generators](#cmake-generators) defined in your platform configuration.
+
+```yaml
+pipeline:
+  - build:
+    - step: GenerateBuildSystemFiles
+      module: yanga.steps.execute_build
+```
+
+### `ExecuteBuild`
+
+**Module:** `yanga.steps.execute_build`
+
+**Purpose:** Runs the CMake build process (configure and build).
+
+After the build system files are generated, this step invokes CMake to configure the project and compile your code. It handles passing the correct toolchain file and build type. You can specify a particular build `target` via the `yanga run --target <target_name>` command.
+
+**Configuration:** Add this step to your `build` stage after `GenerateBuildSystemFiles`.
+
+```yaml
+pipeline:
+  - build:
+    - step: ExecuteBuild
+      module: yanga.steps.execute_build
 ```

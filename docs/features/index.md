@@ -6,7 +6,9 @@
 :maxdepth: 1
 
 configuration
-pipeline
-platform
 product
+platform
+pipeline
+cmake
+cli
 ```

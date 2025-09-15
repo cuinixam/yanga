@@ -97,3 +97,6 @@ html_static_path = [
     os.path.join(os.path.dirname(mlx.traceability.__file__), "assets"),
     "_static",
 ]
+html_css_files = [
+    "custom.css",
+]
