@@ -52,6 +52,7 @@ scripts.yanga_cmd = "yanga.commands.__main__:main"
 
 [dependency-groups]
 dev = [
+  "coverage>=7,<8",
   "mlx-traceability>=11,<12",
   # docs
   "pip-system-certs>=4,<5",
@@ -117,7 +118,7 @@ lint.per-file-ignores."tests/**/*" = [
 skip = "build_exe.spec"
 
 [tool.pytest.ini_options]
-addopts = "-vv -Wdefault --cov=yanga --cov-report=term-missing:skip-covered --cov-branch -s"
+addopts = "-vv -Wdefault --cov=yanga --cov-report=term-missing:skip-covered --cov-report=xml"
 pythonpath = [ "src" ]
 
 [tool.coverage.run]
