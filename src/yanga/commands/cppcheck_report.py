@@ -78,7 +78,7 @@ class CppCheckResults(DataClassDictMixin):
         return counts
 
 
-def create_doc_structure(cppcheck_data: CppCheckResults, component_name: str, context_lines: int = 3) -> DocStructure:
+def create_doc_structure(cppcheck_data: CppCheckResults, component_name: str, context_lines: int = 3, project_dir: Optional[Path] = None) -> DocStructure:
     """Create a DocStructure from CppCheck results for documentation generation."""
     doc = DocStructure(component_name)
 
@@ -102,15 +102,27 @@ def create_doc_structure(cppcheck_data: CppCheckResults, component_name: str, co
     errors_by_file = cppcheck_data.get_errors_by_file()
 
     for file_path, file_errors in sorted(errors_by_file.items()):
-        file_section = _create_file_section(file_path, file_errors, context_lines)
+        file_section = _create_file_section(file_path, file_errors, context_lines, project_dir)
         doc.add_section(file_section)
 
     return doc
 
 
-def _create_file_section(file_path: Path, file_errors: list[CppCheckError], context_lines: int) -> Section:
+def _create_file_section(file_path: Path, file_errors: list[CppCheckError], context_lines: int, project_dir: Optional[Path] = None) -> Section:
     """Create a documentation section for a single file with its errors."""
-    file_section = Section(f"File: {file_path}")
+    file_section = Section(file_path.name)
+
+    # Add location information as the first content
+    display_path = file_path
+    if project_dir is not None:
+        try:
+            display_path = file_path.relative_to(project_dir)
+        except ValueError:
+            # If file_path is not relative to project_dir, use absolute path
+            display_path = file_path
+
+    location_text = f"Location: {display_path}"
+    file_section.add_content(TextContent(location_text))
 
     for error in file_errors:
         # Create section for each issue
@@ -203,6 +215,10 @@ class CommandArgs(DataClassDictMixin):
     output_file: Path = field(
         metadata={"help": "Html report."},
     )
+    project_dir: Optional[Path] = field(
+        default=None,
+        metadata={"help": "Project directory to make file paths relative to. If not provided, absolute paths are used."},
+    )
 
 
 class CppCheckReportCommand(Command):
@@ -222,7 +238,7 @@ class CppCheckReportCommand(Command):
         cppcheck_data = self.load_xml_data(config.input_file)
 
         # Generate the document structure from the cppcheck results
-        doc_structure = create_doc_structure(cppcheck_data, "CppCheck Report")
+        doc_structure = create_doc_structure(cppcheck_data, "CppCheck Report", project_dir=config.project_dir)
 
         # Generate the Markdown report
         config.output_file.write_text(MarkdownFormatter().format(doc_structure))

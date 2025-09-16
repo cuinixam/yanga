@@ -98,10 +98,14 @@ def test_create_doc_structure_with_errors() -> None:
     assert "warning: 1" in stats_text
 
     # Check file sections using utility functions
-    file_sections = assert_elements_of_type(doc.sections, Section, 2, lambda section: section.title.startswith("File:"))
+    file_sections = assert_elements_of_type(doc.sections, Section, 2, lambda section: section.title != "Statistics")
 
     # Check first file section (other.c should come first alphabetically)
-    other_file_section = assert_element_of_type(file_sections, Section, lambda section: section.title == "File: other.c")
+    other_file_section = assert_element_of_type(file_sections, Section, lambda section: section.title == "other.c")
+    # Check that the file section has location content as first item
+    assert len(other_file_section.content) == 1
+    assert isinstance(other_file_section.content[0], TextContent)
+    assert "Location: other.c" in other_file_section.content[0].text
     assert len(other_file_section.subsections) == 1
 
     buffer_issue = other_file_section.subsections[0]
@@ -113,7 +117,11 @@ def test_create_doc_structure_with_errors() -> None:
     assert "Could not read file: other.c at line 5" in buffer_issue.content[1].code
 
     # Check second file section (test.c)
-    test_file_section = assert_element_of_type(file_sections, Section, lambda section: section.title == "File: test.c")
+    test_file_section = assert_element_of_type(file_sections, Section, lambda section: section.title == "test.c")
+    # Check that the file section has location content as first item
+    assert len(test_file_section.content) == 1
+    assert isinstance(test_file_section.content[0], TextContent)
+    assert "Location: test.c" in test_file_section.content[0].text
     assert len(test_file_section.subsections) == 2
 
     # Check first issue in test.c (nullPointer)
@@ -176,7 +184,11 @@ def test_create_doc_structure_with_code_context(get_test_data_path: Callable[[st
     doc = create_doc_structure(results, "TestProject", context_lines=1)
 
     # Find the file section using utility function
-    file_section = assert_element_of_type(doc.sections, Section, lambda section: section.title.startswith("File:"))
+    file_section = assert_element_of_type(doc.sections, Section, lambda section: section.title != "Statistics")
+    # Check that the file section has location content as first item
+    assert len(file_section.content) == 1
+    assert isinstance(file_section.content[0], TextContent)
+    assert "Location:" in file_section.content[0].text
     assert len(file_section.subsections) == 1
 
     issue_section = file_section.subsections[0]
@@ -191,3 +203,65 @@ def test_create_doc_structure_with_code_context(get_test_data_path: Callable[[st
     assert ":linenos:" in text
     assert ":emphasize-lines:" in text
     assert "*ptr = 42;" in text
+
+
+def test_create_doc_structure_with_project_dir() -> None:
+    """Test that project_dir parameter makes file paths relative."""
+    project_root = Path("/home/user/project")
+    source_file = project_root / "src" / "main.c"
+
+    errors = [
+        CppCheckError(
+            id="nullPointer",
+            severity="error",
+            msg="Null pointer dereference",
+            verbose="Dereferencing a null pointer",
+            locations=[Location(file=source_file, line=10, column=5)],
+        ),
+    ]
+
+    results = CppCheckResults(errors=errors)
+    doc = create_doc_structure(results, "TestProject", project_dir=project_root)
+
+    # Find the file section
+    file_section = assert_element_of_type(doc.sections, Section, lambda section: section.title != "Statistics")
+
+    # Verify the section title is just the filename
+    assert file_section.title == "main.c"
+
+    # Check that the location shows relative path
+    location_content = file_section.content[0]
+    assert isinstance(location_content, TextContent)
+    # Convert to POSIX format for consistent testing across platforms
+    assert "Location: src/main.c" in location_content.text.replace("\\", "/")
+
+
+def test_create_doc_structure_with_project_dir_non_relative_file() -> None:
+    """Test that files outside project_dir still show absolute paths."""
+    project_root = Path("/home/user/project")
+    external_file = Path("/usr/include/stdio.h")
+
+    errors = [
+        CppCheckError(
+            id="warningId",
+            severity="warning",
+            msg="Some warning",
+            verbose="Warning in system header",
+            locations=[Location(file=external_file, line=10, column=5)],
+        ),
+    ]
+
+    results = CppCheckResults(errors=errors)
+    doc = create_doc_structure(results, "TestProject", project_dir=project_root)
+
+    # Find the file section
+    file_section = assert_element_of_type(doc.sections, Section, lambda section: section.title != "Statistics")
+
+    # Verify the section title is just the filename
+    assert file_section.title == "stdio.h"
+
+    # Check that the location shows absolute path (since it's not relative to project_dir)
+    location_content = file_section.content[0]
+    assert isinstance(location_content, TextContent)
+    # Convert to POSIX format for consistent testing across platforms
+    assert "Location: /usr/include/stdio.h" in location_content.text.replace("\\", "/")
