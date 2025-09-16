@@ -9,7 +9,7 @@ from yanga.kickstart.create import KickstartProject
 def test_create_project_from_template(tmp_path):
     out_dir = tmp_path / "out"
     KickstartProject(project_dir=out_dir).run()
-    files = ["bootstrap.ps1", "yanga.yaml", "main.c", "greeter.c"]
+    files = ["bootstrap.ps1", "yanga.yaml", "src/main.c", "src/greeter/greeter.c"]
     for file in files:
         assert (out_dir / file).exists()
 

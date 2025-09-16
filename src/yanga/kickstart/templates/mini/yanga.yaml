@@ -1,10 +1,10 @@
 components:
   - name: main
-    type: component
+    path: src
     sources:
       - main.c
   - name: greeter
-    type: component
+    path: src/greeter
     sources:
       - greeter.c
     docs_sources:
@@ -21,8 +21,6 @@ variants:
     components:
       - main
       - greeter
-    config:
-      LINKER_SCRIPT: linker.ld
   - name: GermanVariant
     description: Say hello in German.
     components:

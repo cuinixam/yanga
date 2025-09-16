@@ -23,6 +23,7 @@ html_context: dict[str, Any] = {
 
 include_patterns = [
     "index.md",
+    "docs/components.md",
 ]
 
 report_config = SphinxConfig()
@@ -35,12 +36,9 @@ html_title = f"{project} {release}"
 html_show_sourcelink = True
 
 extensions = []
-
-# Use the whole page width
+extensions.append("sphinx_design")
 extensions.append("sphinx_rtd_size")
 sphinx_rtd_size_width = "90%"
-
-# Parse markdown files
 extensions.append("myst_parser")
 myst_enable_extensions = [
     "colon_fence",
@@ -48,6 +46,25 @@ myst_enable_extensions = [
     "html_admonition",
     "html_image",
 ]
+extensions.append("sphinx_copybutton")
+extensions.append("sphinx_needs")
+
+html_theme = "sphinx_rtd_theme"
+html_show_sourcelink = True
+html_theme_options = {
+    "canonical_url": "",
+    "analytics_id": "",
+    "display_version": True,
+    "prev_next_buttons_location": "bottom",
+    "style_external_links": True,
+    "logo_only": False,
+    # Toc options
+    "collapse_navigation": True,
+    "sticky_navigation": True,
+    "navigation_depth": 6,
+    "includehidden": True,
+    "titles_only": False,
+}
 
 # The suffix of source filenames.
 source_suffix = [
