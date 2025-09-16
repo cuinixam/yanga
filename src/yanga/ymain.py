@@ -19,6 +19,13 @@ package_name = "yanga"
 app = typer.Typer(name=package_name, help="YANGA command line interface.", no_args_is_help=True, add_completion=False)
 
 
+def make_absolute_path(path_value: str | Path) -> Path:
+    return Path(path_value).absolute()
+
+
+project_dir_option = typer.Option(Path.cwd(), callback=make_absolute_path, help="The project directory")
+
+
 @app.callback(invoke_without_command=True)
 def version(
     version: bool = typer.Option(None, "--version", "-v", is_eager=True, help="Show version and exit."),
@@ -31,7 +38,7 @@ def version(
 @app.command(help="Initialize a new YANGA project in the specified directory.")
 @time_it("init")
 def init(
-    project_dir: Path = typer.Option(Path.cwd().absolute(), help="The project directory"),  # noqa: B008
+    project_dir: Path = project_dir_option,
     force: bool = typer.Option(False, help="Force the initialization of the project even if the directory is not empty."),
 ) -> None:
     KickstartProject(project_dir, force).run()
@@ -40,7 +47,7 @@ def init(
 @app.command(help="Run the build pipeline for a specific variant and component.")
 @time_it("run")
 def run(
-    project_dir: Path = typer.Option(Path.cwd().absolute(), help="The project directory"),  # noqa: B008,
+    project_dir: Path = project_dir_option,
     platform: Optional[str] = typer.Option(
         None,
         help="Platform for which to build (see the available platforms in the configuration).",
@@ -102,7 +109,7 @@ def run(
 @app.command(help="Launch the YANGA GUI to build variants and components.")
 @time_it("gui")
 def gui(
-    project_dir: Path = typer.Option(Path.cwd().absolute(), help="The project directory"),  # noqa: B008
+    project_dir: Path = project_dir_option,
 ) -> None:
     YangaGui(project_dir).run()
 
@@ -110,7 +117,7 @@ def gui(
 @app.command(help="View the variants feature configurations.")
 @time_it("view")
 def view(
-    project_dir: Path = typer.Option(Path.cwd().absolute(), help="The project directory"),  # noqa: B008
+    project_dir: Path = project_dir_option,
 ) -> None:
     KConfigView(project_dir).run()
 
@@ -118,7 +125,7 @@ def view(
 @app.command(help="Generate the VS Code project files.")
 @time_it("ide")
 def ide(
-    project_dir: Path = typer.Option(Path.cwd().absolute(), help="The project directory"),  # noqa: B008
+    project_dir: Path = project_dir_option,
 ) -> None:
     IDEProjectGenerator(project_dir).run()
 
