@@ -27,7 +27,7 @@ try {
     # Load bootstrap's utility functions
     . .\.bootstrap\utils.ps1
 
-    Invoke-CommandLine ".venv\Scripts\pypeline run --config-file yanga.yaml --step GenerateEnvSetupScript"
+    Invoke-CommandLine ".venv\Scripts\yanga run --step GenerateEnvSetupScript --not-interactive"
 }
 finally {
     Pop-Location

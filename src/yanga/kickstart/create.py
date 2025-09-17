@@ -41,15 +41,18 @@ class ProjectBuilder:
 
 
 class KickstartProject:
-    def __init__(self, project_dir: Path, force: bool = False) -> None:
+    def __init__(self, project_dir: Path, force: bool = False, with_sources: bool = True) -> None:
         self.logger = logger.bind()
         self.project_dir = project_dir
         self.force = force
+        self.with_sources = with_sources
 
     def run(self) -> None:
         self.logger.info(f"Kickstart new project in '{self.project_dir.absolute().as_posix()}'")
         project_builder = ProjectBuilder(self.project_dir)
         if self.force:
             project_builder.with_disable_target_directory_check()
-        project_builder.with_dir("common").with_dir("mini")
+        project_builder.with_dir("common")
+        if self.with_sources:
+            project_builder.with_dir("mini")
         project_builder.build()

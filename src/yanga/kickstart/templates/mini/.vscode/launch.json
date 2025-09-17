@@ -6,10 +6,10 @@
       "type": "cppdbg",
       "request": "launch",
       "program": "${command:cmake.launchTargetPath}",
-      "args": [],
+      "args": [ ],
       "stopAtEntry": true,
       "cwd": "${command:cmake.launchTargetDirectory}",
-      "environment": [],
+      "environment": [ ],
       "externalConsole": false,
       "MIMode": "gdb",
       "miDebuggerPath": "gdb",
@@ -23,12 +23,12 @@
     },
     {
       "name": "Python: Debug Tests",
-      "type": "python",
+      "type": "debugpy",
       "request": "launch",
       "program": "${file}",
-      "purpose": ["debug-test"],
+      "purpose": [ "debug-test" ],
       "console": "integratedTerminal",
-      "env": {},
+      "env": { },
       "justMyCode": false
     }
   ]

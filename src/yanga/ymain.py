@@ -40,8 +40,9 @@ def version(
 def init(
     project_dir: Path = project_dir_option,
     force: bool = typer.Option(False, help="Force the initialization of the project even if the directory is not empty."),
+    sources: bool = typer.Option(True, help="Copy the example SPL sources."),
 ) -> None:
-    KickstartProject(project_dir, force).run()
+    KickstartProject(project_dir, force, sources).run()
 
 
 @app.command(help="Run the build pipeline for a specific variant and component.")

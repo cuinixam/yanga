@@ -1,5 +1,5 @@
 # Specify the directories to delete, relative to the script's directory
-$directoriesToDelete = @(".venv", "build", ".yanga")
+$directoriesToDelete = @(".venv", ".yanga")
 
 # Get this script's directory
 $scriptDirectory = Split-Path -Parent $MyInvocation.MyCommand.Path
