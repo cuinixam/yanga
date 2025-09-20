@@ -5,14 +5,13 @@ pipeline:
       config:
         python_executable: python3
     - step: ScoopInstall
-      module: pypeline.steps.scoop_install
+      module: yanga.steps.scoop_install
       description: Install scoop dependencies
-      timeout_sec: 120
-    - step: GenerateEnvSetupScript
-      module: pypeline.steps.env_setup_script
     - step: WestInstall
       module: yanga.steps.west_install
       description: Install west dependencies
+    - step: GenerateEnvSetupScript
+      module: pypeline.steps.env_setup_script
   gen:
     - step: KConfigGen
       module: yanga.steps.kconfig_gen
