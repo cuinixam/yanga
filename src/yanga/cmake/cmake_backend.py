@@ -283,7 +283,11 @@ class CMakeCommand(CMakeElement):
         self.arguments = arguments
 
     def to_string(self) -> str:
-        return f"COMMAND {self.command} {' '.join(str(arg) for arg in self.arguments)}"
+        result = f"COMMAND {self.command}"
+        if self.arguments:
+            args_str = " ".join(str(arg) for arg in self.arguments)
+            result += f" {args_str}"
+        return result
 
 
 class CMakeExecuteProcess(CMakeElement):
@@ -328,18 +332,45 @@ class CMakeByproducts(CMakeElement):
         return f"{self.tab_prefix}BYPRODUCTS {' '.join(str(byproduct) for byproduct in self.byproducts)}"
 
 
+class CMakeBuildEvent(Enum):
+    PRE_BUILD = auto()
+    PRE_LINK = auto()
+    POST_BUILD = auto()
+
+
 @dataclass
 class CMakeCustomCommand(CMakeElement):
     description: str
     outputs: list[CMakePath]
     depends: Sequence[str | CMakePath]
     commands: list[CMakeCommand]
+    working_directory: Optional[CMakePath] = None
+    build_event: Optional[CMakeBuildEvent] = None
+    byproducts: Optional[list[CMakePath]] = None
+    target: Optional[str] = None
 
     def to_string(self) -> str:
         content = [CMakeComment(self.description), "add_custom_command("]
-        content.extend(self._get_outputs())
-        content.append(CMakeDepends(self.depends).to_string())
-        content.extend(self._get_commands())
+
+        if self.target and self.build_event:
+            # TARGET form: add_custom_command(TARGET <target> PRE_BUILD|PRE_LINK|POST_BUILD ...)
+            content.append(f"{self.tab_prefix}TARGET {self.target}")
+            content.append(f"{self.tab_prefix}{self.build_event.name}")
+            content.extend(self._get_commands())
+            if self.byproducts:
+                content.append(CMakeByproducts(self.byproducts).to_string())
+            if self.working_directory:
+                content.append(f"{self.tab_prefix}WORKING_DIRECTORY {self.working_directory.to_string()}")
+        else:
+            # OUTPUT form: add_custom_command(OUTPUT <outputs> DEPENDS <depends> ...)
+            content.extend(self._get_outputs())
+            content.append(CMakeDepends(self.depends).to_string())
+            content.extend(self._get_commands())
+            if self.byproducts:
+                content.append(CMakeByproducts(self.byproducts).to_string())
+            if self.working_directory:
+                content.append(f"{self.tab_prefix}WORKING_DIRECTORY {self.working_directory.to_string()}")
+
         content.append(")")
         return "\n".join(str(line) for line in content)
 

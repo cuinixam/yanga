@@ -3,6 +3,7 @@ from pathlib import Path
 from yanga.cmake.cmake_backend import (
     CMakeAddExecutable,
     CMakeAddSubdirectory,
+    CMakeBuildEvent,
     CMakeCommand,
     CMakeCustomCommand,
     CMakeCustomTarget,
@@ -119,6 +120,103 @@ def test_cmake_custom_command():
     commands = [CMakeCommand("my_command", ["arg1", "arg2"])]
     cmake_custom_command = CMakeCustomCommand("Generate outputs", outputs, depends, commands)
     expected_string = "# Generate outputs\nadd_custom_command(\n    OUTPUT output1 output2\n    DEPENDS input1 input2\n    COMMAND my_command arg1 arg2\n)"
+    assert cmake_custom_command.to_string() == expected_string
+
+
+def test_cmake_custom_command_with_working_directory():
+    outputs = [CMakePath(Path("output.txt"))]
+    depends: list[str | CMakePath] = ["input.txt"]
+    commands = [CMakeCommand("process", ["input.txt", "output.txt"])]
+    working_dir = CMakePath(Path("/work/dir"))
+    cmake_custom_command = CMakeCustomCommand("Process with working dir", outputs, depends, commands, working_directory=working_dir)
+    expected_string = (
+        "# Process with working dir\n"
+        "add_custom_command(\n"
+        "    OUTPUT output.txt\n"
+        "    DEPENDS input.txt\n"
+        "    COMMAND process input.txt output.txt\n"
+        "    WORKING_DIRECTORY /work/dir\n"
+        ")"
+    )
+    assert cmake_custom_command.to_string() == expected_string
+
+
+def test_cmake_custom_command_with_build_event():
+    outputs = [CMakePath(Path("output.txt"))]
+    depends: list[str | CMakePath] = ["input.txt"]
+    commands = [CMakeCommand("prebuild_script", [])]
+    cmake_custom_command = CMakeCustomCommand("Pre-build step", outputs, depends, commands, build_event=CMakeBuildEvent.PRE_BUILD, target="my_target")
+    expected_string = "# Pre-build step\nadd_custom_command(\n    TARGET my_target\n    PRE_BUILD\n    COMMAND prebuild_script\n)"
+    assert cmake_custom_command.to_string() == expected_string
+
+
+def test_cmake_custom_command_with_byproducts():
+    outputs = [CMakePath(Path("main_output.txt"))]
+    depends: list[str | CMakePath] = ["input.txt"]
+    commands = [CMakeCommand("generator", ["input.txt"])]
+    byproducts = [CMakePath(Path("side_effect1.log")), CMakePath(Path("side_effect2.log"))]
+    cmake_custom_command = CMakeCustomCommand("Generate with byproducts", outputs, depends, commands, byproducts=byproducts)
+    expected_string = (
+        "# Generate with byproducts\n"
+        "add_custom_command(\n"
+        "    OUTPUT main_output.txt\n"
+        "    DEPENDS input.txt\n"
+        "    COMMAND generator input.txt\n"
+        "    BYPRODUCTS side_effect1.log side_effect2.log\n"
+        ")"
+    )
+    assert cmake_custom_command.to_string() == expected_string
+
+
+def test_cmake_custom_command_with_all_optional_parameters():
+    outputs = [CMakePath(Path("output.txt"))]
+    depends: list[str | CMakePath] = ["input.txt"]
+    commands = [CMakeCommand("complex_process", ["input.txt", "output.txt"])]
+    working_dir = CMakePath(Path("/build/dir"))
+    byproducts = [CMakePath(Path("temp.log"))]
+    cmake_custom_command = CMakeCustomCommand(
+        "Complex command", outputs, depends, commands, working_directory=working_dir, build_event=CMakeBuildEvent.POST_BUILD, byproducts=byproducts, target="my_target"
+    )
+    expected_string = (
+        "# Complex command\n"
+        "add_custom_command(\n"
+        "    TARGET my_target\n"
+        "    POST_BUILD\n"
+        "    COMMAND complex_process input.txt output.txt\n"
+        "    BYPRODUCTS temp.log\n"
+        "    WORKING_DIRECTORY /build/dir\n"
+        ")"
+    )
+    assert cmake_custom_command.to_string() == expected_string
+
+
+def test_cmake_custom_command_output_form_with_options():
+    outputs = [CMakePath(Path("output.txt"))]
+    depends: list[str | CMakePath] = ["input.txt"]
+    commands = [CMakeCommand("generate", ["input.txt", "output.txt"])]
+    working_dir = CMakePath(Path("/build/dir"))
+    byproducts = [CMakePath(Path("temp.log"))]
+    cmake_custom_command = CMakeCustomCommand("Output-based command", outputs, depends, commands, working_directory=working_dir, byproducts=byproducts)
+    expected_string = (
+        "# Output-based command\n"
+        "add_custom_command(\n"
+        "    OUTPUT output.txt\n"
+        "    DEPENDS input.txt\n"
+        "    COMMAND generate input.txt output.txt\n"
+        "    BYPRODUCTS temp.log\n"
+        "    WORKING_DIRECTORY /build/dir\n"
+        ")"
+    )
+    assert cmake_custom_command.to_string() == expected_string
+
+
+def test_cmake_custom_command_build_event_without_target():
+    outputs = [CMakePath(Path("output.txt"))]
+    depends: list[str | CMakePath] = ["input.txt"]
+    commands = [CMakeCommand("process", [])]
+    cmake_custom_command = CMakeCustomCommand("Build event without target", outputs, depends, commands, build_event=CMakeBuildEvent.PRE_BUILD)
+    # Should fall back to OUTPUT form when no target is specified
+    expected_string = "# Build event without target\nadd_custom_command(\n    OUTPUT output.txt\n    DEPENDS input.txt\n    COMMAND process\n)"
     assert cmake_custom_command.to_string() == expected_string
 
 
