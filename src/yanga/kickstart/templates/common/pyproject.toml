@@ -15,7 +15,7 @@ classifiers = [
   "Programming Language :: Python :: 3.13",
 ]
 dependencies = [
-  "pip_system_certs>=4.0,<5",
+  "pip-system-certs>=4,<5",
   "py-app-dev>=2,<3",
   "sphinx-copybutton>=0,<1",
   "sphinx-design>=0,<1",

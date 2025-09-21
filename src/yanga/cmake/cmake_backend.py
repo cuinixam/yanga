@@ -341,40 +341,39 @@ class CMakeBuildEvent(Enum):
 @dataclass
 class CMakeCustomCommand(CMakeElement):
     description: str
-    outputs: list[CMakePath]
-    depends: Sequence[str | CMakePath]
     commands: list[CMakeCommand]
+    outputs: Optional[list[CMakePath]] = None
+    depends: Optional[Sequence[str | CMakePath]] = None
     working_directory: Optional[CMakePath] = None
     build_event: Optional[CMakeBuildEvent] = None
     byproducts: Optional[list[CMakePath]] = None
     target: Optional[str] = None
+    command_expand_lists: bool = False
 
     def to_string(self) -> str:
         content = [CMakeComment(self.description), "add_custom_command("]
-
-        if self.target and self.build_event:
-            # TARGET form: add_custom_command(TARGET <target> PRE_BUILD|PRE_LINK|POST_BUILD ...)
+        if self.target:
             content.append(f"{self.tab_prefix}TARGET {self.target}")
+        if self.build_event:
             content.append(f"{self.tab_prefix}{self.build_event.name}")
-            content.extend(self._get_commands())
-            if self.byproducts:
-                content.append(CMakeByproducts(self.byproducts).to_string())
-            if self.working_directory:
-                content.append(f"{self.tab_prefix}WORKING_DIRECTORY {self.working_directory.to_string()}")
-        else:
-            # OUTPUT form: add_custom_command(OUTPUT <outputs> DEPENDS <depends> ...)
+        if self.outputs:
             content.extend(self._get_outputs())
+        if self.depends:
             content.append(CMakeDepends(self.depends).to_string())
-            content.extend(self._get_commands())
-            if self.byproducts:
-                content.append(CMakeByproducts(self.byproducts).to_string())
-            if self.working_directory:
-                content.append(f"{self.tab_prefix}WORKING_DIRECTORY {self.working_directory.to_string()}")
+        content.extend(self._get_commands())
+        if self.byproducts:
+            content.append(CMakeByproducts(self.byproducts).to_string())
+        if self.working_directory:
+            content.append(f"{self.tab_prefix}WORKING_DIRECTORY {self.working_directory.to_string()}")
+        if self.command_expand_lists:
+            content.append(f"{self.tab_prefix}COMMAND_EXPAND_LISTS")
 
         content.append(")")
         return "\n".join(str(line) for line in content)
 
     def _get_outputs(self) -> list[str]:
+        if not self.outputs:
+            return []
         return [f"{self.tab_prefix}OUTPUT {' '.join([output.to_string() for output in self.outputs])}"]
 
     def _get_commands(self) -> list[str]:

@@ -74,12 +74,13 @@ class ReportCMakeGenerator(CMakeGenerator):
         # Create variant results target to collect all component and variant results relevant for the report
         results_target_depends: list[str | CMakePath] = [
             self.artifacts_locator.get_build_artifact(BuildArtifact.REPORT_CONFIG),
-            *targets_data_cmd.outputs,
             *[
                 UserRequest(UserRequestScope.COMPONENT, target=UserRequestTarget.RESULTS, component_name=component.name).target_name
                 for component in self.execution_context.components
             ],
         ]
+        if targets_data_cmd.outputs:
+            results_target_depends.extend(targets_data_cmd.outputs)
         if coverage_reports:
             results_target_depends.append(UserRequest(UserRequestScope.VARIANT, target=UserRequestTarget.COVERAGE).target_name)
             # The html coverage reports are generated in the component specific reports directories.
@@ -118,7 +119,8 @@ class ReportCMakeGenerator(CMakeGenerator):
                     ],
                 )
                 elements.append(copy_coverage_html_cmd)
-                results_target_depends.extend(copy_coverage_html_cmd.outputs)
+                if copy_coverage_html_cmd.outputs:
+                    results_target_depends.extend(copy_coverage_html_cmd.outputs)
 
         results_target = CMakeCustomTarget(
             name=UserRequest(

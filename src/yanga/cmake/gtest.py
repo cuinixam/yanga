@@ -133,6 +133,7 @@ class CMakeMockupCreator:
                     ],
                 )
             ],
+            command_expand_lists=True,
         )
         elements.append(custom_command)
         # Custom command to run clanguru and generate the mockup sources
@@ -378,9 +379,9 @@ class GTestComponentCMakeGenerator:
         outputs = [component_build_dir.joinpath(f"{component_name}_junit.xml")]
         return CMakeCustomCommand(
             "Run the test executable, generate JUnit report and return success independent of the test result",
-            outputs,
-            [component_executable_name],
-            [command],
+            outputs=outputs,
+            depends=[component_executable_name],
+            commands=[command],
         )
 
     def create_coverage_report(
