@@ -178,8 +178,10 @@ class ReportCMakeGenerator(CMakeGenerator):
             component_analyzer = ComponentAnalyzer([component], self.execution_context.create_artifacts_locator())
             component_build_dir = self.artifacts_locator.get_component_build_dir(component.name)
             report_config_output_file = self.artifacts_locator.get_component_build_artifact(component.name, BuildArtifact.REPORT_CONFIG)
-            docs_source_files = [CMakePath(source) for source in component_analyzer.collect_docs_sources()]
-            source_files: list[CMakePath] = [CMakePath(source) for source in component_analyzer.collect_sources()]
+            source_files: list[CMakePath] = []
+            if not (component.docs and component.docs.exclude_productive_code):
+                source_files.extend([CMakePath(source) for source in component_analyzer.collect_sources()])
+
             # Check if there are any test results registered for the component
             test_results = any(
                 entry
@@ -197,50 +199,53 @@ class ReportCMakeGenerator(CMakeGenerator):
                 component_name=component.name,
             )
 
-            elements.append(
-                CMakeCustomTarget(
-                    name=component_docs_target.target_name,
-                    description=f"Generate sources docs for component {component.name}",
-                    commands=[
-                        CMakeCommand(
-                            "clanguru",
-                            [
-                                "docs",
-                                "--source-file",
-                                source_file,
-                                "--output-file",
-                                output_md,
-                                "--compilation-database",
-                                self.artifacts_locator.get_build_artifact(BuildArtifact.COMPILE_COMMANDS),
-                                "--format",
-                                "myst",
-                            ],
-                        )
-                        for source_file, output_md in zip(source_files, source_files_output_md)
-                    ],
-                    depends=[self.artifacts_locator.get_build_artifact(BuildArtifact.COMPILE_COMMANDS)],
-                    byproducts=source_files_output_md,
+            if source_files_output_md:
+                elements.append(
+                    CMakeCustomTarget(
+                        name=component_docs_target.target_name,
+                        description=f"Generate sources docs for component {component.name}",
+                        commands=[
+                            CMakeCommand(
+                                "clanguru",
+                                [
+                                    "docs",
+                                    "--source-file",
+                                    source_file,
+                                    "--output-file",
+                                    output_md,
+                                    "--compilation-database",
+                                    self.artifacts_locator.get_build_artifact(BuildArtifact.COMPILE_COMMANDS),
+                                    "--format",
+                                    "myst",
+                                ],
+                            )
+                            for source_file, output_md in zip(source_files, source_files_output_md)
+                        ],
+                        depends=[self.artifacts_locator.get_build_artifact(BuildArtifact.COMPILE_COMMANDS)],
+                        byproducts=source_files_output_md,
+                    )
                 )
-            )
+                # Register the component sources md files as relevant for the component report
+                self.execution_context.data_registry.insert(
+                    ReportRelevantFiles(
+                        target=component_docs_target,
+                        files_to_be_included=[md_output.to_path() for md_output in source_files_output_md],
+                        file_type=ReportRelevantFileType.SOURCES,
+                    ),
+                    component_docs_target.target_name,
+                )
 
-            # Register the component documentation files as relevant for the component report
-            self.execution_context.data_registry.insert(
-                ReportRelevantFiles(
-                    target=component_docs_target,
-                    files_to_be_included=[source.to_path() for source in docs_source_files],
-                    file_type=ReportRelevantFileType.DOCS,
-                ),
-                component_docs_target.target_name,
-            )
-            # Register the component sources md files as relevant for the component report
-            self.execution_context.data_registry.insert(
-                ReportRelevantFiles(
-                    target=component_docs_target,
-                    files_to_be_included=[md_output.to_path() for md_output in source_files_output_md],
-                    file_type=ReportRelevantFileType.SOURCES,
-                ),
-                component_docs_target.target_name,
-            )
+            docs_source_files = [CMakePath(source) for source in component_analyzer.collect_docs_sources()]
+            if docs_source_files:
+                # Register the component documentation files as relevant for the component report
+                self.execution_context.data_registry.insert(
+                    ReportRelevantFiles(
+                        target=component_docs_target,
+                        files_to_be_included=[source.to_path() for source in docs_source_files],
+                        file_type=ReportRelevantFileType.DOCS,
+                    ),
+                    component_docs_target.target_name,
+                )
 
             component_results_target = UserRequest(
                 UserRequestScope.COMPONENT,

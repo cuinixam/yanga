@@ -125,6 +125,15 @@ class TestingConfiguration(BaseConfigDictMixin):
 
 
 @dataclass
+class DocsConfiguration(BaseConfigDictMixin):
+    #: Component documentation sources
+    sources: list[str] = field(default_factory=list)
+    #: Do not generate documentation for the productive code.
+    #  This might be used for integration tests components to avoid generating docs for productive code from other components.
+    exclude_productive_code: bool = False
+
+
+@dataclass
 class PlatformConfig(BaseConfigDictMixin):
     #: Platform name
     name: str
@@ -233,6 +242,8 @@ class ComponentConfig(BaseConfigDictMixin):
     testing: Optional[TestingConfiguration] = None
     #: Documentation sources
     docs_sources: list[str] = field(default_factory=list)
+    #: Documentation configuration
+    docs: Optional[DocsConfiguration] = None
     #: Component include directories
     include_directories: list[IncludeDirectory] = field(default_factory=list)
     #: Name of the components that this component requires header files from
