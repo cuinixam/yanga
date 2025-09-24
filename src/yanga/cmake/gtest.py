@@ -4,6 +4,7 @@ from pathlib import Path
 from typing import Any, Optional
 
 from mashumaro import DataClassDictMixin
+from py_app_dev.core.config import merge_configs
 
 from yanga.cmake.artifacts_locator import BuildArtifact, CMakeArtifactsLocator
 from yanga.cmake.coverage import CoverageArtifactsLocator, CoverageRelevantFile
@@ -11,12 +12,7 @@ from yanga.domain.artifacts import ProjectArtifactsLocator
 from yanga.domain.component_analyzer import ComponentAnalyzer
 from yanga.domain.components import Component
 from yanga.domain.config import MockingConfiguration
-from yanga.domain.execution_context import (
-    ExecutionContext,
-    UserRequest,
-    UserRequestScope,
-    UserRequestTarget,
-)
+from yanga.domain.execution_context import ExecutionContext, UserRequest, UserRequestScope, UserRequestTarget
 from yanga.domain.reports import ReportRelevantFiles, ReportRelevantFileType
 
 from .cmake_backend import (
@@ -344,10 +340,7 @@ class GTestComponentCMakeGenerator:
             if not result.mocking:
                 result.mocking = component.testing.mocking
             else:
-                if component.testing.mocking.enabled is not None:
-                    result.mocking.enabled = component.testing.mocking.enabled
-                if component.testing.mocking.exclude_symbol_patterns:
-                    result.mocking.exclude_symbol_patterns = component.testing.mocking.exclude_symbol_patterns
+                result.mocking = merge_configs(result.mocking, component.testing.mocking)
         return result
 
     def add_executable(self, component_name: str, sources: list[Path], component_object_library: str) -> CMakeAddExecutable:

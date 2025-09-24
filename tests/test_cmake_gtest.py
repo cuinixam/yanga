@@ -13,7 +13,9 @@ from yanga.cmake.cmake_backend import (
     CMakeTargetIncludeDirectories,
     CMakeVariable,
 )
-from yanga.cmake.gtest import GTestCMakeGenerator
+from yanga.cmake.gtest import GTestCMakeGenerator, GTestCMakeGeneratorConfig, GTestComponentCMakeGenerator
+from yanga.domain.components import Component
+from yanga.domain.config import MockingConfiguration, TestingConfiguration
 from yanga.domain.execution_context import ExecutionContext
 
 
@@ -118,7 +120,7 @@ def test_use_global_includes_enabled_generates_global_include_directories(execut
 def test_use_global_includes_disabled_adds_component_specific_include_directories(execution_context: ExecutionContext, output_dir: Path) -> None:
     """Verify that when use_global_includes is disabled, component-specific include directories are added as target_include_directories."""
     # Set up component with include directories
-    component = execution_context.components[0]  # Get the CompA component
+    component = find_elements_of_type(execution_context.components, Component)[0]  # Get the CompA component
     component.include_dirs = [Path("/component/inc"), Path("/component/src")]
 
     # Generate elements with use_global_includes=False
@@ -143,7 +145,7 @@ def test_use_global_includes_disabled_adds_component_specific_include_directorie
         all_paths.extend([str(path.path) for path in ti.paths])
 
     # Normalize paths for Windows compatibility
-    normalized_paths = [p.replace("\\", "/") for p in all_paths]
+    normalized_paths = [Path(p).as_posix() for p in all_paths]
     assert "/component/inc" in normalized_paths, f"Component include directory not found in target includes: {normalized_paths}"
     assert "/component/src" in normalized_paths, f"Component include directory not found in target includes: {normalized_paths}"
 
@@ -160,22 +162,24 @@ def test_component_specific_directories_are_used(execution_context: ExecutionCon
     custom_commands = find_elements_of_type(elements, CMakeCustomCommand)
 
     # Look for JUnit XML output files in component-specific directories
-    junit_outputs = [cmd for cmd in custom_commands if any("_junit.xml" in str(output) for output in cmd.outputs)]
+    junit_outputs = [cmd for cmd in custom_commands if cmd.outputs and any("_junit.xml" in str(output) for output in cmd.outputs)]
     assert len(junit_outputs) > 0, "No JUnit XML custom commands found"
 
     # Verify the JUnit XML file is in a component-specific directory
     junit_cmd = junit_outputs[0]
+    assert junit_cmd.outputs
     junit_output_path = str(junit_cmd.outputs[0])
     assert "CompA_junit.xml" in junit_output_path, f"Expected CompA_junit.xml in path: {junit_output_path}"
     # The path should contain the component name as a subdirectory
     assert "CompA" in junit_output_path, f"Component subdirectory not found in JUnit path: {junit_output_path}"
 
     # Look for mockup generation commands
-    mockup_commands = [cmd for cmd in custom_commands if any("mockup_" in str(output) for output in cmd.outputs)]
+    mockup_commands = [cmd for cmd in custom_commands if cmd.outputs and any("mockup_" in str(output) for output in cmd.outputs)]
     assert len(mockup_commands) > 0, "No mockup generation commands found"
 
     # Verify mockup files are in component-specific directories
     mockup_cmd = mockup_commands[0]
+    assert mockup_cmd.outputs
     mockup_output_paths = [str(output) for output in mockup_cmd.outputs]
     for path in mockup_output_paths:
         assert "mockup_CompA" in path, f"Expected mockup_CompA in path: {path}"
@@ -203,3 +207,22 @@ def test_executable_output_directory_is_set(execution_context: ExecutionContext,
 
     runtime_dir = str(runtime_props[0].properties["RUNTIME_OUTPUT_DIRECTORY"])
     assert "CompA" in runtime_dir, f"Component subdirectory not found in runtime output directory: {runtime_dir}"
+
+
+def test_component_mocking_config_overrides_global(execution_context: ExecutionContext, output_dir: Path) -> None:
+    """Verify that component-specific mocking configuration overrides global mocking settings."""
+    global_mocking_config = GTestCMakeGeneratorConfig.from_dict({"mocking": {"enabled": True, "exclude_symbol_patterns": ["GlobalPattern1", "GlobalPattern2"], "strict": False}})
+    component = Component(
+        name="CompA",
+        path=Path("CompA"),
+        sources=[],
+        testing=TestingConfiguration(sources=["test_compA_source.cpp"], mocking=MockingConfiguration(exclude_symbol_patterns=["CompAPattern1"], strict=True)),
+    )
+    generator = GTestComponentCMakeGenerator(execution_context, output_dir, global_mocking_config)
+
+    config = generator._determine_component_generator_config(component)
+
+    assert config.mocking is not None
+    assert config.mocking.enabled is True, "Inherited global mocking enabled"
+    assert config.mocking.exclude_symbol_patterns == ["CompAPattern1"], "Overridden exclude patterns"
+    assert config.mocking.strict is True, "Overridden strict setting"

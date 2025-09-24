@@ -5,9 +5,9 @@ from pathlib import Path
 from typing import Any, Callable, Optional
 
 import yaml
-from mashumaro import DataClassDictMixin
 from mashumaro.config import BaseConfig
 from mashumaro.mixins.json import DataClassJSONMixin
+from py_app_dev.core.config import BaseConfigDictMixin
 from py_app_dev.core.exceptions import UserNotificationException
 from py_app_dev.core.pipeline import PipelineConfig as GenericPipelineConfig
 from py_app_dev.core.scoop_wrapper import ScoopFileElement
@@ -29,7 +29,7 @@ class BaseConfigJSONMixin(DataClassJSONMixin):
 
 
 @dataclass
-class WestDependency(DataClassDictMixin):
+class WestDependency(BaseConfigDictMixin):
     #: Project name
     name: str
     #: Remote name
@@ -41,7 +41,7 @@ class WestDependency(DataClassDictMixin):
 
 
 @dataclass
-class WestRemote(DataClassDictMixin):
+class WestRemote(BaseConfigDictMixin):
     #: Remote name
     name: str
     #: URL base
@@ -49,7 +49,7 @@ class WestRemote(DataClassDictMixin):
 
 
 @dataclass
-class WestManifest(DataClassDictMixin):
+class WestManifest(BaseConfigDictMixin):
     #: Remote configurations
     remotes: list[WestRemote] = field(default_factory=list)
     #: Project dependencies
@@ -57,7 +57,7 @@ class WestManifest(DataClassDictMixin):
 
 
 @dataclass
-class WestManifestFile(DataClassDictMixin):
+class WestManifestFile(BaseConfigDictMixin):
     manifest: WestManifest
     # This field is intended to keep track of where configuration was loaded from and
     # it is automatically added when configuration is loaded from file
@@ -110,14 +110,14 @@ class ScoopManifest(BaseConfigJSONMixin):
 
 
 @dataclass
-class MockingConfiguration(DataClassDictMixin):
+class MockingConfiguration(BaseConfigDictMixin):
     enabled: Optional[bool] = None
     strict: Optional[bool] = None
     exclude_symbol_patterns: list[str] | None = None
 
 
 @dataclass
-class TestingConfiguration(DataClassDictMixin):
+class TestingConfiguration(BaseConfigDictMixin):
     #: Component test sources
     sources: list[str] = field(default_factory=list)
     #: Mocking configuration
@@ -125,7 +125,7 @@ class TestingConfiguration(DataClassDictMixin):
 
 
 @dataclass
-class PlatformConfig(DataClassDictMixin):
+class PlatformConfig(BaseConfigDictMixin):
     #: Platform name
     name: str
     #: Description
@@ -146,7 +146,7 @@ class PlatformConfig(DataClassDictMixin):
 
 
 @dataclass
-class VariantPlatformsConfig(DataClassDictMixin):
+class VariantPlatformsConfig(BaseConfigDictMixin):
     """Platform specific configuration, used in case the variant needs to defines specific settings for some platforms."""
 
     #: Components
@@ -156,7 +156,7 @@ class VariantPlatformsConfig(DataClassDictMixin):
 
 
 @dataclass
-class VariantConfig(DataClassDictMixin):
+class VariantConfig(BaseConfigDictMixin):
     #: Variant name
     name: str
     #: Description
@@ -210,7 +210,7 @@ class IncludeDirectoryScope(StringableEnum):
 
 
 @dataclass
-class IncludeDirectory(DataClassDictMixin):
+class IncludeDirectory(BaseConfigDictMixin):
     #: Include directory path
     path: str
     #: Include directory scope
@@ -218,7 +218,7 @@ class IncludeDirectory(DataClassDictMixin):
 
 
 @dataclass
-class ComponentConfig(DataClassDictMixin):
+class ComponentConfig(BaseConfigDictMixin):
     #: Component name
     name: str
     #: Description
@@ -254,7 +254,7 @@ class ComponentConfig(DataClassDictMixin):
 
 
 @dataclass
-class YangaUserConfig(DataClassDictMixin):
+class YangaUserConfig(BaseConfigDictMixin):
     #: Pipeline steps to execute
     pipeline: Optional[PipelineConfig] = None
     #: Supported platforms to build for
