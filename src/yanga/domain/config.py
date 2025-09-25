@@ -145,6 +145,8 @@ class PlatformConfig(BaseConfigDictMixin):
     cmake_generators: GenericPipelineConfig = field(default_factory=list)
     #: Supported build types
     build_types: list[str] = field(default_factory=list)
+    #: Supported targets
+    build_targets: Optional[list[str]] = None
     #: West dependencies for this platform
     west_manifest: Optional[WestManifest] = None
     #: Scoop dependencies for this platform

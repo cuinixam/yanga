@@ -31,6 +31,7 @@ class YangaEvent(EventID):
     CLEAN_VARIANT_EVENT = auto()
     PLATFORM_SELECTED_EVENT = auto()
     BUILD_TYPE_SELECTED_EVENT = auto()
+    BUILD_TARGET_SELECTED_EVENT = auto()
     OPEN_IN_VSCODE = auto()
 
 
@@ -40,6 +41,7 @@ class YangaView(View):
         self.root = customtkinter.CTk()
         self.platforms: list[str] = []
         self.build_types: list[str] = []
+        self.build_targets: list[str] = []
         self.variants: list[str] = []
         self.components: list[str] = []
 
@@ -55,12 +57,16 @@ class YangaView(View):
     def selected_build_type(self) -> Optional[str]:
         return self.build_type_selection.get()
 
+    @property
+    def selected_build_target(self) -> Optional[str]:
+        return self.build_target_selection.get()
+
     def init_gui(self) -> None:
         customtkinter.set_default_color_theme("green")
 
         # Configure the main window
         self.root.title("YANGA")
-        self.root.geometry(f"{220}x{450}")
+        self.root.geometry(f"{220}x{510}")
 
         # update app icon
         self.root.iconbitmap(Icons.YANGA_ICON.file)
@@ -84,10 +90,11 @@ class YangaView(View):
         self.variant_selected_trigger = self.event_manager.create_event_trigger(YangaEvent.VARIANT_SELECTED_EVENT)
         self.platform_selected_trigger = self.event_manager.create_event_trigger(YangaEvent.PLATFORM_SELECTED_EVENT)
         self.build_type_selected_trigger = self.event_manager.create_event_trigger(YangaEvent.BUILD_TYPE_SELECTED_EVENT)
+        self.build_target_selected_trigger = self.event_manager.create_event_trigger(YangaEvent.BUILD_TARGET_SELECTED_EVENT)
         self.open_in_vscode_trigger = self.event_manager.create_event_trigger(YangaEvent.OPEN_IN_VSCODE)
 
     def _build_button_pressed(self) -> None:
-        self.build_trigger(self.selected_variant, self.selected_build_type)
+        self.build_trigger(self.selected_variant, self.selected_build_type, self.selected_build_target)
 
     def _refresh_button_pressed(self, event=None) -> None:  # type: ignore
         self.refresh_trigger()
@@ -101,8 +108,11 @@ class YangaView(View):
     def _build_type_selected(self, build_type_selected: str) -> None:
         self.build_type_selected_trigger(build_type_selected)
 
+    def _build_target_selected(self, build_target_selected: str) -> None:
+        self.build_target_selected_trigger(build_target_selected)
+
     def _component_build_button_pressed(self) -> None:
-        self.component_build_trigger(self.selected_variant, self.selected_component, self.selected_build_type)
+        self.component_build_trigger(self.selected_variant, self.selected_component, self.selected_build_type, self.selected_build_target)
 
     def _component_clean_button_pressed(self) -> None:
         self.component_clean_trigger(self.selected_variant, self.selected_component)
@@ -146,6 +156,20 @@ class YangaView(View):
             self.update_build_types(self.build_types)
         else:
             self.disabled_build_types()
+        position_in_grid += 1
+
+        # Create build target label
+        build_target_label = customtkinter.CTkLabel(current_frame, text="Build Target", anchor="w")
+        build_target_label.grid(row=position_in_grid, column=0, sticky="nsew", padx=10, pady=5)
+        position_in_grid += 1
+
+        # Create build target selection list
+        self.build_target_selection = customtkinter.CTkOptionMenu(current_frame, command=self._build_target_selected)
+        self.build_target_selection.grid(row=position_in_grid, column=0, sticky="nsew", padx=10, pady=5)
+        if self.build_targets:
+            self.update_build_targets(self.build_targets)
+        else:
+            self.disabled_build_targets()
         position_in_grid += 1
 
         return platforms_frame
@@ -239,6 +263,18 @@ class YangaView(View):
         self.build_type_selection.set("")
         self.build_type_selection.configure(state="disabled")
 
+    def update_build_targets(self, build_targets: list[str]) -> None:
+        self.build_target_selection.configure(values=build_targets)
+        self.build_target_selection.configure(state="normal")
+
+    def update_current_build_target(self, build_target: str) -> None:
+        self.build_target_selection.set(build_target)
+
+    def disabled_build_targets(self) -> None:
+        self.build_target_selection.configure(values=[])
+        self.build_target_selection.set("")
+        self.build_target_selection.configure(state="disabled")
+
     def update_variants(self, variants: list[str]) -> None:
         self.variant_selection.configure(values=variants)
 
@@ -279,6 +315,8 @@ class YangaPresenter(Presenter):
         self.event_manager.subscribe(YangaEvent.REFRESH_EVENT, self._refresh_trigger)
         self.event_manager.subscribe(YangaEvent.VARIANT_SELECTED_EVENT, self._variant_selected_trigger)
         self.event_manager.subscribe(YangaEvent.PLATFORM_SELECTED_EVENT, self._platform_selected_trigger)
+        self.event_manager.subscribe(YangaEvent.BUILD_TYPE_SELECTED_EVENT, self._build_type_selected_trigger)
+        self.event_manager.subscribe(YangaEvent.BUILD_TARGET_SELECTED_EVENT, self._build_target_selected_trigger)
         self.event_manager.subscribe(YangaEvent.CLEAN_VARIANT_EVENT, self._clean_variant_trigger)
         self.event_manager.subscribe(YangaEvent.OPEN_IN_VSCODE, self._open_in_vscode_trigger)
         self.command_running_flag = False
@@ -286,22 +324,27 @@ class YangaPresenter(Presenter):
         self.selected_platform: Optional[str] = None
         self.selected_variant: Optional[str] = None
         self.selected_component: Optional[str] = None
+        self.selected_build_target: Optional[str] = None
 
     def run(self) -> None:
         self.view.init_gui()
         self._update_view_data()
         self.view.mainloop()
 
-    def _build_trigger(self, variant_name: str, build_type: Optional[str] = None) -> None:
-        self.run_command(UserVariantRequest(variant_name=variant_name, build_type=build_type))
+    def _build_trigger(self, variant_name: str, build_type: Optional[str] = None, build_target: Optional[str] = None) -> None:
+        # Use build_target as target if provided, otherwise use BUILD
+        target = build_target if build_target else UserRequestTarget.BUILD
+        self.run_command(UserVariantRequest(variant_name=variant_name, target=target, build_type=build_type))
 
-    def _component_build_trigger(self, variant_name: str, component_name: str, build_type: Optional[str] = None) -> None:
+    def _component_build_trigger(self, variant_name: str, component_name: str, build_type: Optional[str] = None, build_target: Optional[str] = None) -> None:
+        # Use build_target as target if provided, otherwise use BUILD
+        target = build_target if build_target else UserRequestTarget.BUILD
         self.run_command(
             UserRequest(
                 scope=UserRequestScope.COMPONENT,
                 variant_name=variant_name,
                 component_name=component_name,
-                target=UserRequestTarget.BUILD,
+                target=target,
                 build_type=build_type,
             )
         )
@@ -329,6 +372,14 @@ class YangaPresenter(Presenter):
         self.logger.info(f"Platform selected: {platform_name}")
         self.selected_platform = platform_name
         self._update_build_types()
+        self._update_build_targets()
+
+    def _build_target_selected_trigger(self, build_target_name: str) -> None:
+        self.logger.info(f"Build target selected: {build_target_name}")
+        self.selected_build_target = build_target_name
+
+    def _build_type_selected_trigger(self, build_type_name: str) -> None:
+        self.logger.info(f"Build type selected: {build_type_name}")
 
     def _clean_variant_trigger(self, variant_name: str) -> None:
         self.run_command(UserVariantRequest(variant_name, UserRequestTarget.CLEAN))
@@ -346,6 +397,7 @@ class YangaPresenter(Presenter):
     def _update_view_data(self) -> None:
         self._update_platforms()
         self._update_build_types()
+        self._update_build_targets()
         self._update_variants()
         self._update_components()
 
@@ -374,6 +426,21 @@ class YangaPresenter(Presenter):
             self.view.update_current_build_type(build_types[0])
         else:
             self.view.disabled_build_types()
+
+    def _update_build_targets(self) -> None:
+        build_targets = []
+        if self.project_slurper:
+            platform = self.project_slurper.get_platform(self.selected_platform)
+            if platform and platform.build_targets:
+                build_targets = platform.build_targets
+        if build_targets:
+            build_targets.sort()
+            self.view.update_build_targets(build_targets)
+            self.view.update_current_build_target(build_targets[0])
+            self.selected_build_target = build_targets[0]
+        else:
+            self.view.disabled_build_targets()
+            self.selected_build_target = None
 
     def _update_variants(self) -> None:
         variants = []
