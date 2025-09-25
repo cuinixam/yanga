@@ -1,6 +1,6 @@
 from pathlib import Path
 
-from yanga.domain.config import ComponentConfig, VariantConfig, VariantPlatformsConfig
+from yanga.domain.config import ComponentConfig, PlatformConfig, VariantConfig, VariantPlatformsConfig
 from yanga.domain.project_slurper import ComponentFactory, ComponentsConfigsPool, YangaProjectSlurper
 
 
@@ -82,3 +82,89 @@ def test_collect_variant_components_no_platform_config(tmp_path: Path) -> None:
     # Should contain only base components
     assert "base_component" in component_names
     assert len(component_names) == 1
+
+
+def test_collect_variant_components_with_platform_config_components(tmp_path: Path) -> None:
+    project_dir = tmp_path
+
+    # Create component configs
+    component_factory = ComponentFactory(project_dir)
+    components_pool = ComponentsConfigsPool(component_factory)
+
+    # Add base and platform components
+    base_component = ComponentConfig(name="base_component", sources=["base.c"])
+    platform_specific_component = ComponentConfig(name="platform_specific_component", sources=["platform_specific.c"])
+
+    components_pool["base_component"] = base_component
+    components_pool["platform_specific_component"] = platform_specific_component
+
+    # Create variant with only base components
+    variant = VariantConfig(name="test_variant", components=["base_component"])
+
+    # Create platform config with platform-specific components
+    platform_config = PlatformConfig(name="test_platform", components=["platform_specific_component"])
+
+    # Create a project slurper instance
+    project_slurper = YangaProjectSlurper(project_dir=project_dir, create_yanga_build_dir=False)
+    project_slurper.components_configs_pool = components_pool
+    project_slurper.platforms = [platform_config]
+
+    # Test with platform - should include both base and platform-specific components
+    components_with_platform = project_slurper._collect_variant_components(variant, "test_platform")
+    component_names_with_platform = [c.name for c in components_with_platform]
+
+    # Should contain both base and platform-specific components
+    assert "base_component" in component_names_with_platform
+    assert "platform_specific_component" in component_names_with_platform
+    assert len(component_names_with_platform) == 2
+
+    # Test without platform - should include only base components
+    components_without_platform = project_slurper._collect_variant_components(variant, None)
+    component_names_without_platform = [c.name for c in components_without_platform]
+
+    # Should contain only base components
+    assert "base_component" in component_names_without_platform
+    assert "platform_specific_component" not in component_names_without_platform
+    assert len(component_names_without_platform) == 1
+
+
+def test_collect_variant_components_with_both_variant_and_platform_config_components(tmp_path: Path) -> None:
+    project_dir = tmp_path
+
+    # Create component configs
+    component_factory = ComponentFactory(project_dir)
+    components_pool = ComponentsConfigsPool(component_factory)
+
+    # Add components
+    base_component = ComponentConfig(name="base_component", sources=["base.c"])
+    variant_platform_component = ComponentConfig(name="variant_platform_component", sources=["variant_platform.c"])
+    platform_config_component = ComponentConfig(name="platform_config_component", sources=["platform_config.c"])
+
+    components_pool["base_component"] = base_component
+    components_pool["variant_platform_component"] = variant_platform_component
+    components_pool["platform_config_component"] = platform_config_component
+
+    # Create variant with platform-specific components in variant configuration
+    variant = VariantConfig(
+        name="test_variant",
+        components=["base_component"],
+        platforms={"test_platform": VariantPlatformsConfig(components=["variant_platform_component"])},
+    )
+
+    # Create platform config with additional platform-specific components
+    platform_config = PlatformConfig(name="test_platform", components=["platform_config_component"])
+
+    # Create a project slurper instance
+    project_slurper = YangaProjectSlurper(project_dir=project_dir, create_yanga_build_dir=False)
+    project_slurper.components_configs_pool = components_pool
+    project_slurper.platforms = [platform_config]
+
+    # Test with platform - should include base, variant platform, and platform config components
+    components_with_platform = project_slurper._collect_variant_components(variant, "test_platform")
+    component_names_with_platform = [c.name for c in components_with_platform]
+
+    # Should contain all three components
+    assert "base_component" in component_names_with_platform
+    assert "variant_platform_component" in component_names_with_platform
+    assert "platform_config_component" in component_names_with_platform
+    assert len(component_names_with_platform) == 3

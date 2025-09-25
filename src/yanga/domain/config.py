@@ -151,6 +151,8 @@ class PlatformConfig(BaseConfigDictMixin):
     west_manifest: Optional[WestManifest] = None
     #: Scoop dependencies for this platform
     scoop_manifest: Optional[ScoopManifest] = None
+    #: Platform specific components
+    components: Optional[list[str]] = None
     # This field is intended to keep track of where configuration was loaded from and
     # it is automatically added when configuration is loaded from file
     file: Optional[Path] = None

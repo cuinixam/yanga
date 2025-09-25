@@ -175,7 +175,8 @@ class YangaProjectSlurper:
         Collect all components for the given variant.
 
         Look for components in the component pool and add them to the list.
-        Platform-specific components from the variant's platforms configuration are also included.
+        Platform-specific components from the variant's platforms configuration and
+        platform configuration are also included.
         """
         components = []
         if not variant.components:
@@ -184,10 +185,16 @@ class YangaProjectSlurper:
         # Collect base variant components
         component_names = variant.components.copy()
 
-        # Add platform-specific components if available
+        # Add platform-specific components from variant's platforms configuration
         if platform_name and variant.platforms and platform_name in variant.platforms:
             platform_config = variant.platforms[platform_name]
             component_names.extend(platform_config.components)
+
+        # Add platform-specific components from platform configuration
+        if platform_name:
+            platform = next((p for p in self.platforms if p.name == platform_name), None)
+            if platform and platform.components:
+                component_names.extend(platform.components)
 
         for component_name in component_names:
             component_config = self.components_configs_pool.get(component_name, None)
