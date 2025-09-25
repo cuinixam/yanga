@@ -3,6 +3,7 @@ from pathlib import Path
 
 from yanga.cmake.cmake_backend import (
     CMakeAddExecutable,
+    CMakeAddLibrary,
     CMakeAddSubdirectory,
     CMakeBuildEvent,
     CMakeCommand,
@@ -11,14 +12,13 @@ from yanga.cmake.cmake_backend import (
     CMakeEnableTesting,
     CMakeInclude,
     CMakeIncludeDirectories,
-    CMakeLibrary,
     CMakeListAppend,
     CMakeMinimumVersion,
-    CMakeObjectLibrary,
     CMakePath,
     CMakeProject,
     CMakeTargetIncludeDirectories,
     CMakeVariable,
+    IncludeScope,
 )
 from yanga.cmake.generator import CMakeFile
 
@@ -54,28 +54,33 @@ def test_cmake_executable():
 
 def test_cmake_library():
     files = [Path("lib1.cpp"), Path("lib2.cpp")]
-    cmake_library = CMakeLibrary("test", files)
+    cmake_library = CMakeAddLibrary("test", files)
     assert cmake_library.to_string() == "add_library(test_lib OBJECT lib1.cpp lib2.cpp)"
+
+
+def test_cmake_interface_library():
+    cmake_library = CMakeAddLibrary("header_only")
+    assert cmake_library.to_string() == "add_library(header_only_lib INTERFACE )"
 
 
 def test_cmake_library_with_compile_options():
     files = [Path("lib1.cpp"), Path("lib2.cpp")]
     compile_options = ["-ggdb", "--coverage"]
-    cmake_library = CMakeLibrary("test", files, compile_options=compile_options)
+    cmake_library = CMakeAddLibrary("test", files, compile_options=compile_options)
     expected = "add_library(test_lib OBJECT lib1.cpp lib2.cpp)\ntarget_compile_options(test_lib PRIVATE -ggdb --coverage)"
     assert cmake_library.to_string() == expected
 
 
 def test_cmake_object_library():
     files = [Path("obj1.cpp"), Path("obj2.cpp")]
-    cmake_object_library = CMakeObjectLibrary("obj", files)
+    cmake_object_library = CMakeAddLibrary("obj", files)
     assert cmake_object_library.to_string() == "add_library(obj_lib OBJECT obj1.cpp obj2.cpp)"
 
 
 def test_cmake_object_library_with_compile_options():
     files = [Path("obj1.cpp"), Path("obj2.cpp")]
     compile_options = ["-O2", "-Wall"]
-    cmake_object_library = CMakeObjectLibrary("obj", files, compile_options=compile_options)
+    cmake_object_library = CMakeAddLibrary("obj", files, compile_options=compile_options)
     expected = "add_library(obj_lib OBJECT obj1.cpp obj2.cpp)\ntarget_compile_options(obj_lib PRIVATE -O2 -Wall)"
     assert cmake_object_library.to_string() == expected
 
@@ -264,13 +269,13 @@ def test_cmake_enable_testing():
 
 def test_cmake_target_include_directories():
     paths = [CMakePath(Path("/include/dir1")), CMakePath(Path("/include/dir2"))]
-    target_include_dirs = CMakeTargetIncludeDirectories("my_target", paths, "PRIVATE")
+    target_include_dirs = CMakeTargetIncludeDirectories("my_target", paths, IncludeScope.PRIVATE)
     assert target_include_dirs.to_string() == "target_include_directories(my_target PRIVATE /include/dir1 /include/dir2)"
 
     # Test with INTERFACE visibility
-    interface_include_dirs = CMakeTargetIncludeDirectories("my_interface", paths, "INTERFACE")
+    interface_include_dirs = CMakeTargetIncludeDirectories("my_interface", paths, IncludeScope.INTERFACE)
     assert interface_include_dirs.to_string() == "target_include_directories(my_interface INTERFACE /include/dir1 /include/dir2)"
 
     # Test with empty paths
-    empty_include_dirs = CMakeTargetIncludeDirectories("my_target", [], "PRIVATE")
+    empty_include_dirs = CMakeTargetIncludeDirectories("my_target", [], IncludeScope.PRIVATE)
     assert empty_include_dirs.to_string() == ""

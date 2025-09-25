@@ -17,6 +17,7 @@ from yanga.domain.reports import ReportRelevantFiles, ReportRelevantFileType
 
 from .cmake_backend import (
     CMakeAddExecutable,
+    CMakeAddLibrary,
     CMakeAddSubdirectory,
     CMakeCommand,
     CMakeComment,
@@ -25,11 +26,11 @@ from .cmake_backend import (
     CMakeElement,
     CMakeEmptyLine,
     CMakeIncludeDirectories,
-    CMakeObjectLibrary,
     CMakePath,
     CMakeSetTargetProperties,
     CMakeTargetIncludeDirectories,
     CMakeVariable,
+    IncludeScope,
 )
 from .generator import CMakeGenerator
 
@@ -210,7 +211,7 @@ class GTestComponentCMakeGenerator:
         productive_sources = component_analyzer.collect_sources()
 
         # Always create the component productive sources object library
-        component_sources_object_library = CMakeObjectLibrary(
+        component_sources_object_library = CMakeAddLibrary(
             name=gtest_cmake_component.partial_link_name,
             files=productive_sources,
             compile_options=[
@@ -222,9 +223,9 @@ class GTestComponentCMakeGenerator:
         # Add include directories specific to this component plus the component build dir to find generated mockup sources
         include_dirs: list[CMakePath] = [component_build_dir, *gtest_cmake_component.get_include_directories()]
         if include_dirs and not component_generator_config.use_global_includes:
-            # Determine visibility: use PRIVATE for libraries with sources, INTERFACE for header-only
-            visibility = "INTERFACE" if not productive_sources else "PRIVATE"
-            target_includes = CMakeTargetIncludeDirectories(component_sources_object_library.target_name, include_dirs, visibility)
+            # Determine include scope: use PRIVATE for libraries with sources, INTERFACE for header-only
+            scope = IncludeScope.INTERFACE if not productive_sources else IncludeScope.PRIVATE
+            target_includes = CMakeTargetIncludeDirectories(component_sources_object_library.target_name, include_dirs, scope)
             elements.append(target_includes)
 
         mockup_generator = None
@@ -252,8 +253,8 @@ class GTestComponentCMakeGenerator:
             # Add component-specific include directories when global includes are disabled
             if include_dirs and not component_generator_config.use_global_includes:
                 # Determine visibility: use PRIVATE for executables with sources, INTERFACE for header-only
-                visibility = "INTERFACE" if not all_sources else "PRIVATE"
-                target_includes = CMakeTargetIncludeDirectories(test_executable.name, include_dirs, visibility)
+                scope = IncludeScope.INTERFACE if not all_sources else IncludeScope.PRIVATE
+                target_includes = CMakeTargetIncludeDirectories(test_executable.name, include_dirs, scope)
                 elements.append(target_includes)
 
             # Create the custom target to execute the tests

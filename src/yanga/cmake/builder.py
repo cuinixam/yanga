@@ -13,11 +13,11 @@ from yanga.domain.targets import Target, TargetsData, TargetType
 
 from .cmake_backend import (
     CMakeAddExecutable,
+    CMakeAddLibrary,
     CMakeComment,
     CMakeCustomCommand,
     CMakeCustomTarget,
     CMakeMinimumVersion,
-    CMakeObjectLibrary,
     CMakePath,
     CMakeProject,
     CMakeVariable,
@@ -231,7 +231,7 @@ class CMakeBuildSystemGenerator:
             )
 
         # Find all object libraries
-        object_libraries = find_elements_of_type(all_elements, CMakeObjectLibrary)
+        object_libraries = find_elements_of_type(all_elements, CMakeAddLibrary)
         for obj_lib in object_libraries:
             targets.append(
                 Target(

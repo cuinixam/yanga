@@ -12,6 +12,13 @@ def make_list_unique(seq: list[Any]) -> list[Any]:
 
 class LibraryType(Enum):
     OBJECT = auto()
+    INTERFACE = auto()
+
+
+class IncludeScope(Enum):
+    INTERFACE = auto()
+    PUBLIC = auto()
+    PRIVATE = auto()
 
 
 class CMakeElement(ABC):
@@ -66,18 +73,18 @@ class CMakeMinimumVersion(CMakeElement):
         return f"cmake_minimum_required(VERSION {self.version})"
 
 
-class CMakeLibrary(CMakeElement):
+class CMakeAddLibrary(CMakeElement):
     def __init__(
         self,
         name: str,
         files: list[Path] | None = None,
-        type: LibraryType = LibraryType.OBJECT,
+        type: LibraryType | None = None,
         compile_options: list[str] | None = None,
     ) -> None:
         self.name = name
-        self.files = files if files else []
-        self.type = type
-        self.compile_options = compile_options if compile_options else []
+        self.files = files or []
+        self.type = type or (LibraryType.OBJECT if self.files else LibraryType.INTERFACE)
+        self.compile_options = compile_options or []
 
     @property
     def target_name(self) -> str:
@@ -94,11 +101,6 @@ class CMakeLibrary(CMakeElement):
 
     def _add_compile_options(self) -> str:
         return f"target_compile_options({self.target_name} PRIVATE " + " ".join(self.compile_options) + ")"
-
-
-class CMakeObjectLibrary(CMakeLibrary):
-    def __init__(self, name: str, files: list[Path] | None = None, compile_options: list[str] | None = None) -> None:
-        super().__init__(name, files, LibraryType.OBJECT, compile_options)
 
 
 @dataclass
@@ -194,23 +196,23 @@ class CMakeIncludeDirectories(CMakeElement):
 
 
 class CMakeTargetIncludeDirectories(CMakeElement):
-    def __init__(self, target_name: str, paths: list[CMakePath], visibility: str = "PRIVATE") -> None:
+    def __init__(self, target_name: str, paths: list[CMakePath], scope: IncludeScope = IncludeScope.PRIVATE) -> None:
         super().__init__()
         self.target_name = target_name
         self.paths = paths
-        self.visibility = visibility  # PRIVATE, PUBLIC, or INTERFACE
+        self.scope = scope
 
     def to_string(self) -> str:
         if not self.paths:
             return ""
         paths_str = " ".join(path.to_string() for path in self.paths)
-        return f"target_include_directories({self.target_name} {self.visibility} {paths_str})"
+        return f"target_include_directories({self.target_name} {self.scope.name} {paths_str})"
 
 
 @dataclass
 class CMakeAddExecutable(CMakeElement):
     name: str
-    sources: list[Union[str, CMakePath, CMakeObjectLibrary]]
+    sources: list[Union[str, CMakePath, CMakeAddLibrary]]
     libraries: list[str] = field(default_factory=list)
     compile_options: list[str] = field(default_factory=list)
     link_options: list[str] = field(default_factory=list)
@@ -240,15 +242,15 @@ class CMakeAddExecutable(CMakeElement):
     def _get_sources(self) -> list[str]:
         return [self._get_source(source) for source in self.sources]
 
-    def _get_source(self, source: str | CMakePath | CMakeObjectLibrary) -> str:
+    def _get_source(self, source: str | CMakePath | CMakeAddLibrary) -> str:
         """
         Get the source as string.
 
         - str: return as is
         - CMakePath: return the path as string
-        - CMakeLibrary: return the target objects
+        - CMakeAddLibrary: return the target objects
         """
-        if isinstance(source, CMakeObjectLibrary):
+        if isinstance(source, CMakeAddLibrary):
             return f"$<TARGET_OBJECTS:{source.target_name}>"
         else:
             return str(source)

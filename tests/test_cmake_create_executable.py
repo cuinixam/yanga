@@ -5,8 +5,8 @@ import pytest
 from tests.utils import assert_element_of_type, assert_elements_of_type, find_elements_of_type
 from yanga.cmake.cmake_backend import (
     CMakeAddExecutable,
+    CMakeAddLibrary,
     CMakeCustomTarget,
-    CMakeObjectLibrary,
 )
 from yanga.cmake.create_executable import CreateExecutableCMakeGenerator
 from yanga.domain.execution_context import ExecutionContext
@@ -57,7 +57,7 @@ def test_create_components_cmake_elements(
 ) -> None:
     elements = create_executable_generator.create_components_cmake_elements()
 
-    object_libraries = find_elements_of_type(elements, CMakeObjectLibrary)
+    object_libraries = find_elements_of_type(elements, CMakeAddLibrary)
     assert len(object_libraries) == 2  # One for each component
     compile_targets = find_elements_of_type(elements, CMakeCustomTarget)
     assert [target.name for target in compile_targets] == [

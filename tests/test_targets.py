@@ -7,7 +7,7 @@ import pytest
 from clanguru.doc_generator import MarkdownFormatter
 
 from yanga.cmake.builder import CMakeBuildSystemGenerator
-from yanga.cmake.cmake_backend import CMakeAddExecutable, CMakeCustomTarget, CMakeObjectLibrary
+from yanga.cmake.cmake_backend import CMakeAddExecutable, CMakeAddLibrary, CMakeCustomTarget
 from yanga.cmake.generator import CMakeFile
 from yanga.commands.targets import TargetDependencyTreeBuilder, TargetDocumentationGenerator, TargetsDocCommand
 from yanga.domain.execution_context import ExecutionContext, UserVariantRequest
@@ -32,7 +32,7 @@ def test_create_target_dependencies_file():
         cmake_file1.append(CMakeAddExecutable(name="test_exe", sources=["main.cpp"], libraries=["lib1", "lib2"]))
 
         cmake_file2 = CMakeFile(Path("test2.cmake"))
-        cmake_file2.append(CMakeObjectLibrary("test_lib", [Path("source1.cpp"), Path("source2.cpp")]))
+        cmake_file2.append(CMakeAddLibrary("test_lib", [Path("source1.cpp"), Path("source2.cpp")]))
 
         cmake_files = [cmake_file1, cmake_file2]
 

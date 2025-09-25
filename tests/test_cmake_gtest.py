@@ -5,13 +5,14 @@ import pytest
 from tests.utils import assert_element_of_type, assert_elements_of_type, find_elements_of_type
 from yanga.cmake.cmake_backend import (
     CMakeAddExecutable,
+    CMakeAddLibrary,
     CMakeCustomCommand,
     CMakeCustomTarget,
     CMakeInclude,
     CMakeIncludeDirectories,
-    CMakeObjectLibrary,
     CMakeTargetIncludeDirectories,
     CMakeVariable,
+    IncludeScope,
 )
 from yanga.cmake.gtest import GTestCMakeGenerator, GTestCMakeGeneratorConfig, GTestComponentCMakeGenerator
 from yanga.domain.components import Component
@@ -45,7 +46,7 @@ def test_cmake_build_components_file(
 ) -> None:
     elements = gtest_cmake_generator.create_components_cmake_elements()
 
-    object_libraries = assert_elements_of_type(elements, CMakeObjectLibrary, 2)
+    object_libraries = assert_elements_of_type(elements, CMakeAddLibrary, 2)
     assert {lib.name for lib in object_libraries} == {"CompA_PC", "CompBNotTestable_PC"}
     executable = assert_element_of_type(elements, CMakeAddExecutable)
     assert executable.name == "CompA"
@@ -89,7 +90,7 @@ def test_automock_disabled_generates_no_mock_targets(execution_context: Executio
     assert {target.name for target in targets} == {"CompA_test", "CompA_build", "CompA_coverage", "coverage"}
 
     # No partial link library should be generated.
-    object_libraries = assert_elements_of_type(elements, CMakeObjectLibrary, 2)
+    object_libraries = assert_elements_of_type(elements, CMakeAddLibrary, 2)
     assert {lib.target_name for lib in object_libraries} == {"CompA_PC_lib", "CompBNotTestable_PC_lib"}
 
     executable = assert_element_of_type(elements, CMakeAddExecutable, lambda exec: exec.name == "CompA")
@@ -151,7 +152,7 @@ def test_use_global_includes_disabled_adds_component_specific_include_directorie
 
     # Verify that the visibility is PRIVATE for executables with sources
     component_ti = component_target_includes[0]
-    assert component_ti.visibility == "PRIVATE", f"Expected PRIVATE visibility, got {component_ti.visibility}"
+    assert component_ti.scope == IncludeScope.PRIVATE, f"Expected PRIVATE visibility, got {component_ti.scope}"
 
 
 def test_component_specific_directories_are_used(execution_context: ExecutionContext, output_dir: Path) -> None:

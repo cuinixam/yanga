@@ -16,13 +16,14 @@ from yanga.domain.execution_context import (
 
 from .cmake_backend import (
     CMakeAddExecutable,
+    CMakeAddLibrary,
     CMakeComment,
     CMakeCustomTarget,
     CMakeElement,
     CMakeIncludeDirectories,
-    CMakeObjectLibrary,
     CMakePath,
     CMakeTargetIncludeDirectories,
+    IncludeScope,
 )
 from .generator import CMakeGenerator
 
@@ -65,7 +66,7 @@ class CreateExecutableCMakeGenerator(CMakeGenerator):
         variant_executable = CMakeAddExecutable(
             "${PROJECT_NAME}",
             sources=[],
-            libraries=[CMakeObjectLibrary(component.name).target_name for component in self.execution_context.components],
+            libraries=[CMakeAddLibrary(component.name).target_name for component in self.execution_context.components],
         )
 
         elements.append(variant_executable)
@@ -97,16 +98,16 @@ class CreateExecutableCMakeGenerator(CMakeGenerator):
         for component in self.execution_context.components:
             component_analyzer = ComponentAnalyzer([component], self.execution_context.create_artifacts_locator())
             sources = component_analyzer.collect_sources()
-            component_library = CMakeObjectLibrary(component.name, sources)
+            component_library = CMakeAddLibrary(component.name, sources)
             elements.append(component_library)
 
             # Add component-specific include directories when global includes are disabled
             if not self.config_obj.use_global_includes:
                 include_dirs: list[CMakePath] = self.get_component_include_directories(component_analyzer)
                 if include_dirs:
-                    # Determine visibility: use PRIVATE for libraries with sources, INTERFACE for header-only
-                    visibility = "INTERFACE" if not sources else "PRIVATE"
-                    target_includes = CMakeTargetIncludeDirectories(component_library.target_name, include_dirs, visibility)
+                    # Determine include scope: use PRIVATE for libraries with sources, INTERFACE for header-only
+                    scope = IncludeScope.INTERFACE if not sources else IncludeScope.PRIVATE
+                    target_includes = CMakeTargetIncludeDirectories(component_library.target_name, include_dirs, scope)
                     elements.append(target_includes)
 
             elements.append(
