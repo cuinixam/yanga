@@ -166,6 +166,8 @@ class VariantPlatformsConfig(BaseConfigDictMixin):
     components: list[str] = field(default_factory=list)
     #: Generic configuration key-value pairs that will be exported as CMake variables
     config: dict[str, Any] = field(default_factory=dict)
+    #: West dependencies for this platform-specific variant configuration
+    west_manifest: Optional[WestManifest] = None
 
 
 @dataclass

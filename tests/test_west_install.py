@@ -3,6 +3,7 @@ from pathlib import Path
 from yanga.domain.config import (
     PlatformConfig,
     VariantConfig,
+    VariantPlatformsConfig,
     WestDependency,
     WestManifest,
     WestManifestFile,
@@ -380,3 +381,95 @@ manifest:
     assert collected_dependencies.projects[0].remote == "global_remote"
     assert collected_dependencies.projects[0].revision == "main"
     assert collected_dependencies.projects[0].path == "external/global_dep"
+
+
+def test_west_install_with_variant_platform_specific_dependencies(tmp_path: Path) -> None:
+    project_dir = tmp_path
+
+    platform = PlatformConfig(name="test_platform")
+
+    variant = VariantConfig(
+        name="test_variant",
+        platforms={
+            "test_platform": VariantPlatformsConfig(
+                components=["platform_component"],
+                west_manifest=WestManifest(
+                    remotes=[WestRemote(name="platform_remote", url_base="https://github.com/platform")],
+                    projects=[WestDependency(name="platform_lib", remote="platform_remote", revision="v1.0.0", path="external/platform_lib")],
+                ),
+            )
+        },
+    )
+
+    exec_context = ExecutionContext(
+        project_root_dir=project_dir,
+        variant_name="test_variant",
+        user_request=UserVariantRequest("test_variant"),
+        platform=platform,
+        variant=variant,
+    )
+
+    west_install = WestInstall(exec_context, "install")
+    collected_dependencies = west_install._collect_dependencies()
+
+    assert len(collected_dependencies.remotes) == 1
+    assert collected_dependencies.remotes[0].name == "platform_remote"
+    assert collected_dependencies.remotes[0].url_base == "https://github.com/platform"
+
+    assert len(collected_dependencies.projects) == 1
+    assert collected_dependencies.projects[0].name == "platform_lib"
+    assert collected_dependencies.projects[0].remote == "platform_remote"
+    assert collected_dependencies.projects[0].revision == "v1.0.0"
+    assert collected_dependencies.projects[0].path == "external/platform_lib"
+
+
+def test_west_install_merges_all_dependencies_including_variant_platform_specific(tmp_path: Path) -> None:
+    project_dir = tmp_path
+
+    # Platform with its own dependencies
+    platform = PlatformConfig(
+        name="test_platform",
+        west_manifest=WestManifest(
+            remotes=[WestRemote(name="platform_remote", url_base="https://github.com/platform")],
+            projects=[WestDependency(name="platform_lib", remote="platform_remote", revision="v2.0.0", path="external/platform")],
+        ),
+    )
+
+    # Variant with global dependencies and platform-specific dependencies
+    variant = VariantConfig(
+        name="test_variant",
+        west_manifest=WestManifest(
+            remotes=[WestRemote(name="variant_remote", url_base="https://github.com/variant")],
+            projects=[WestDependency(name="variant_lib", remote="variant_remote", revision="v1.0.0", path="external/variant")],
+        ),
+        platforms={
+            "test_platform": VariantPlatformsConfig(
+                components=["platform_component"],
+                west_manifest=WestManifest(
+                    remotes=[WestRemote(name="variant_platform_remote", url_base="https://github.com/variant-platform")],
+                    projects=[WestDependency(name="variant_platform_lib", remote="variant_platform_remote", revision="v3.0.0", path="external/variant_platform")],
+                ),
+            )
+        },
+    )
+
+    exec_context = ExecutionContext(
+        project_root_dir=project_dir,
+        variant_name="test_variant",
+        user_request=UserVariantRequest("test_variant"),
+        platform=platform,
+        variant=variant,
+    )
+
+    west_install = WestInstall(exec_context, "install")
+    collected_dependencies = west_install._collect_dependencies()
+
+    # Should have 3 remotes: platform, variant, and variant-platform-specific
+    assert len(collected_dependencies.remotes) == 3
+    remote_names = {remote.name for remote in collected_dependencies.remotes}
+    assert remote_names == {"platform_remote", "variant_remote", "variant_platform_remote"}
+
+    # Should have 3 projects: platform, variant, and variant-platform-specific
+    assert len(collected_dependencies.projects) == 3
+    project_names = {project.name for project in collected_dependencies.projects}
+    assert project_names == {"platform_lib", "variant_lib", "variant_platform_lib"}

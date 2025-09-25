@@ -72,7 +72,18 @@ variants:
         components: [platform_specific_component]
         config:
           PLATFORM_SPECIFIC_FLAG: "true"
+        west_manifest:
+          remotes:
+            - name: platform_specific_remote
+              url-base: https://github.com/platform-specific
+          projects:
+            - name: platform_specific_lib
+              remote: platform_specific_remote
+              revision: v1.0.0
+              path: external/platform_lib
 ```
+
+The `west_manifest` in the platform-specific configuration allows you to define dependencies that are only needed when building for that specific platform.
 
 (product-dependency-management)=
 ### Dependency Management

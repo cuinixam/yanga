@@ -128,6 +128,27 @@ class WestInstall(PipelineStep[ExecutionContext]):
                 if project not in collected_manifest.projects:
                     collected_manifest.projects.append(project)
 
+        # Add platform-specific variant dependencies
+        if (
+            self.execution_context.variant
+            and self.execution_context.platform
+            and self.execution_context.variant.platforms
+            and self.execution_context.platform.name in self.execution_context.variant.platforms
+        ):
+            variant_platform_config = self.execution_context.variant.platforms[self.execution_context.platform.name]
+            if variant_platform_config.west_manifest:
+                variant_platform_manifest = variant_platform_config.west_manifest
+
+                # Merge remotes
+                for remote in variant_platform_manifest.remotes:
+                    if remote not in collected_manifest.remotes:
+                        collected_manifest.remotes.append(remote)
+
+                # Merge projects (dependencies)
+                for project in variant_platform_manifest.projects:
+                    if project not in collected_manifest.projects:
+                        collected_manifest.projects.append(project)
+
         return collected_manifest
 
     def _generate_west_manifest(self, manifest: WestManifest) -> None:
