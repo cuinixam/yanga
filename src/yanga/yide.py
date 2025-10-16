@@ -36,6 +36,7 @@ class VSCodeCMakeVariantChoice(BaseConfigJSONMixin):
     short: str
     settings: VSCodeCMakeVariantSettings | None = None
     build_type: str | None = field(default=None, metadata={"alias": "buildType"})
+    env: dict[str, str] | None = None
 
 
 @dataclass
@@ -97,7 +98,7 @@ class IDEProjectGenerator:
 
         # Collect all build types from all platforms
         build_type_choices = OrderedDict()
-        default_build_type = "Debug"
+        default_build_type = None  # Will be set in the loop with proper priority
 
         all_build_types = set()
         for platform in self.project_slurper.platforms:
@@ -107,20 +108,25 @@ class IDEProjectGenerator:
         if not all_build_types:
             all_build_types = {"Debug", "Release"}
 
+        # Always add empty string (displayed as "None") to provide the option of no build type
+        all_build_types.add("")
+
         for build_type in sorted(all_build_types):
+            display_name = build_type or "None"
             build_type_choice = VSCodeCMakeVariantChoice(
-                short=build_type,
-                build_type=build_type,
-                # No settings field for build types
+                short=display_name,
+                build_type=display_name,
+                env={"MY_BUILD_TYPE": build_type},
             )
-            build_type_choices[build_type] = build_type_choice
-            if build_type == "Debug":
-                default_build_type = build_type
+            build_type_choices[display_name] = build_type_choice
+
+            # Set default build type
+            default_build_type = "None"
 
         # Create variant and build type elements
         variant_element = VSCodeCMakeVariantElement(choices=variant_choices, default=default_variant or "default")
 
-        build_type_element = VSCodeCMakeVariantElement(choices=build_type_choices, default=default_build_type)
+        build_type_element = VSCodeCMakeVariantElement(choices=build_type_choices, default=default_build_type or "Debug")
 
         variants_data = VSCodeCMakeVariantsData(variant=variant_element, build_type=build_type_element)
 

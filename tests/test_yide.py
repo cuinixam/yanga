@@ -196,12 +196,13 @@ platforms:
         },
         "buildType": {
             "choices": {
-                "Debug": {"short": "Debug", "buildType": "Debug"},
-                "MinSizeRel": {"short": "MinSizeRel", "buildType": "MinSizeRel"},
-                "RelWithDebInfo": {"short": "RelWithDebInfo", "buildType": "RelWithDebInfo"},
-                "Release": {"short": "Release", "buildType": "Release"},
+                "Debug": {"short": "Debug", "buildType": "Debug", "env": {"MY_BUILD_TYPE": "Debug"}},
+                "MinSizeRel": {"short": "MinSizeRel", "buildType": "MinSizeRel", "env": {"MY_BUILD_TYPE": "MinSizeRel"}},
+                "None": {"short": "None", "buildType": "None", "env": {"MY_BUILD_TYPE": ""}},
+                "RelWithDebInfo": {"short": "RelWithDebInfo", "buildType": "RelWithDebInfo", "env": {"MY_BUILD_TYPE": "RelWithDebInfo"}},
+                "Release": {"short": "Release", "buildType": "Release", "env": {"MY_BUILD_TYPE": "Release"}},
             },
-            "default": "Debug",
+            "default": "None",
         },
     }
     assert content == expected_content
@@ -245,10 +246,60 @@ platforms:
         },
         "buildType": {
             "choices": {
-                "Debug": {"short": "Debug", "buildType": "Debug"},
-                "Release": {"short": "Release", "buildType": "Release"},
+                "Debug": {"short": "Debug", "buildType": "Debug", "env": {"MY_BUILD_TYPE": "Debug"}},
+                "None": {"short": "None", "buildType": "None", "env": {"MY_BUILD_TYPE": ""}},
+                "Release": {"short": "Release", "buildType": "Release", "env": {"MY_BUILD_TYPE": "Release"}},
             },
-            "default": "Debug",
+            "default": "None",
+        },
+    }
+    assert content == expected_content
+
+
+def test_create_cmake_variants_file_with_none_build_type(tmp_path: Path) -> None:
+    project_dir = tmp_path / "project"
+    project_dir.mkdir()
+
+    # Create configuration with None build type in platforms
+    config_content = """
+variants:
+  - name: TestVariant
+    components: []
+
+platforms:
+  - name: platform_with_none
+    description: Platform with None build type
+    build_types: ["Debug", "Release"]
+"""
+    config_file = project_dir / "yanga.yaml"
+    config_file.write_text(config_content.strip())
+
+    # Create the IDE project generator
+    generator = IDEProjectGenerator(project_dir)
+
+    # Generate the cmake variants file
+    cmake_variants_file = generator.create_cmake_variants_file()
+    cmake_variants_file.to_file()
+
+    # Read and check the generated content
+    content = json.loads(cmake_variants_file.path.read_text())
+    expected_content = {
+        "variant": {
+            "choices": {
+                "TestVariant": {
+                    "short": "TestVariant",
+                    "settings": {"VARIANT": "TestVariant"},
+                }
+            },
+            "default": "TestVariant",
+        },
+        "buildType": {
+            "choices": {
+                "Debug": {"short": "Debug", "buildType": "Debug", "env": {"MY_BUILD_TYPE": "Debug"}},
+                "None": {"short": "None", "buildType": "None", "env": {"MY_BUILD_TYPE": ""}},
+                "Release": {"short": "Release", "buildType": "Release", "env": {"MY_BUILD_TYPE": "Release"}},
+            },
+            "default": "None",
         },
     }
     assert content == expected_content
