@@ -66,7 +66,7 @@ class YangaView(View):
 
         # Configure the main window
         self.root.title("YANGA")
-        self.root.geometry(f"{220}x{510}")
+        self.root.geometry(f"{220}x{650}")
 
         # update app icon
         self.root.iconbitmap(Icons.YANGA_ICON.file)
