@@ -85,15 +85,17 @@ class RunCommand(Command):
         if config.not_interactive:
             variant_name = config.variant_name
             platform_name = config.platform
+            build_type = config.build_type
         else:
             variant_name = self.determine_variant_name(config.variant_name, project_slurper.variants)
             platform_name = self.determine_platform_name(config.platform, project_slurper.platforms)
+            build_type = self.determine_build_type(config.build_type, platform_name, project_slurper)
         user_request = UserRequest(
             scope=(UserRequestScope.COMPONENT if config.component_name else UserRequestScope.VARIANT),
             variant_name=variant_name,
             component_name=config.component_name,
             target=config.target,
-            build_type=config.build_type,
+            build_type=build_type,
         )
         self.execute_pipeline_steps(
             project_dir=config.project_dir,
@@ -179,6 +181,27 @@ class RunCommand(Command):
         if not selected_platform_name:
             self.logger.warning("No platform selected. This might cause some steps to fail.")
         return selected_platform_name
+
+    def determine_build_type(self, build_type: Optional[str], platform_name: Optional[str], project_slurper: YangaProjectSlurper) -> Optional[str]:
+        selected_build_type: Optional[str]
+        platform = project_slurper.get_platform(platform_name) if platform_name else None
+        available_build_types = platform.build_types if platform and platform.build_types else []
+        if not build_type:
+            if len(available_build_types) == 1:
+                selected_build_type = available_build_types[0]
+                self.logger.info(f"Only one build type found. Using '{selected_build_type}'.")
+            elif len(available_build_types) > 1:
+                selected_build_type = prompt_user_to_select_option(
+                    available_build_types,
+                    "Select build type: ",
+                )
+            else:
+                selected_build_type = None
+        else:
+            selected_build_type = build_type
+        if not selected_build_type and available_build_types:
+            self.logger.warning("No build type selected. This might cause some steps to fail.")
+        return selected_build_type
 
     def _register_arguments(self, parser: ArgumentParser) -> None:
         register_arguments_for_config_dataclass(parser, RunCommandConfig)
