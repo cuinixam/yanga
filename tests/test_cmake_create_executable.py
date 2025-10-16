@@ -23,9 +23,10 @@ def test_generate(create_executable_generator: CreateExecutableCMakeGenerator) -
 
     executable = assert_element_of_type(elements, CMakeAddExecutable)
     assert executable.name == "${PROJECT_NAME}"
-    targets = assert_elements_of_type(elements, CMakeCustomTarget, 5)
+    targets = assert_elements_of_type(elements, CMakeCustomTarget, 6)
     assert [target.name for target in targets] == [
         "build",
+        "compile",
         "CompA_compile",
         "CompA_build",
         "CompBNotTestable_compile",
@@ -40,8 +41,8 @@ def test_create_variant_cmake_elements(
 
     executable = assert_element_of_type(elements, CMakeAddExecutable)
     assert executable.name == "${PROJECT_NAME}"
-    custom_target = assert_element_of_type(elements, CMakeCustomTarget)
-    assert custom_target.name == "build"
+    custom_targets = assert_elements_of_type(elements, CMakeCustomTarget, 2)
+    assert {target.name for target in custom_targets} == {"build", "compile"}
 
 
 def test_get_include_directories(

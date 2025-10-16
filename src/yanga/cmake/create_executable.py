@@ -63,21 +63,31 @@ class CreateExecutableCMakeGenerator(CMakeGenerator):
         else:
             elements.append(CMakeComment("Use global includes for all components disabled."))
         # TODO: I do not like that I have to know here that the components are object libraries
+        component_library_targets = [CMakeAddLibrary(component.name).target_name for component in self.execution_context.components]
         variant_executable = CMakeAddExecutable(
             "${PROJECT_NAME}",
             sources=[],
-            libraries=[CMakeAddLibrary(component.name).target_name for component in self.execution_context.components],
+            libraries=component_library_targets,
         )
 
         elements.append(variant_executable)
         elements.append(
             CMakeCustomTarget(
-                UserVariantRequest(self.variant_name, UserRequestTarget.BUILD).target_name,
-                f"Build variant {self.variant_name}",
-                [],
-                [variant_executable.name],
+                name=UserVariantRequest(self.variant_name, UserRequestTarget.BUILD).target_name,
+                description=f"Build variant {self.variant_name}",
+                commands=[],
+                depends=[variant_executable.name],
             )
         )
+        elements.append(
+            CMakeCustomTarget(
+                name=UserVariantRequest(self.variant_name, UserRequestTarget.COMPILE).target_name,
+                description=f"Compile variant {self.variant_name}",
+                commands=[],
+                depends=component_library_targets,
+            )
+        )
+
         return elements
 
     def get_include_directories(self) -> CMakeIncludeDirectories:
