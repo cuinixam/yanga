@@ -217,7 +217,7 @@ def test_west_install_uses_shared_external_directory(tmp_path: Path) -> None:
     west_install_b = WestInstall(exec_context_b, "install")
 
     assert west_install_a.artifacts_locator.external_dependencies_dir == west_install_b.artifacts_locator.external_dependencies_dir
-    expected_external_dir = project_dir / ".yanga"
+    expected_external_dir = project_dir / ".yanga" / "ext"
     assert west_install_a.artifacts_locator.external_dependencies_dir == expected_external_dir
     assert west_install_b.artifacts_locator.external_dependencies_dir == expected_external_dir
 
