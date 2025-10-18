@@ -34,8 +34,8 @@ yanga run [OPTIONS]
 **Key Options:**
 
 *   `--platform <NAME>`: Specifies the target platform to build for (e.g., `windows`, `linux`).
-*   `--variant-name <NAME>`: Selects the product variant to build. If not provided, Yanga will prompt you to choose from the available variants.
-*   `--component-name <NAME>`: Narrows the build scope to a single component.
+*   `--variant <NAME>`: Selects the product variant to build. If not provided, Yanga will prompt you to choose from the available variants.
+*   `--component <NAME>`: Narrows the build scope to a single component.
 *   `--target <NAME>`: Defines a specific build target to execute (e.g., a specific test executable or report).
 *   `--build-type <TYPE>`: Sets the build type, such as `Debug` or `Release`.
 *   `--step <NAME>`: Runs the pipeline up to the specified step.

@@ -53,11 +53,11 @@ def run(
         None,
         help="Platform for which to build (see the available platforms in the configuration).",
     ),
-    variant_name: Optional[str] = typer.Option(
+    variant: Optional[str] = typer.Option(
         None,
         help="SPL variant name. If none is provided, it will prompt to select one.",
     ),
-    component_name: Optional[str] = typer.Option(
+    component: Optional[str] = typer.Option(
         None,
         help="Restrict the scope to one specific component.",
     ),
@@ -94,8 +94,8 @@ def run(
         RunCommandConfig(
             project_dir,
             platform,
-            variant_name,
-            component_name,
+            variant,
+            component,
             target,
             build_type,
             step,

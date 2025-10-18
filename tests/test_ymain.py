@@ -24,7 +24,7 @@ def test_run(tmp_path: Path) -> None:
     # Build the project
     result = runner.invoke(
         app,
-        ["run", "--project-dir", project_dir.as_posix(), "--platform", "gtest", "--variant-name", "EnglishVariant"],
+        ["run", "--project-dir", project_dir.as_posix(), "--platform", "gtest", "--variant", "EnglishVariant"],
     )
     assert result.exit_code == 0
 
@@ -39,7 +39,7 @@ def test_spled(platform: str) -> None:
             "run",
             "--project-dir",
             project_dir.as_posix(),
-            "--variant-name",
+            "--variant",
             "Disco",
             "--platform",
             platform,
