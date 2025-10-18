@@ -34,6 +34,7 @@ class ComponentFactory:
         component.testing = component_config.testing if component_config.testing else TestingConfiguration()
         if component_config.test_sources:
             component.testing.sources.extend(component_config.test_sources)
+        component.alias = component_config.alias
         return component
 
 
@@ -93,17 +94,39 @@ class IncludeDirectoriesResolver:
         self._cache: dict[str, list[Path]] = {}
 
     def populate(self, components: list[Component]) -> None:
+        # Build components dictionary with name and alias mappings
+        components_dict = self._build_components_dictionary(components)
+
         for component in components:
             config = self._components_configs_pool.get_component_config(component.name)
             if config is None:
                 continue
             visited: set[str] = set()
-            public_includes = self._collect_public_includes(config, visited)
+            public_includes = self._collect_public_includes(config, visited, components_dict)
             includes = [component.path.joinpath(inc_dir) for inc_dir in config.private_include_directories] + public_includes
             # Remove duplicates but preserve order
             component.include_dirs = list(OrderedDict.fromkeys(includes))
 
-    def _collect_public_includes(self, component_config: ComponentConfig, visited: set[str]) -> list[Path]:
+    def _build_components_dictionary(self, components: list[Component]) -> dict[str, Component]:
+        """Build dictionary of components by name and alias, validating for duplicates."""
+        components_dict: dict[str, Component] = {}
+
+        for component in components:
+            # Add component by name
+            if component.name in components_dict:
+                raise UserNotificationException(f"Duplicate component name '{component.name}' found.")
+            components_dict[component.name] = component
+
+            # Add component by alias if it has one
+            if component.alias:
+                if component.alias in components_dict:
+                    existing_component = components_dict[component.alias]
+                    raise UserNotificationException(f"Duplicate alias '{component.alias}' found: used by both '{existing_component.name}' and '{component.name}'.")
+                components_dict[component.alias] = component
+
+        return components_dict
+
+    def _collect_public_includes(self, component_config: ComponentConfig, visited: set[str], components_dict: dict[str, Component]) -> list[Path]:
         if component_config.name in self._cache:
             return self._cache[component_config.name]
 
@@ -111,15 +134,22 @@ class IncludeDirectoriesResolver:
             return []  # Prevent infinite recursion in case of circular dependencies
 
         visited.add(component_config.name)
-        component = self._components_configs_pool.get_component(component_config.name)
+        component = components_dict.get(component_config.name)
         if not component:
-            raise UserNotificationException(f"Component '{component_config.name}' not found in the configuration pool.")
+            raise UserNotificationException(f"Component '{component_config.name}' not found in the provided components list.")
         includes = [component.path.joinpath(inc_dir) for inc_dir in component_config.public_include_directories]
 
         for dep_name in component_config.required_components:
-            dep_config = self._components_configs_pool.get(dep_name)
-            if dep_config:
-                includes.extend(self._collect_public_includes(dep_config, visited))
+            # Look for required component by name or alias in the components dictionary
+            dep_component = components_dict.get(dep_name)
+            if dep_component:
+                dep_config = self._components_configs_pool.get_component_config(dep_component.name)
+                if dep_config:
+                    includes.extend(self._collect_public_includes(dep_config, visited, components_dict))
+                else:
+                    raise UserNotificationException(f"Configuration for component '{dep_component.name}' not found.")
+            else:
+                raise UserNotificationException(f"Required component '{dep_name}' for component '{component_config.name}' not found in the provided components list.")
 
         # Remove duplicates but preserve order
         deduped_includes = list(OrderedDict.fromkeys(includes))

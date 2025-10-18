@@ -254,6 +254,8 @@ class ComponentConfig(BaseConfigDictMixin):
     include_directories: list[IncludeDirectory] = field(default_factory=list)
     #: Name of the components that this component requires header files from
     required_components: list[str] = field(default_factory=list)
+    #: Component alias to be used by other components to refer to this component
+    alias: Optional[str] = None
     #: Directory relative to the project root where this component is located
     path: Optional[Path] = None
 

@@ -25,6 +25,8 @@ class Component:
     description: Optional[str] = None
     #: Subcomponents
     components: list["Component"] = field(default_factory=list)
+    #: Another name to require this component by alias
+    alias: Optional[str] = None
 
     @property
     def test_sources(self) -> list[str]:
