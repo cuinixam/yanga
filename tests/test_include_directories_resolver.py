@@ -46,7 +46,8 @@ def components_configs_pool() -> ComponentsConfigsPool:
                 path=Path("d"),
             ),
             ComponentConfig(name="compCircularA", required_components=["compCircularB"]),
-            ComponentConfig(name="compCircularB", required_components=["compCircularA"]),
+            ComponentConfig(name="compCircularB", required_components=["compCircularC"]),
+            ComponentConfig(name="compCircularC", required_components=["compCircularA"]),
         ],
         ComponentFactory(Path("prj/root")),
     )
@@ -81,9 +82,9 @@ def test_populate_multiple_components(components_configs_pool: ComponentsConfigs
 
 def test_populate_with_circular_dependency(components_configs_pool: ComponentsConfigsPool) -> None:
     resolver = IncludeDirectoriesResolver(components_configs_pool)
-    comp_circular_a, comp_circular_b = get_components(components_configs_pool, "compCircularA", "compCircularB")
-    resolver.populate([comp_circular_a, comp_circular_b])
-    assert not comp_circular_a.include_dirs
+    comp_circular_a, comp_circular_b, comp_circular_c = get_components(components_configs_pool, "compCircularA", "compCircularB", "compCircularC")
+    with pytest.raises(UserNotificationException, match="Circular dependency detected"):
+        resolver.populate([comp_circular_a, comp_circular_b, comp_circular_c])
 
 
 def test_populate_with_component_not_in_pool() -> None:

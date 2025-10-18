@@ -29,12 +29,24 @@ def test_run(tmp_path: Path) -> None:
     assert result.exit_code == 0
 
 
-@pytest.mark.skipif(not Path("D:/ateliere/spled").exists(), reason="Exploratory test. Not meant to be run in CI.")
-@pytest.mark.parametrize("platform", ["win_exe", "gtest"])
+@pytest.mark.skipif(not Path("D:/ateliere/spledy").exists(), reason="Exploratory test. Not meant to be run in CI.")
+@pytest.mark.parametrize("platform", ["arduino_uno_r3", "win_exe", "gtest"])
 def test_spled(platform: str) -> None:
-    project_dir = Path("D:/ateliere/spled")
+    project_dir = Path("D:/ateliere/spledy")
     result = runner.invoke(
         app,
-        ["run", "--project-dir", project_dir.as_posix(), "--variant-name", "Disco", "--platform", platform, "--target", "all", "--force-run"],
+        [
+            "run",
+            "--project-dir",
+            project_dir.as_posix(),
+            "--variant-name",
+            "Disco",
+            "--platform",
+            platform,
+            "--target",
+            "all",
+            "--force-run",
+            "--not-interactive",
+        ],
     )
     assert result.exit_code == 0

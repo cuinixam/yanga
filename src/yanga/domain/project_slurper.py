@@ -101,8 +101,8 @@ class IncludeDirectoriesResolver:
             config = self._components_configs_pool.get_component_config(component.name)
             if config is None:
                 continue
-            visited: set[str] = set()
-            public_includes = self._collect_public_includes(config, visited, components_dict)
+            dependency_path: list[str] = []  # Track the dependency path for circular detection
+            public_includes = self._collect_public_includes(config, dependency_path, components_dict)
             includes = [component.path.joinpath(inc_dir) for inc_dir in config.private_include_directories] + public_includes
             # Remove duplicates but preserve order
             component.include_dirs = list(OrderedDict.fromkeys(includes))
@@ -126,14 +126,18 @@ class IncludeDirectoriesResolver:
 
         return components_dict
 
-    def _collect_public_includes(self, component_config: ComponentConfig, visited: set[str], components_dict: dict[str, Component]) -> list[Path]:
+    def _collect_public_includes(self, component_config: ComponentConfig, dependency_path: list[str], components_dict: dict[str, Component]) -> list[Path]:
         if component_config.name in self._cache:
             return self._cache[component_config.name]
 
-        if component_config.name in visited:
-            return []  # Prevent infinite recursion in case of circular dependencies
+        if component_config.name in dependency_path:
+            # Create the circular dependency chain message
+            cycle_start_index = dependency_path.index(component_config.name)
+            circular_chain = [*dependency_path[cycle_start_index:], component_config.name]
+            chain_str = " -> ".join(circular_chain)
+            raise UserNotificationException(f"Circular dependency detected: {chain_str}")
 
-        visited.add(component_config.name)
+        dependency_path.append(component_config.name)
         component = components_dict.get(component_config.name)
         if not component:
             raise UserNotificationException(f"Component '{component_config.name}' not found in the provided components list.")
@@ -145,12 +149,13 @@ class IncludeDirectoriesResolver:
             if dep_component:
                 dep_config = self._components_configs_pool.get_component_config(dep_component.name)
                 if dep_config:
-                    includes.extend(self._collect_public_includes(dep_config, visited, components_dict))
+                    includes.extend(self._collect_public_includes(dep_config, dependency_path, components_dict))
                 else:
                     raise UserNotificationException(f"Configuration for component '{dep_component.name}' not found.")
             else:
                 raise UserNotificationException(f"Required component '{dep_name}' for component '{component_config.name}' not found in the provided components list.")
 
+        dependency_path.pop()  # Remove current component from path after processing
         # Remove duplicates but preserve order
         deduped_includes = list(OrderedDict.fromkeys(includes))
         self._cache[component_config.name] = deduped_includes
