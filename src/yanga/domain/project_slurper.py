@@ -140,7 +140,10 @@ class IncludeDirectoriesResolver:
         dependency_path.append(component_config.name)
         component = components_dict.get(component_config.name)
         if not component:
-            raise UserNotificationException(f"Component '{component_config.name}' not found in the provided components list.")
+            # If the component is not explicitly provided, check maybe is in the component pool
+            component = self._components_configs_pool.get_component(component_config.name)
+            if not component:
+                raise UserNotificationException(f"Component '{component_config.name}' not found in the provided components list.")
         includes = [component.path.joinpath(inc_dir) for inc_dir in component_config.public_include_directories]
 
         for dep_name in component_config.required_components:
@@ -148,12 +151,12 @@ class IncludeDirectoriesResolver:
             dep_component = components_dict.get(dep_name)
             if dep_component:
                 dep_config = self._components_configs_pool.get_component_config(dep_component.name)
-                if dep_config:
-                    includes.extend(self._collect_public_includes(dep_config, dependency_path, components_dict))
-                else:
-                    raise UserNotificationException(f"Configuration for component '{dep_component.name}' not found.")
             else:
-                raise UserNotificationException(f"Required component '{dep_name}' for component '{component_config.name}' not found in the provided components list.")
+                dep_config = self._components_configs_pool.get_component_config(dep_name)
+            if dep_config:
+                includes.extend(self._collect_public_includes(dep_config, dependency_path, components_dict))
+            else:
+                raise UserNotificationException(f"Configuration for component '{dep_name}' not found.")
 
         dependency_path.pop()  # Remove current component from path after processing
         # Remove duplicates but preserve order

@@ -55,8 +55,8 @@ def components_configs_pool() -> ComponentsConfigsPool:
 
 def test_populate_component_with_dependencies(components_configs_pool: ComponentsConfigsPool) -> None:
     resolver = IncludeDirectoriesResolver(components_configs_pool)
-    comp_a, comp_b, comp_c = get_components(components_configs_pool, "compA", "compB", "compC")
-    resolver.populate([comp_a, comp_b, comp_c])
+    comp_a, comp_b = get_components(components_configs_pool, "compA", "compB")
+    resolver.populate([comp_a, comp_b])
     assert comp_a.include_dirs == [
         Path("prj/root/a/src"),
         Path("prj/root/a/inc"),
