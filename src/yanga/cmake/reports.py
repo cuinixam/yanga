@@ -145,6 +145,14 @@ class ReportCMakeGenerator(CMakeGenerator):
                             variant_report_dir,
                         ],
                     ),
+                    CMakeCommand(
+                        "yanga_cmd",
+                        [
+                            "fix_html_links",
+                            "--report-dir",
+                            variant_report_dir,
+                        ],
+                    ),
                 ],
                 depends=[
                     self.artifacts_locator.get_build_artifact(BuildArtifact.REPORT_CONFIG),
@@ -295,6 +303,14 @@ class ReportCMakeGenerator(CMakeGenerator):
                                 "-b",
                                 "html",
                                 self.artifacts_locator.cmake_project_dir,
+                                component_report_dir,
+                            ],
+                        ),
+                        CMakeCommand(
+                            "yanga_cmd",
+                            [
+                                "fix_html_links",
+                                "--report-dir",
                                 component_report_dir,
                             ],
                         ),

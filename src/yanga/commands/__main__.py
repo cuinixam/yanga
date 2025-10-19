@@ -9,6 +9,7 @@ from py_app_dev.core.logging import logger, setup_logger
 from yanga import __version__
 from yanga.commands.cppcheck_report import CppCheckReportCommand
 from yanga.commands.filter_compile_commands import FilterCompileCommandsCommand
+from yanga.commands.fix_html_links import FixHtmlLinksCommand
 from yanga.commands.gcovr import CreateComponentGcovrConfigCommand, CreateVariantGcovrConfigCommand, GcovrDocCommand
 from yanga.commands.report_config import ReportConfigCommand
 from yanga.commands.targets import TargetsDocCommand
@@ -22,6 +23,7 @@ def do_run() -> int:
         [
             FilterCompileCommandsCommand(),
             CppCheckReportCommand(),
+            FixHtmlLinksCommand(),
             ReportConfigCommand(),
             CreateComponentGcovrConfigCommand(),
             CreateVariantGcovrConfigCommand(),

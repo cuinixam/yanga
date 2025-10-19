@@ -59,7 +59,7 @@ def test_create_components_cmake_elements(
     comp_cmd = assert_element_of_type(elements, CMakeCustomTarget, lambda target: target.name == "CompA_docs")
     assert [cmd.command for cmd in comp_cmd.commands] == ["clanguru"]
     comp_cmd = assert_element_of_type(elements, CMakeCustomTarget, lambda target: target.name == "CompA_report")
-    assert [cmd.command for cmd in comp_cmd.commands] == ["${CMAKE_COMMAND}", "yanga_cmd", "${CMAKE_COMMAND}"]
+    assert [cmd.command for cmd in comp_cmd.commands] == ["${CMAKE_COMMAND}", "yanga_cmd", "${CMAKE_COMMAND}", "yanga_cmd"]
 
 
 def test_exclude_productive_code(execution_context: ExecutionContext, output_dir: Path) -> None:
