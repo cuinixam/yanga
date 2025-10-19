@@ -9,7 +9,7 @@ from typing import Any, Optional
 
 from py_app_dev.core.exceptions import UserNotificationException
 
-from yanga.domain.reports import ReportData
+from yanga.domain.reports import ComponentReportData, ReportData, VariantReportData
 
 
 def _relativize_path(file: Path, project_dir: Path) -> str:
@@ -41,7 +41,7 @@ class SphinxReportConfig(ReportData):
         content.append("```\n")
         return "\n".join(content)
 
-    def _collect_files_from_config(self, config: Any) -> list[str]:
+    def _collect_files_from_config(self, config: ComponentReportData | VariantReportData) -> list[str]:
         """Helper method to collect and relativize file paths from a configuration object."""
         content = []
         file_attributes = ["docs_files", "test_results", "coverage_results", "lint_results", "sources", "other_files"]
@@ -50,7 +50,11 @@ class SphinxReportConfig(ReportData):
             if hasattr(config, attr):
                 files = getattr(config, attr)
                 for file in files:
-                    content.append(f"{self._relativize_path(file)}")
+                    content.append(f"/{self._relativize_path(file)}")
+        for html_content in config.html_content or []:
+            # (!) I found this approach of referencing html content here:
+            # https://stackoverflow.com/questions/27979803/external-relative-link-in-sphinx-toctree-directive
+            content.append(f"{html_content.name} <./{html_content.index_html.as_posix()}#http://>")
         return content
 
     def get_component_files_list(self, component_name: str) -> list[str]:

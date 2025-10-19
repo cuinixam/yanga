@@ -23,7 +23,6 @@ class ProjectArtifactsLocator:
         self.platforms_dir = project_root_dir / "platforms"
         self.variant_build_dir: Path = self.determine_variant_build_dir(variant_name, platform_name, build_type, self.build_dir)
         self.variant_dir: Optional[Path] = self.variants_dir / variant_name if variant_name else None
-        # We do not need to create an extra directory if the .yanga build dir is used
         self.external_dependencies_dir = yanga_out_dir / "ext" if create_yanga_build_dir else self.build_dir / "ext"
         scripts_dir = "Scripts" if sys.platform.startswith("win32") else "bin"
         self.venv_scripts_dir = self.project_root_dir.joinpath(".venv").joinpath(scripts_dir)

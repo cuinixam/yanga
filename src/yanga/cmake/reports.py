@@ -53,16 +53,29 @@ class ReportCMakeGenerator(CMakeGenerator):
             ],
         )
         elements.append(targets_data_cmd)
+        # Add custom target for the objects deps report
+        targets_data_target = UserRequest(
+            UserRequestScope.VARIANT,
+            target="targets_data",
+        )
+
+        elements.append(
+            CMakeCustomTarget(
+                targets_data_target.target_name,
+                "Generate targets data report",
+                [],
+                targets_data_cmd.outputs,
+            )
+        )
 
         # Register the variant targets data documentation file as relevant for the variant report
-        variant_user_request = UserRequest(UserRequestScope.VARIANT, target=UserRequestTarget.DOCS)
         self.execution_context.data_registry.insert(
             ReportRelevantFiles(
-                target=variant_user_request,
+                target=targets_data_target,
                 files_to_be_included=[targets_data_doc_file.to_path()],
                 file_type=ReportRelevantFileType.OTHER,
             ),
-            variant_user_request.target_name,
+            targets_data_target.target_name,
         )
         # Check if there are any coverage reports registered for the variant
         coverage_reports = any(
@@ -79,8 +92,6 @@ class ReportCMakeGenerator(CMakeGenerator):
                 for component in self.execution_context.components
             ],
         ]
-        if targets_data_cmd.outputs:
-            results_target_depends.extend(targets_data_cmd.outputs)
         if coverage_reports:
             results_target_depends.append(UserRequest(UserRequestScope.VARIANT, target=UserRequestTarget.COVERAGE).target_name)
             # The html coverage reports are generated in the component specific reports directories.
@@ -121,6 +132,20 @@ class ReportCMakeGenerator(CMakeGenerator):
                 elements.append(copy_coverage_html_cmd)
                 if copy_coverage_html_cmd.outputs:
                     results_target_depends.extend(copy_coverage_html_cmd.outputs)
+
+        # (!) For some reason, COVERAGE reporting is handled separately in the report generation
+        # For all the other variant report relevant files, collect all their targets, make them uniques
+        # and add them as dependencies to the results target
+        extra_report_relevant_targets = [
+            entry.target.target_name
+            for entry in self.execution_context.data_registry.find_data(ReportRelevantFiles)
+            if entry.file_type != ReportRelevantFileType.COVERAGE_RESULT
+            and entry.target.scope == UserRequestScope.VARIANT
+            # Avoid results which are created outside the build system (e.g., previous code generation)
+            and entry.target.target
+            and entry.target.target != UserRequestTarget.NONE
+        ]
+        results_target_depends.extend(list(dict.fromkeys(extra_report_relevant_targets)))
 
         results_target = CMakeCustomTarget(
             name=UserRequest(
