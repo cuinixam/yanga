@@ -32,58 +32,6 @@ class ReportCMakeGenerator(CMakeGenerator):
         elements: list[CMakeElement] = []
         variant_report_dir = self.artifacts_locator.cmake_variant_reports_dir
 
-        # Create custom command to generate the targets data documentation
-        targets_data_doc_file = self.artifacts_locator.cmake_build_dir.joinpath("targets_data.md")
-        targets_data_file = self.artifacts_locator.get_build_artifact(BuildArtifact.TARGETS_DATA)
-        targets_data_cmd = CMakeCustomCommand(
-            description="Generate variant targets data documentation",
-            depends=[targets_data_file],
-            outputs=[targets_data_doc_file],
-            commands=[
-                CMakeCommand(
-                    "yanga_cmd",
-                    [
-                        "targets_doc",
-                        "--variant-targets-data-file",
-                        targets_data_file,
-                        "--output-file",
-                        targets_data_doc_file,
-                    ],
-                ),
-            ],
-        )
-        elements.append(targets_data_cmd)
-        # Add custom target for the objects deps report
-        targets_data_target = UserRequest(
-            UserRequestScope.VARIANT,
-            target="targets_data",
-        )
-
-        elements.append(
-            CMakeCustomTarget(
-                targets_data_target.target_name,
-                "Generate targets data report",
-                [],
-                targets_data_cmd.outputs,
-            )
-        )
-
-        # Register the variant targets data documentation file as relevant for the variant report
-        self.execution_context.data_registry.insert(
-            ReportRelevantFiles(
-                target=targets_data_target,
-                files_to_be_included=[targets_data_doc_file.to_path()],
-                file_type=ReportRelevantFileType.OTHER,
-            ),
-            targets_data_target.target_name,
-        )
-        # Check if there are any coverage reports registered for the variant
-        coverage_reports = any(
-            entry
-            for entry in self.execution_context.data_registry.find_data(ReportRelevantFiles)
-            if entry.file_type == ReportRelevantFileType.COVERAGE_RESULT and entry.target.scope == UserRequestScope.VARIANT
-        )
-
         # Create variant results target to collect all component and variant results relevant for the report
         results_target_depends: list[str | CMakePath] = [
             self.artifacts_locator.get_build_artifact(BuildArtifact.REPORT_CONFIG),
@@ -92,6 +40,15 @@ class ReportCMakeGenerator(CMakeGenerator):
                 for component in self.execution_context.components
             ],
         ]
+
+        # TODO: refactor the coverage report handling to a separate generator.
+        #       There is no reason for the ReportCMakeGenerator to handle coverage reports specifically.
+        # Check if there are any coverage reports registered for the variant
+        coverage_reports = any(
+            entry
+            for entry in self.execution_context.data_registry.find_data(ReportRelevantFiles)
+            if entry.file_type == ReportRelevantFileType.COVERAGE_RESULT and entry.target.scope == UserRequestScope.VARIANT
+        )
         if coverage_reports:
             results_target_depends.append(UserRequest(UserRequestScope.VARIANT, target=UserRequestTarget.COVERAGE).target_name)
             # The html coverage reports are generated in the component specific reports directories.

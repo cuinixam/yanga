@@ -3,7 +3,7 @@ from pathlib import Path
 import pytest
 
 from tests.utils import assert_element_of_type
-from yanga.cmake.cmake_backend import CMakeCustomCommand, CMakeCustomTarget
+from yanga.cmake.cmake_backend import CMakeCustomCommand, CMakeCustomTarget, CMakePath
 from yanga.cmake.objects_deps import ObjectsDepsCMakeGenerator
 from yanga.domain.execution_context import ExecutionContext
 
@@ -21,10 +21,8 @@ def test_generate(objects_deps_generator: ObjectsDepsCMakeGenerator) -> None:
     custom_command = assert_element_of_type(elements, CMakeCustomCommand)
     assert custom_command.description == "Run clanguru to generate the objects dependencies report"
     assert custom_command.depends == ["compile"]
-    assert custom_command.outputs
-    assert len(custom_command.outputs) == 1
-    output_path = str(custom_command.outputs[0])
-    assert "objects_deps.html" in output_path
+    output_path = assert_element_of_type(custom_command.outputs, CMakePath)
+    assert "objects_deps.html" in output_path.to_string()
 
     custom_target = assert_element_of_type(elements, CMakeCustomTarget)
     assert custom_target.name == "objects_deps"

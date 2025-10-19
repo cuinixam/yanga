@@ -22,7 +22,7 @@ def test_generate(create_executable_generator: ReportCMakeGenerator) -> None:
     elements = create_executable_generator.generate()
     assert elements
 
-    targets = assert_elements_of_type(elements, CMakeCustomTarget, 9)
+    targets = assert_elements_of_type(elements, CMakeCustomTarget, 8)
     assert {target.name for target in targets} == {
         "CompA_docs",
         "CompA_results",
@@ -32,7 +32,6 @@ def test_generate(create_executable_generator: ReportCMakeGenerator) -> None:
         "CompBNotTestable_report",
         "results",
         "report",
-        "targets_data",
     }
 
 
@@ -41,8 +40,8 @@ def test_create_variant_cmake_elements(
 ) -> None:
     elements = create_executable_generator.create_variant_cmake_elements()
 
-    custom_targets = assert_elements_of_type(elements, CMakeCustomTarget, 3)
-    assert {target.name for target in custom_targets} == {"report", "results", "targets_data"}
+    custom_targets = assert_elements_of_type(elements, CMakeCustomTarget, 2)
+    assert {target.name for target in custom_targets} == {"report", "results"}
 
 
 def test_create_components_cmake_elements(

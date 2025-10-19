@@ -170,6 +170,11 @@ class CMakePath:
             new_path = self.path.with_suffix(suffix)
             return CMakePath(new_path, self.variable, None)
 
+    def __eq__(self, value: object) -> bool:
+        if not isinstance(value, CMakePath):
+            return False
+        return self.path == value.path and self.relative_path == value.relative_path
+
 
 class CMakeInclude(CMakeElement):
     def __init__(self, path: str | CMakePath) -> None:
