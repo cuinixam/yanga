@@ -86,10 +86,13 @@ class RunCommand(Command):
             variant_name = config.variant_name
             platform_name = config.platform
             build_type = config.build_type
+            # In case there is a platform specified but no build type, try to get the default one
+            if platform_name and not build_type:
+                build_type = self.determine_build_type(config.build_type, platform_name, project_slurper, config.not_interactive)
         else:
             variant_name = self.determine_variant_name(config.variant_name, project_slurper.variants)
             platform_name = self.determine_platform_name(config.platform, project_slurper.platforms)
-            build_type = self.determine_build_type(config.build_type, platform_name, project_slurper)
+            build_type = self.determine_build_type(config.build_type, platform_name, project_slurper, config.not_interactive)
         user_request = UserRequest(
             scope=(UserRequestScope.COMPONENT if config.component_name else UserRequestScope.VARIANT),
             variant_name=variant_name,
@@ -182,7 +185,13 @@ class RunCommand(Command):
             self.logger.warning("No platform selected. This might cause some steps to fail.")
         return selected_platform_name
 
-    def determine_build_type(self, build_type: Optional[str], platform_name: Optional[str], project_slurper: YangaProjectSlurper) -> Optional[str]:
+    def determine_build_type(
+        self,
+        build_type: Optional[str],
+        platform_name: Optional[str],
+        project_slurper: YangaProjectSlurper,
+        not_interactive: bool,
+    ) -> Optional[str]:
         selected_build_type: Optional[str]
         platform = project_slurper.get_platform(platform_name) if platform_name else None
         available_build_types = platform.build_types if platform and platform.build_types else []
@@ -191,10 +200,14 @@ class RunCommand(Command):
                 selected_build_type = available_build_types[0]
                 self.logger.info(f"Only one build type found. Using '{selected_build_type}'.")
             elif len(available_build_types) > 1:
-                selected_build_type = prompt_user_to_select_option(
-                    available_build_types,
-                    "Select build type: ",
-                )
+                if not_interactive:
+                    self.logger.warning(f"Multiple build types available for '{platform_name}' but none specified. Select first build type by default.")
+                    selected_build_type = available_build_types[0]
+                else:
+                    selected_build_type = prompt_user_to_select_option(
+                        available_build_types,
+                        "Select build type: ",
+                    )
             else:
                 selected_build_type = None
         else:
