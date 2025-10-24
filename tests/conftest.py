@@ -4,10 +4,12 @@ from unittest.mock import Mock, patch
 import pytest
 from py_app_dev.core.data_registry import DataRegistry
 
+from tests.utils import this_repository_root_dir
 from yanga.domain.artifacts import ProjectArtifactsLocator
 from yanga.domain.components import Component
 from yanga.domain.config import TestingConfiguration
 from yanga.domain.execution_context import ExecutionContext
+from yanga.kickstart.create import KickstartProject
 
 
 @pytest.fixture
@@ -60,3 +62,21 @@ def get_test_data_path():
         return Path(__file__).parent / "data" / filename
 
     return _get_test_data_path
+
+
+@pytest.fixture
+def mini_project(tmp_path: Path) -> Path:
+    project_dir = tmp_path.joinpath("mini")
+    # Create example project
+    KickstartProject(project_dir).run()
+    assert project_dir.joinpath("yanga.yaml").exists()
+
+    # Replace the YANGA dependency in the pyproject.toml
+    pyproject_toml = project_dir.joinpath("pyproject.toml")
+    # "yanga @ file:///C:/yanga",
+    new_dependency = f"yanga @ file:///{this_repository_root_dir().as_posix()}"
+    pyproject_toml.write_text(pyproject_toml.read_text().replace("yanga>=2,<3", new_dependency))
+
+    assert '"yanga @ file:///' in pyproject_toml.read_text(), "Failed to set the local yanga dependency in the mini project."
+
+    return project_dir

@@ -24,7 +24,7 @@
 
 /docs/components
 {% for file in report_data.get_variant_files_list() %}
-/{{ file }}
+{{ file }}
 {% endfor %}
 
 ```

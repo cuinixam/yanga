@@ -3,7 +3,7 @@ pipeline:
     - step: CreateVEnv
       module: pypeline.steps.create_venv
       config:
-        python_executable: python3
+        python_executable: python311
     - step: ScoopInstall
       module: yanga.steps.scoop_install
       description: Install scoop dependencies

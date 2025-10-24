@@ -9,7 +9,7 @@
 :maxdepth: 1
 
 {% for file in report_data.get_component_files_list(component.name) %}
-/{{ file }}
+{{ file }}
 {% endfor %}
 
 ```

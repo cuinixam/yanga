@@ -26,7 +26,5 @@ dependencies = [
   "sphinxcontrib-mermaid>=1,<2",
   "sphinxcontrib-plantuml>=0.29,<1",
   "west>=1,<2",
-  # Added because UV needs it as explicit dependency. It might be a bug in UV
-  "wrapt>=1,<2",
   "yanga>=2,<3",
 ]

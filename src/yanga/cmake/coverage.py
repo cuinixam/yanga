@@ -31,10 +31,12 @@ class CoverageArtifactsLocator(CMakeArtifactsLocator):
         return f"coverage/{component_name}"
 
     def get_component_coverage_reports_dir(self, component_name: str) -> CMakePath:
+        """Path inside the component reports dir where the coverage report is located."""
         return self.get_component_reports_dir(component_name).joinpath(self._get_component_coverage_reports_relative_dir(component_name))
 
     def get_component_variant_coverage_reports_dir(self, component_name: str) -> CMakePath:
-        return self.get_variant_coverage_reports_dir().joinpath(self._get_component_coverage_reports_relative_dir(component_name))
+        """Path inside the variant reports dir where the component coverage report shall be located."""
+        return self.cmake_variant_reports_dir.joinpath(self._get_component_coverage_reports_relative_dir(component_name))
 
     def get_component_coverage_html_file(self, component_name: str) -> CMakePath:
         return self.get_component_coverage_reports_dir(component_name).joinpath("index.html")
