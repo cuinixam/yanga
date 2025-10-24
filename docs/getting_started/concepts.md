@@ -10,25 +10,20 @@
 
 ## Concepts
 
-### Multi-Pipeline Orchestration
+### Extensible Architecture
 
-Consider the following table, which outlines the necessity of different pipeline configurations for developing, testing and releasing a software product:
+YANGA is designed with an extensible architecture that allows users to customize and enhance its functionality through extensions written in Python.
 
-|       | Build | Run | Release |
-| ----- | ----- | --- | ------- |
-| exe   | ✅    | ✅  |         |
-| gtest | ✅    | ✅  |         |
-| hil   | ✅    | ✅  |         |
-| ecu   | ✅    |     | ✅💰    |
+Extension points:
 
-- **exe**: build and run the software on a simulated environment.
-- **gtest**: build and run unit tests.
-- **hil**: specific hardware-in-the-loop (HIL) testing.
-- **ecu**: actual hardware deployment for the customer (release). This is where the 💰 is made.
+- custom pipeline steps - see [Pipeline Management](#pipeline-management)
+- custom CMake generators - see [CMake Generators](#cmake-generators)
 
-YANGA allows for the configuration of necessary steps to build and release the software for a specified platform and use case (means every individual line in the table above).
 
-:::{important}
-YANGA currently does not support orchestrating multiple pipelines concurrently.
-Multi-pipeline orchestration would enable simultaneous management and execution of several build and deployment processes.
-:::
+### Reporting
+
+YANGA provides built-in reporting CMake generator which collects all report relevant information and renders it into HTML files using Sphinx.
+Every pipeline step or CMake generator can contribute to the report by registering report relevant files:
+
+- markdown files: these files are rendered into HTML using Sphinx
+- raw html files: these files are directly included into the final report without any processing

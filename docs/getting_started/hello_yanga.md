@@ -1,6 +1,6 @@
 # Create a `Hello World` Yanga Project
 
-Download the latest version of Yanga from the [Releases](https://github.com/cuinixam/yanga/releases/latest) page or install it using pip:
+Install it using `pipx`:
 
 ```bash
 pipx install yanga
