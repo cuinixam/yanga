@@ -1,5 +1,19 @@
 # Changelog
 
+## v2.24.0 (2025-10-24)
+
+### Bug fixes
+
+- Component variant coverage path is wrong ([`67a8b9e`](https://github.com/cuinixam/yanga/commit/67a8b9e7d2932fb18d9703542cc4ea691e5b3c8b))
+
+### Documentation
+
+- Update concepts chapter ([`41e453c`](https://github.com/cuinixam/yanga/commit/41e453c8d0c821d69f9f7dc80d26fa278e63bcbe))
+
+### Features
+
+- Refactor the coverage reports to avoid using obsolete .md files ([`6559acc`](https://github.com/cuinixam/yanga/commit/6559acc9f04bf56fa9ca7f23a1cb9444a9c92df9))
+
 ## v2.23.2 (2025-10-21)
 
 ### Bug fixes
