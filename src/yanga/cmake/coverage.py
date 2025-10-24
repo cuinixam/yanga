@@ -4,7 +4,7 @@ from pathlib import Path
 from yanga.domain.artifacts import ProjectArtifactsLocator
 from yanga.domain.execution_context import UserRequest
 
-from .artifacts_locator import BuildArtifact, CMakeArtifactsLocator
+from .artifacts_locator import CMakeArtifactsLocator
 from .cmake_backend import CMakePath
 
 
@@ -19,14 +19,28 @@ class CoverageRelevantFile:
 class CoverageArtifactsLocator(CMakeArtifactsLocator):
     def __init__(self, output_dir: Path, project_artifact_locator: ProjectArtifactsLocator) -> None:
         super().__init__(output_dir, project_artifact_locator)
-        self.coverage_reports_dir = self.cmake_variant_reports_dir.joinpath("coverage")
 
     @classmethod
     def from_cmake_artifacts_locator(cls, cmake_artifacts_locator: CMakeArtifactsLocator) -> "CoverageArtifactsLocator":
         return cls(cmake_artifacts_locator.cmake_build_dir.to_path(), cmake_artifacts_locator.artifacts_locator)
 
-    def get_component_coverage_html_dir(self, component_name: str) -> CMakePath:
-        coverage_doc_file = self.get_component_build_artifact(component_name, BuildArtifact.COVERAGE_DOC)
-        # We need to generate the html report in a subdirectory to be able to link it relatively from the markdown file
-        coverage_doc_file_relative_path = coverage_doc_file.to_path().relative_to(self.artifacts_locator.project_root_dir).parent.as_posix()
-        return self.get_component_reports_dir(component_name).joinpath(coverage_doc_file_relative_path).joinpath("coverage")
+    def _get_component_coverage_reports_relative_dir(self, component_name: str) -> str:
+        # (!) We need to keep the component coverage reports relative path to the `reports` dir identical for both the component and variant reports
+        # E.g., reports/coverage/<component_name>
+        # This is because we copy the component report into the variant report dir maintaining the relative structure.
+        return f"coverage/{component_name}"
+
+    def get_component_coverage_reports_dir(self, component_name: str) -> CMakePath:
+        return self.get_component_reports_dir(component_name).joinpath(self._get_component_coverage_reports_relative_dir(component_name))
+
+    def get_component_variant_coverage_reports_dir(self, component_name: str) -> CMakePath:
+        return self.get_variant_coverage_reports_dir().joinpath(self._get_component_coverage_reports_relative_dir(component_name))
+
+    def get_component_coverage_html_file(self, component_name: str) -> CMakePath:
+        return self.get_component_coverage_reports_dir(component_name).joinpath("index.html")
+
+    def get_variant_coverage_reports_dir(self) -> CMakePath:
+        return self.cmake_variant_reports_dir.joinpath("coverage")
+
+    def get_variant_coverage_html_file(self) -> CMakePath:
+        return self.get_variant_coverage_reports_dir().joinpath("index.html")

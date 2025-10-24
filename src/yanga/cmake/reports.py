@@ -2,8 +2,7 @@ from pathlib import Path
 from typing import Any, Optional
 
 from yanga.cmake.artifacts_locator import BuildArtifact, CMakeArtifactsLocator
-from yanga.cmake.cmake_backend import CMakeCommand, CMakeComment, CMakeCustomCommand, CMakeCustomTarget, CMakeElement, CMakePath
-from yanga.cmake.coverage import CoverageArtifactsLocator
+from yanga.cmake.cmake_backend import CMakeCommand, CMakeComment, CMakeCustomTarget, CMakeElement, CMakePath
 from yanga.cmake.generator import CMakeGenerator
 from yanga.docs.sphinx import SphinxConfig
 from yanga.domain.component_analyzer import ComponentAnalyzer
@@ -41,63 +40,12 @@ class ReportCMakeGenerator(CMakeGenerator):
             ],
         ]
 
-        # TODO: refactor the coverage report handling to a separate generator.
-        #       There is no reason for the ReportCMakeGenerator to handle coverage reports specifically.
-        # Check if there are any coverage reports registered for the variant
-        coverage_reports = any(
-            entry
-            for entry in self.execution_context.data_registry.find_data(ReportRelevantFiles)
-            if entry.file_type == ReportRelevantFileType.COVERAGE_RESULT and entry.target.scope == UserRequestScope.VARIANT
-        )
-        if coverage_reports:
-            results_target_depends.append(UserRequest(UserRequestScope.VARIANT, target=UserRequestTarget.COVERAGE).target_name)
-            # The html coverage reports are generated in the component specific reports directories.
-            # We need to create custom commands to copy them to the variant report directory.
-            components_with_coverage_results = [
-                entry.target.component_name
-                for entry in self.execution_context.data_registry.find_data(ReportRelevantFiles)
-                if entry.file_type == ReportRelevantFileType.COVERAGE_RESULT and entry.target.scope == UserRequestScope.COMPONENT and entry.target.component_name is not None
-            ]
-            for component_name in components_with_coverage_results:
-                artifacts_locator = CoverageArtifactsLocator.from_cmake_artifacts_locator(self.artifacts_locator)
-                # Get the directory where the component coverage html report was generated. This directory will be copied to the variant report directory
-                component_coverage_html_dir = artifacts_locator.get_component_coverage_html_dir(component_name)
-                coverage_doc_file = artifacts_locator.get_component_build_artifact(component_name, BuildArtifact.COVERAGE_DOC)
-                # We need to find where will the coverage doc file html result will be generates in the variant report directory
-                # The component coverage doc file is in the build directory and will be included by the sphinx build with its relative path to the project root
-                # This means that the coverage.html generated file will have the relative path to the project root too inside the report directory
-                # Now we need to determine the coverage.html path based on the coverage.md path and the sphinx output directory
-                coverage_doc_file_relative_path = coverage_doc_file.to_path().relative_to(self.artifacts_locator.project_root_dir).parent.as_posix()
-                component_variant_coverage_html_dir = variant_report_dir.joinpath(coverage_doc_file_relative_path).joinpath("coverage")
-                # Create custom command to copy the component coverage html report to the variant report directory
-                copy_coverage_html_cmd = CMakeCustomCommand(
-                    description=f"Copy coverage html report for component {component_name} to variant report directory",
-                    depends=[],
-                    outputs=[component_variant_coverage_html_dir],
-                    commands=[
-                        CMakeCommand(
-                            "${CMAKE_COMMAND}",
-                            [
-                                "-E",
-                                "copy_directory",
-                                component_coverage_html_dir,
-                                component_variant_coverage_html_dir,
-                            ],
-                        ),
-                    ],
-                )
-                elements.append(copy_coverage_html_cmd)
-                if copy_coverage_html_cmd.outputs:
-                    results_target_depends.extend(copy_coverage_html_cmd.outputs)
-
-        # (!) For some reason, COVERAGE reporting is handled separately in the report generation
         # For all the other variant report relevant files, collect all their targets, make them uniques
         # and add them as dependencies to the results target
         extra_report_relevant_targets = [
             entry.target.target_name
             for entry in self.execution_context.data_registry.find_data(ReportRelevantFiles)
-            if entry.file_type != ReportRelevantFileType.COVERAGE_RESULT
-            and entry.target.scope == UserRequestScope.VARIANT
+            if entry.target.scope == UserRequestScope.VARIANT
             # Avoid results which are created outside the build system (e.g., previous code generation)
             and entry.target.target
             and entry.target.target != UserRequestTarget.NONE

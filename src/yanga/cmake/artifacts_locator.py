@@ -10,7 +10,6 @@ class BuildArtifact(Enum):
     TARGETS_DATA = "targets_data.json"
     COMPILE_COMMANDS = "compile_commands.json"
     COVERAGE_JSON = "coverage.json"
-    COVERAGE_DOC = "coverage.md"
 
     def __init__(self, path: str) -> None:
         self.path = path

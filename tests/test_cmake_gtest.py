@@ -58,12 +58,48 @@ def test_get_include_directories(gtest_cmake_generator: GTestCMakeGenerator) -> 
     assert len(gtest_cmake_generator.get_include_directories().paths) == 6
 
 
+def test_gtest_cmake_generator_coverage(execution_context: ExecutionContext, output_dir: Path) -> None:
+    elements = GTestCMakeGenerator(execution_context, output_dir).generate()
+
+    # Test that coverage targets are created
+    targets = assert_elements_of_type(elements, CMakeCustomTarget, 5)
+    assert {target.name for target in targets} == {"CompA_mockup", "CompA_test", "CompA_build", "CompA_coverage", "coverage"}
+
+    # Test component coverage target
+    component_coverage_target = assert_element_of_type(elements, CMakeCustomTarget, lambda tgt: tgt.name == "CompA_coverage")
+    assert "Generate coverage report for CompA" in component_coverage_target.description
+
+    # Test variant coverage target
+    variant_coverage_target = assert_element_of_type(elements, CMakeCustomTarget, lambda tgt: tgt.name == "coverage")
+    assert "Generate variant coverage report" in variant_coverage_target.description
+
+    # Test that coverage commands are generated
+    coverage_commands = find_elements_of_type(elements, CMakeCustomCommand)
+    component_coverage_cmds = [cmd for cmd in coverage_commands if "coverage report for component" in cmd.description]
+    variant_coverage_cmds = [cmd for cmd in coverage_commands if "coverage report for the variant" in cmd.description]
+
+    assert len(component_coverage_cmds) == 1, "Should generate component coverage commands"
+    assert len(variant_coverage_cmds) == 1, "Should generate variant coverage commands"
+
+    # Test that coverage outputs are generated (config, JSON, HTML)
+    component_cmd = component_coverage_cmds[0]
+    assert component_cmd.outputs, "Component coverage command should have outputs"
+    output_paths = [str(output) for output in component_cmd.outputs]
+    assert any("gcovr.cfg" in path for path in output_paths), "Should generate gcovr config"
+    assert any("coverage.json" in path for path in output_paths), "Should generate JSON report"
+    assert any("index.html" in path for path in output_paths), "Should generate HTML report"
+
+    # Test that the right tools are used
+    assert component_cmd.commands, "Component coverage command should have subcommands"
+    command_tools = [str(cmd.command) for cmd in component_cmd.commands]
+    assert any("yanga_cmd" in tool for tool in command_tools), "Should use yanga_cmd for config"
+    assert any("gcovr" in tool for tool in command_tools), "Should use gcovr for reports"
+
+
 def test_automock_enabled_by_default(execution_context: ExecutionContext, output_dir: Path) -> None:
     # Run IUT
     elements = GTestCMakeGenerator(execution_context, output_dir).generate()
 
-    targets = assert_elements_of_type(elements, CMakeCustomTarget, 5)
-    assert {target.name for target in targets} == {"CompA_mockup", "CompA_test", "CompA_build", "CompA_coverage", "coverage"}
     # Expect the partial link library required to find the symbols to be mocked
     executable = assert_element_of_type(elements, CMakeAddExecutable, lambda exec: exec.name == "CompA")
     assert [str(source) for source in executable.sources] == ["test_compA_source.cpp", f"{output_dir.as_posix()}/CompA/mockup_CompA.cc"]
@@ -81,7 +117,6 @@ def test_automock_enabled_by_default(execution_context: ExecutionContext, output
 
 
 def test_automock_disabled_generates_no_mock_targets(execution_context: ExecutionContext, output_dir: Path) -> None:
-    """Verify that when automock is explicitly disabled, no partial link library and no mockup-related custom targets are generated."""
     # Run IUT
     elements = GTestCMakeGenerator(execution_context, output_dir, {"mocking": {"enabled": False}}).generate()
 
@@ -99,7 +134,6 @@ def test_automock_disabled_generates_no_mock_targets(execution_context: Executio
 
 
 def test_use_global_includes_disabled_generates_no_global_include_directories(execution_context: ExecutionContext, output_dir: Path) -> None:
-    """Verify that when use_global_includes is disabled, no global include directories are generated."""
     # Global include directories should not be generated in the variant elements
     variant_elements = GTestCMakeGenerator(execution_context, output_dir, {"use_global_includes": False}).create_gtest_integration_cmake_elements()
 
@@ -109,7 +143,6 @@ def test_use_global_includes_disabled_generates_no_global_include_directories(ex
 
 
 def test_use_global_includes_enabled_generates_global_include_directories(execution_context: ExecutionContext, output_dir: Path) -> None:
-    """Verify that when use_global_includes is enabled (default), global include directories are generated."""
     # Global include directories should be generated in the variant elements
     variant_elements = GTestCMakeGenerator(execution_context, output_dir, {"use_global_includes": True}).create_gtest_integration_cmake_elements()
 
@@ -119,7 +152,6 @@ def test_use_global_includes_enabled_generates_global_include_directories(execut
 
 
 def test_use_global_includes_disabled_adds_component_specific_include_directories(execution_context: ExecutionContext, output_dir: Path) -> None:
-    """Verify that when use_global_includes is disabled, component-specific include directories are added as target_include_directories."""
     # Set up component with include directories
     component = find_elements_of_type(execution_context.components, Component)[0]  # Get the CompA component
     component.include_dirs = [Path("/component/inc"), Path("/component/src")]
@@ -156,7 +188,6 @@ def test_use_global_includes_disabled_adds_component_specific_include_directorie
 
 
 def test_component_specific_directories_are_used(execution_context: ExecutionContext, output_dir: Path) -> None:
-    """Verify that component-specific subdirectories are used for generated files."""
     elements = GTestCMakeGenerator(execution_context, output_dir).generate()
 
     # Find custom commands that contain component-specific paths
@@ -188,7 +219,6 @@ def test_component_specific_directories_are_used(execution_context: ExecutionCon
 
 
 def test_executable_output_directory_is_set(execution_context: ExecutionContext, output_dir: Path) -> None:
-    """Verify that executables are configured to output to component-specific directories."""
     elements = GTestCMakeGenerator(execution_context, output_dir).generate()
 
     # Import the target properties class for type checking
@@ -211,7 +241,6 @@ def test_executable_output_directory_is_set(execution_context: ExecutionContext,
 
 
 def test_component_mocking_config_overrides_global(execution_context: ExecutionContext, output_dir: Path) -> None:
-    """Verify that component-specific mocking configuration overrides global mocking settings."""
     global_mocking_config = GTestCMakeGeneratorConfig.from_dict({"mocking": {"enabled": True, "exclude_symbol_patterns": ["GlobalPattern1", "GlobalPattern2"], "strict": False}})
     component = Component(
         name="CompA",
