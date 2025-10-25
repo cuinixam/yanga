@@ -1,5 +1,11 @@
 # Changelog
 
+## v2.25.1 (2025-10-25)
+
+### Bug fixes
+
+- Targets report does not show dependencies to executable sources ([`e38b35f`](https://github.com/cuinixam/yanga/commit/e38b35fe971b05a70ef6de81b51ca3f6768a1d9a))
+
 ## v2.25.0 (2025-10-25)
 
 ### Features
