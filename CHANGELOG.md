@@ -1,5 +1,11 @@
 # Changelog
 
+## v2.25.0 (2025-10-25)
+
+### Features
+
+- Refactor targets dependencies report and improve browse experience ([`d132555`](https://github.com/cuinixam/yanga/commit/d1325551211cfc3e75ed1226e389b443146e2adf))
+
 ## v2.24.0 (2025-10-24)
 
 ### Bug fixes
