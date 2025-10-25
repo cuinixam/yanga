@@ -635,7 +635,7 @@
       "target_type": "CUSTOM_COMMAND"
     },
     {
-      "name": "cmd_fe1ed6625893_58fdd17708a9",
+      "name": "cmd_fe1ed6625893_aafb68a91dfc",
       "description": "Generate variant targets data documentation",
       "depends": [
         "${CMAKE_BUILD_DIR}/targets_data.json"
@@ -644,7 +644,7 @@
         "${CMAKE_BUILD_DIR}/targets_data.md"
       ],
       "commands": [
-        "COMMAND yanga_cmd targets_doc --variant-targets-data-file ${CMAKE_BUILD_DIR}/targets_data.json --output-file ${CMAKE_BUILD_DIR}/targets_data.md"
+        "COMMAND yanga_cmd targets_doc --variant-targets-data-file ${CMAKE_BUILD_DIR}/targets_data.json --output-file ${CMAKE_BUILD_DIR}/targets_data.md --targets all report coverage lint"
       ],
       "target_type": "CUSTOM_COMMAND"
     },
@@ -1296,10 +1296,10 @@
         "${CMAKE_BUILD_DIR}/compile_commands.json"
       ],
       "outputs": [
-        "${CMAKE_BUILD_DIR}/test_integrations_spled/test_spled.cc.md"
+        "${CMAKE_BUILD_DIR}/test_integrations_spled/test_spled_integration.cc.md"
       ],
       "commands": [
-        "COMMAND clanguru docs --source-file D:/ateliere/spledy/test/integrations/spled/test_spled.cc --output-file ${CMAKE_BUILD_DIR}/test_integrations_spled/test_spled.cc.md --compilation-database ${CMAKE_BUILD_DIR}/compile_commands.json --format myst"
+        "COMMAND clanguru docs --source-file D:/ateliere/spledy/components/spled/test/test_spled_integration.cc --output-file ${CMAKE_BUILD_DIR}/test_integrations_spled/test_spled_integration.cc.md --compilation-database ${CMAKE_BUILD_DIR}/compile_commands.json --format myst"
       ],
       "target_type": "CUSTOM_TARGET"
     },
@@ -1372,7 +1372,9 @@
         "GTest::gtest_main",
         "GTest::gmock_main",
         "pthread",
-        "spled_PC_lib"
+        "spled_PC_lib",
+        "D:/ateliere/spledy/components/spled/test/test_spled.cc",
+        "D:/ateliere/spledy/.yanga/build/Disco/gtest/spled/mockup_spled.cc"
       ],
       "outputs": [
         "spled"
@@ -1387,7 +1389,9 @@
         "GTest::gtest_main",
         "GTest::gmock_main",
         "pthread",
-        "power_signal_processing_PC_lib"
+        "power_signal_processing_PC_lib",
+        "D:/ateliere/spledy/components/power_signal_processing/test/test_power_signal_processing.cc",
+        "D:/ateliere/spledy/.yanga/build/Disco/gtest/power_signal_processing/mockup_power_signal_processing.cc"
       ],
       "outputs": [
         "power_signal_processing"
@@ -1402,7 +1406,9 @@
         "GTest::gtest_main",
         "GTest::gmock_main",
         "pthread",
-        "light_controller_PC_lib"
+        "light_controller_PC_lib",
+        "D:/ateliere/spledy/components/light_controller/test/test_light_controller.cc",
+        "D:/ateliere/spledy/.yanga/build/Disco/gtest/light_controller/mockup_light_controller.cc"
       ],
       "outputs": [
         "light_controller"
@@ -1417,7 +1423,9 @@
         "GTest::gtest_main",
         "GTest::gmock_main",
         "pthread",
-        "power_button_PC_lib"
+        "power_button_PC_lib",
+        "D:/ateliere/spledy/components/power_button/test/test_power_button.cc",
+        "D:/ateliere/spledy/.yanga/build/Disco/gtest/power_button/mockup_power_button.cc"
       ],
       "outputs": [
         "power_button"
@@ -1432,7 +1440,9 @@
         "GTest::gtest_main",
         "GTest::gmock_main",
         "pthread",
-        "main_control_knob_PC_lib"
+        "main_control_knob_PC_lib",
+        "D:/ateliere/spledy/components/main_control_knob/test/test_main_control_knob.cc",
+        "D:/ateliere/spledy/.yanga/build/Disco/gtest/main_control_knob/mockup_main_control_knob.cc"
       ],
       "outputs": [
         "main_control_knob"
@@ -1447,7 +1457,9 @@
         "GTest::gtest_main",
         "GTest::gmock_main",
         "pthread",
-        "test_integrations_spled_PC_lib"
+        "test_integrations_spled_PC_lib",
+        "D:/ateliere/spledy/components/spled/test/test_spled_integration.cc",
+        "D:/ateliere/spledy/.yanga/build/Disco/gtest/test_integrations_spled/mockup_test_integrations_spled.cc"
       ],
       "outputs": [
         "test_integrations_spled"

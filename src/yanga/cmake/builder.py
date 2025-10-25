@@ -240,6 +240,10 @@ class CMakeBuildSystemGenerator:
             if executable.libraries:
                 dependencies.extend(executable.libraries)
 
+            # Add any additional dependencies
+            if executable.sources:
+                dependencies.extend([str(source) for source in executable.sources])
+
             targets.append(
                 Target(
                     name=executable.name,

@@ -67,6 +67,22 @@ def test_dependency_tree_builder(get_test_data_path: Callable[[str], Path]) -> N
     )
     assert missing_path is None, f"Missing path in target tree: {missing_path}"
 
+    missing_path = check_target_tree_path(
+        target_tree,
+        [
+            "results",
+            "light_controller_results",
+            "light_controller_coverage",
+            "Generate coverage report for component light_controller",
+            "Run the test executable, generate JUnit report and return success independent of the test result",
+            "light_controller",
+            "Run clanguru to generate mockup sources",
+            "Create partial link library containing only the productive sources",
+            "light_controller_PC_lib",
+        ],
+    )
+    assert missing_path is None, f"Missing path in target tree: {missing_path}"
+
 
 def test_target_dependency_html_builder(get_test_data_path: Callable[[str], Path]) -> None:
     targets_data = TargetsData.from_json_file(get_test_data_path("sample_targets_data.json"))
@@ -110,7 +126,7 @@ def test_create_target_dependencies_file():
 
         exe_target = next(t for t in targets_data.targets if t.name == "test_exe")
         assert exe_target.description == "Executable target: test_exe"
-        assert exe_target.depends == ["lib1", "lib2"]
+        assert exe_target.depends == ["lib1", "lib2", "main.cpp"]
         assert exe_target.outputs == ["test_exe"]
         assert exe_target.target_type.to_string() == "EXECUTABLE"
 
