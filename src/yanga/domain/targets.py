@@ -28,6 +28,7 @@ class Target(BaseConfigJSONMixin):
     description: str | None = None
     depends: Sequence[str | Path] = field(default_factory=list)
     outputs: Sequence[str | Path] = field(default_factory=list)
+    commands: Sequence[str] = field(default_factory=list)
     target_type: TargetType = field(default=TargetType.CUSTOM_TARGET, metadata=stringable_enum_field_metadata(TargetType))
 
 

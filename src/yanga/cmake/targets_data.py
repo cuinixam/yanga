@@ -29,6 +29,10 @@ class TargetsDataCMakeGenerator(CMakeGenerator):
         # Create custom command to generate the targets data documentation
         targets_data_doc_file = self.artifacts_locator.cmake_build_dir.joinpath("targets_data.md")
         targets_data_file = self.artifacts_locator.get_build_artifact(BuildArtifact.TARGETS_DATA)
+        platform_targets = ["all"]
+        if self.execution_context.platform:
+            if self.execution_context.platform.build_targets:
+                platform_targets = self.execution_context.platform.build_targets
         targets_data_cmd = CMakeCustomCommand(
             description="Generate variant targets data documentation",
             depends=[targets_data_file],
@@ -42,6 +46,8 @@ class TargetsDataCMakeGenerator(CMakeGenerator):
                         targets_data_file,
                         "--output-file",
                         targets_data_doc_file,
+                        "--targets",
+                        *platform_targets,
                     ],
                 ),
             ],

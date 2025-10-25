@@ -6,11 +6,13 @@ from tests.utils import assert_element_of_type
 from yanga.cmake.artifacts_locator import BuildArtifact
 from yanga.cmake.cmake_backend import CMakeCustomCommand, CMakeCustomTarget, CMakePath
 from yanga.cmake.targets_data import TargetsDataCMakeGenerator
+from yanga.domain.config import PlatformConfig
 from yanga.domain.execution_context import ExecutionContext
 
 
 @pytest.fixture
 def targets_data_generator(execution_context: ExecutionContext, output_dir: Path) -> TargetsDataCMakeGenerator:
+    execution_context.platform = PlatformConfig(name="arduino")
     return TargetsDataCMakeGenerator(execution_context, output_dir)
 
 

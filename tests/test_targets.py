@@ -1,17 +1,77 @@
 import json
-from argparse import Namespace
+from dataclasses import dataclass
 from pathlib import Path
 from tempfile import TemporaryDirectory
+from typing import Callable
 
-import pytest
 from clanguru.doc_generator import MarkdownFormatter
 
 from yanga.cmake.builder import CMakeBuildSystemGenerator
 from yanga.cmake.cmake_backend import CMakeAddExecutable, CMakeAddLibrary, CMakeCustomTarget
 from yanga.cmake.generator import CMakeFile
-from yanga.commands.targets import TargetDependencyTreeBuilder, TargetDocumentationGenerator, TargetsDocCommand
+from yanga.commands.targets import TargetDependencyTreeBuilder, TargetTreeNode, create_doc_structure
 from yanga.domain.execution_context import ExecutionContext, UserVariantRequest
-from yanga.domain.targets import Target, TargetsData, TargetType
+from yanga.domain.targets import TargetsData
+
+
+@dataclass
+class MissingPath:
+    previous: str
+    current: str
+    actual_children: list[str]
+
+    def __str__(self) -> str:
+        return f"MissingPath(previous='{self.previous}', current='{self.current}', actual_children={self.actual_children})"
+
+
+def check_target_tree_path(node: TargetTreeNode, path: list[str]) -> MissingPath | None:
+    """
+    Helper function to check if a path exists in the target tree.
+
+    If the first element in the path does not match any of the current node's children,
+    it shall return the missing path (previousNode, currentNode).
+
+    It shall return the missing path (NodeA, NodeB) if it does not exist or None if everything is fine.
+    """
+    if not path:
+        return None
+
+    current_name = path[0]
+    for child in node.children:
+        if child.target.name == current_name or child.target.description == current_name:
+            return check_target_tree_path(child, path[1:])
+
+    # If we reach here, the current_name was not found among the children
+    actual_children = [child.target.name for child in node.children]
+    return MissingPath(previous=node.target.name, current=current_name, actual_children=actual_children)
+
+
+def test_dependency_tree_builder(get_test_data_path: Callable[[str], Path]) -> None:
+    targets_data = TargetsData.from_json_file(get_test_data_path("sample_targets_data.json"))
+    tree_builder = TargetDependencyTreeBuilder(targets_data)
+    assert tree_builder
+    target_tree = tree_builder.generate_target_tree("report")
+    assert target_tree
+
+    missing_path = check_target_tree_path(
+        target_tree,
+        [
+            "results",
+            "light_controller_results",
+            "light_controller_coverage",
+            "Generate coverage report for component light_controller",
+            "Run the test executable, generate JUnit report and return success independent of the test result",
+            "light_controller",
+            "light_controller_PC_lib",
+        ],
+    )
+    assert missing_path is None, f"Missing path in target tree: {missing_path}"
+
+
+def test_target_dependency_html_builder(get_test_data_path: Callable[[str], Path]) -> None:
+    targets_data = TargetsData.from_json_file(get_test_data_path("sample_targets_data.json"))
+    content = MarkdownFormatter().format(create_doc_structure(targets_data, ["report"]))
+    assert content
 
 
 def test_create_target_dependencies_file():
@@ -56,245 +116,6 @@ def test_create_target_dependencies_file():
 
         lib_target = next(t for t in targets_data.targets if t.name == "test_lib_lib")
         assert lib_target.description == "Object library: test_lib"
-        assert lib_target.depends == []
+        assert lib_target.depends == ["source1.cpp", "source2.cpp"]
         assert lib_target.outputs == ["test_lib_lib"]
         assert lib_target.target_type.to_string() == "OBJECT_LIBRARY"
-
-
-def test_find_root_targets_custom_targets_only():
-    targets_data = TargetsData(
-        targets=[
-            Target(name="app", description="Main application", depends=["lib1"], outputs=["app.exe"], target_type=TargetType.CUSTOM_TARGET),
-            Target(name="lib1", description="Library 1", depends=[], outputs=["lib1.a"], target_type=TargetType.EXECUTABLE),
-            Target(name="standalone", description="Standalone", depends=[], outputs=["standalone.exe"], target_type=TargetType.CUSTOM_TARGET),
-        ]
-    )
-
-    builder = TargetDependencyTreeBuilder(targets_data)
-    root_targets = builder.find_root_targets()
-
-    assert len(root_targets) == 2
-    root_names = {target.name for target in root_targets}
-    assert root_names == {"app", "standalone"}
-
-
-def test_circular_dependency_handling():
-    targets_data = TargetsData(
-        targets=[
-            Target(name="a", description="Target A", depends=["b"], outputs=["a.exe"], target_type=TargetType.CUSTOM_TARGET),
-            Target(name="b", description="Target B", depends=["a"], outputs=["b.a"], target_type=TargetType.CUSTOM_TARGET),
-            Target(name="standalone", description="Standalone", depends=[], outputs=["standalone.exe"], target_type=TargetType.CUSTOM_TARGET),
-        ]
-    )
-
-    builder = TargetDependencyTreeBuilder(targets_data)
-    root_targets = builder.find_root_targets()
-
-    assert len(root_targets) == 1
-    assert root_targets[0].name == "standalone"
-
-    target_a = next(t for t in targets_data.targets if t.name == "a")
-    html = builder.generate_target_tree_html(target_a)
-    assert "(circular dependency)" in html
-
-
-def test_dependency_tree_html_generation():
-    targets_data = TargetsData(
-        targets=[
-            Target(name="app", description="Main app", depends=["lib1", "external_lib"], outputs=["app.exe"], target_type=TargetType.CUSTOM_TARGET),
-            Target(name="lib1", description="Library 1", depends=[], outputs=["lib1.a"], target_type=TargetType.EXECUTABLE),
-        ]
-    )
-
-    builder = TargetDependencyTreeBuilder(targets_data)
-    app_target = next(t for t in targets_data.targets if t.name == "app")
-
-    html = builder.generate_target_tree_html(app_target)
-
-    assert "<details>" in html
-    assert "<summary><strong>app</strong> - Main app -> [app.exe]</summary>" in html
-    assert "<li><strong>lib1</strong> - Library 1 -> [lib1.a]</li>" in html
-    assert "<li>external_lib (external dependency)</li>" in html
-
-
-def test_documentation_generation():
-    targets_data = TargetsData(
-        targets=[
-            Target(name="app", description="Main application", depends=["lib1"], outputs=["app.exe"], target_type=TargetType.CUSTOM_TARGET),
-            Target(name="lib1", description="Library 1", depends=[], outputs=["lib1.a"], target_type=TargetType.EXECUTABLE),
-            Target(name="test", description="Test executable", depends=[], outputs=["test.exe"], target_type=TargetType.CUSTOM_TARGET),
-        ]
-    )
-
-    generator = TargetDocumentationGenerator(targets_data)
-    doc_structure = generator.create_doc_structure()
-    markdown = MarkdownFormatter().format(doc_structure)
-
-    assert "# Target Dependencies Documentation" in markdown
-    assert "**Total targets**: 3" in markdown
-    assert "**Root targets (CMakeCustomTargets only)**: 2" in markdown
-    assert "## Root Targets (CMakeCustomTargets)" in markdown
-    assert "### app" in markdown
-    assert "### test" in markdown
-    assert "## All Targets" not in markdown
-
-
-def test_empty_targets_handling():
-    targets_data = TargetsData(targets=[])
-    generator = TargetDocumentationGenerator(targets_data)
-
-    doc_structure = generator.create_doc_structure()
-    markdown = MarkdownFormatter().format(doc_structure)
-
-    assert "**Total targets**: 0" in markdown
-    assert "**Root targets (CMakeCustomTargets only)**: 0" in markdown
-
-
-def test_custom_command_grouping():
-    """Test that custom commands are grouped by command with their used outputs listed."""
-    targets_data = TargetsData(
-        targets=[
-            Target(
-                name="generate_headers",
-                target_type=TargetType.CUSTOM_COMMAND,
-                description="Generates multiple header files",
-                outputs=["config.h", "version.h"],
-                depends=[],
-            ),
-            Target(
-                name="module_a",
-                target_type=TargetType.CUSTOM_TARGET,
-                description="Module A",
-                outputs=[],
-                depends=["config.h", "version.h"],  # Depends on both outputs from same custom command
-            ),
-        ]
-    )
-
-    tree_builder = TargetDependencyTreeBuilder(targets_data)
-    module_a = tree_builder.targets_by_name["module_a"]
-    tree_html = tree_builder.generate_target_tree_html(module_a)
-
-    # Should have exactly one custom command entry (grouped)
-    custom_command_entries = tree_html.count("<strong>custom command</strong>")
-    assert custom_command_entries == 1
-
-    # Should show the used outputs in the grouped entry
-    assert "(uses: config.h, version.h)" in tree_html
-
-    # Verify the custom command appears as "custom command" not the actual name
-    assert "generate_headers" not in tree_html
-    assert "custom command" in tree_html
-
-    # Should not have "see above" since we group instead of duplicate
-    see_above_entries = tree_html.count("(see above)")
-    assert see_above_entries == 0
-
-
-def test_complex_custom_command_dependency_chain():
-    targets_data = TargetsData(
-        targets=[
-            # Executable at bottom of chain
-            Target(
-                name="greeter",
-                target_type=TargetType.EXECUTABLE,
-                description="Executable target: greeter",
-                outputs=["greeter"],
-                depends=["external_lib"],
-            ),
-            # Custom command that depends on executable
-            Target(
-                name="cmd_run_test",
-                target_type=TargetType.CUSTOM_COMMAND,
-                description="Run test executable",
-                outputs=["test_results.xml"],
-                depends=["greeter"],
-            ),
-            # Custom command that depends on test results
-            Target(
-                name="cmd_generate_coverage",
-                target_type=TargetType.CUSTOM_COMMAND,
-                description="Generate coverage report",
-                outputs=["coverage.json", "coverage.html"],
-                depends=["test_results.xml"],
-            ),
-            # Custom target that depends on coverage outputs
-            Target(
-                name="coverage_target",
-                target_type=TargetType.CUSTOM_TARGET,
-                description="Coverage report target",
-                outputs=[],
-                depends=["coverage.json", "coverage.html"],
-            ),
-        ]
-    )
-
-    tree_builder = TargetDependencyTreeBuilder(targets_data)
-    coverage_target = tree_builder.targets_by_name["coverage_target"]
-    tree_html = tree_builder.generate_target_tree_html(coverage_target)
-
-    # Should show the complete dependency chain
-    assert "Generate coverage report" in tree_html  # First custom command
-    assert "Run test executable" in tree_html  # Second custom command
-    assert "Executable target: greeter" in tree_html  # Final executable
-
-    # Should show custom commands as collapsible when they have dependencies
-    assert "<details>" in tree_html
-    assert "<summary><strong>custom command</strong>" in tree_html
-
-    # Should show external dependencies
-    assert "external_lib (external dependency)" in tree_html
-
-
-@pytest.mark.parametrize(
-    "target_type,should_be_root",
-    [
-        (TargetType.CUSTOM_TARGET, True),
-        (TargetType.EXECUTABLE, False),
-        (TargetType.OBJECT_LIBRARY, False),
-        (TargetType.CUSTOM_COMMAND, False),
-    ],
-)
-def test_root_target_filtering_by_type(target_type: TargetType, should_be_root: bool) -> None:
-    targets_data = TargetsData(
-        targets=[
-            Target(name="target", description="Test target", depends=[], outputs=["output"], target_type=target_type),
-        ]
-    )
-
-    builder = TargetDependencyTreeBuilder(targets_data)
-    root_targets = builder.find_root_targets()
-
-    if should_be_root:
-        assert len(root_targets) == 1
-        assert root_targets[0].name == "target"
-    else:
-        assert len(root_targets) == 0
-
-
-def test_targets_doc_command():
-    targets_data = TargetsData(
-        targets=[
-            Target(name="app", description="Main app", depends=["lib"], outputs=["app.exe"], target_type=TargetType.CUSTOM_TARGET),
-            Target(name="lib", description="Library", depends=[], outputs=["lib.a"], target_type=TargetType.EXECUTABLE),
-        ]
-    )
-
-    with TemporaryDirectory() as temp_dir:
-        input_file = Path(temp_dir) / "targets.json"
-        targets_data.to_json_file(input_file)
-
-        output_file = Path(temp_dir) / "targets_doc.md"
-
-        command = TargetsDocCommand()
-        args = Namespace(variant_targets_data_file=input_file, output_file=output_file)
-
-        result = command.run(args)
-
-        assert result == 0
-        assert output_file.exists()
-
-        content = output_file.read_text(encoding="utf-8")
-        assert "# Target Dependencies Documentation" in content
-        assert "app" in content
-        assert "CMakeCustomTargets" in content

@@ -1,0 +1,1549 @@
+{
+  "targets": [
+    {
+      "name": "cmd_a7ff9d1e2d33_763c75bafb0e",
+      "description": "Run the test executable, generate JUnit report and return success independent of the test result",
+      "depends": [
+        "spled"
+      ],
+      "outputs": [
+        "${CMAKE_BUILD_DIR}/spled/spled_junit.xml"
+      ],
+      "commands": [
+        "COMMAND ${CMAKE_BUILD_DIR}/spled/spled --gtest_output=xml:${CMAKE_BUILD_DIR}/spled/spled_junit.xml || ${CMAKE_COMMAND} -E true"
+      ],
+      "target_type": "CUSTOM_COMMAND"
+    },
+    {
+      "name": "cmd_4fd626c3d993_cd2f2a8f9cb3",
+      "description": "Generate coverage report for component spled",
+      "depends": [
+        "${CMAKE_BUILD_DIR}/spled/spled_junit.xml"
+      ],
+      "outputs": [
+        "${CMAKE_BUILD_DIR}/spled/gcovr.cfg",
+        "${CMAKE_BUILD_DIR}/spled/coverage.json",
+        "${CMAKE_BUILD_DIR}/spled/reports/coverage/spled/index.html"
+      ],
+      "commands": [
+        "COMMAND yanga_cmd gcovr_config_component --component-objects $<TARGET_OBJECTS:spled_PC_lib> --source-files D:/ateliere/spledy/components/spled/src/spled.c --output-file ${CMAKE_BUILD_DIR}/spled/gcovr.cfg",
+        "COMMAND gcovr --config ${CMAKE_BUILD_DIR}/spled/gcovr.cfg --json --output ${CMAKE_BUILD_DIR}/spled/coverage.json --json-pretty",
+        "COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_BUILD_DIR}/spled/reports/coverage/spled",
+        "COMMAND gcovr --config ${CMAKE_BUILD_DIR}/spled/gcovr.cfg --add-tracefile ${CMAKE_BUILD_DIR}/spled/coverage.json --html --html-details --output ${CMAKE_BUILD_DIR}/spled/reports/coverage/spled/index.html"
+      ],
+      "target_type": "CUSTOM_COMMAND"
+    },
+    {
+      "name": "cmd_c3e8cf5baf6b_ead16758754f",
+      "description": "Create partial link library containing only the productive sources",
+      "depends": [
+        "spled_PC_lib"
+      ],
+      "outputs": [
+        "${CMAKE_BUILD_DIR}/spled/spled_PC.o"
+      ],
+      "commands": [
+        "COMMAND ${CMAKE_CXX_COMPILER} -r -nostdlib -o ${CMAKE_BUILD_DIR}/spled/spled_PC.o $<TARGET_OBJECTS:spled_PC_lib>"
+      ],
+      "target_type": "CUSTOM_COMMAND"
+    },
+    {
+      "name": "cmd_a8cd225b7d97_796b5ab46712",
+      "description": "Run clanguru to generate mockup sources",
+      "depends": [
+        "${CMAKE_BUILD_DIR}/spled/spled_PC.o"
+      ],
+      "outputs": [
+        "D:/ateliere/spledy/.yanga/build/Disco/gtest/spled/mockup_spled.log",
+        "D:/ateliere/spledy/.yanga/build/Disco/gtest/spled/mockup_spled.h",
+        "D:/ateliere/spledy/.yanga/build/Disco/gtest/spled/mockup_spled.cc"
+      ],
+      "commands": [
+        "COMMAND clanguru mock --filename mockup_spled --source-file D:/ateliere/spledy/components/spled/src/spled.c --partial-object-file ${CMAKE_BUILD_DIR}/spled/spled_PC.o --output-dir ${CMAKE_BUILD_DIR}/spled --compilation-database ${CMAKE_BUILD_DIR}/compile_commands.json --no-strict --exclude-symbol-pattern \"_*\""
+      ],
+      "target_type": "CUSTOM_COMMAND"
+    },
+    {
+      "name": "cmd_a7ff9d1e2d33_164eab7cd516",
+      "description": "Run the test executable, generate JUnit report and return success independent of the test result",
+      "depends": [
+        "power_signal_processing"
+      ],
+      "outputs": [
+        "${CMAKE_BUILD_DIR}/power_signal_processing/power_signal_processing_junit.xml"
+      ],
+      "commands": [
+        "COMMAND ${CMAKE_BUILD_DIR}/power_signal_processing/power_signal_processing --gtest_output=xml:${CMAKE_BUILD_DIR}/power_signal_processing/power_signal_processing_junit.xml || ${CMAKE_COMMAND} -E true"
+      ],
+      "target_type": "CUSTOM_COMMAND"
+    },
+    {
+      "name": "cmd_1697ac508f2e_41feac6b56de",
+      "description": "Generate coverage report for component power_signal_processing",
+      "depends": [
+        "${CMAKE_BUILD_DIR}/power_signal_processing/power_signal_processing_junit.xml"
+      ],
+      "outputs": [
+        "${CMAKE_BUILD_DIR}/power_signal_processing/gcovr.cfg",
+        "${CMAKE_BUILD_DIR}/power_signal_processing/coverage.json",
+        "${CMAKE_BUILD_DIR}/power_signal_processing/reports/coverage/power_signal_processing/index.html"
+      ],
+      "commands": [
+        "COMMAND yanga_cmd gcovr_config_component --component-objects $<TARGET_OBJECTS:power_signal_processing_PC_lib> --source-files D:/ateliere/spledy/components/power_signal_processing/src/power_signal_processing.c --output-file ${CMAKE_BUILD_DIR}/power_signal_processing/gcovr.cfg",
+        "COMMAND gcovr --config ${CMAKE_BUILD_DIR}/power_signal_processing/gcovr.cfg --json --output ${CMAKE_BUILD_DIR}/power_signal_processing/coverage.json --json-pretty",
+        "COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_BUILD_DIR}/power_signal_processing/reports/coverage/power_signal_processing",
+        "COMMAND gcovr --config ${CMAKE_BUILD_DIR}/power_signal_processing/gcovr.cfg --add-tracefile ${CMAKE_BUILD_DIR}/power_signal_processing/coverage.json --html --html-details --output ${CMAKE_BUILD_DIR}/power_signal_processing/reports/coverage/power_signal_processing/index.html"
+      ],
+      "target_type": "CUSTOM_COMMAND"
+    },
+    {
+      "name": "cmd_c3e8cf5baf6b_adae195eca0d",
+      "description": "Create partial link library containing only the productive sources",
+      "depends": [
+        "power_signal_processing_PC_lib"
+      ],
+      "outputs": [
+        "${CMAKE_BUILD_DIR}/power_signal_processing/power_signal_processing_PC.o"
+      ],
+      "commands": [
+        "COMMAND ${CMAKE_CXX_COMPILER} -r -nostdlib -o ${CMAKE_BUILD_DIR}/power_signal_processing/power_signal_processing_PC.o $<TARGET_OBJECTS:power_signal_processing_PC_lib>"
+      ],
+      "target_type": "CUSTOM_COMMAND"
+    },
+    {
+      "name": "cmd_a8cd225b7d97_56163613c005",
+      "description": "Run clanguru to generate mockup sources",
+      "depends": [
+        "${CMAKE_BUILD_DIR}/power_signal_processing/power_signal_processing_PC.o"
+      ],
+      "outputs": [
+        "D:/ateliere/spledy/.yanga/build/Disco/gtest/power_signal_processing/mockup_power_signal_processing.log",
+        "D:/ateliere/spledy/.yanga/build/Disco/gtest/power_signal_processing/mockup_power_signal_processing.h",
+        "D:/ateliere/spledy/.yanga/build/Disco/gtest/power_signal_processing/mockup_power_signal_processing.cc"
+      ],
+      "commands": [
+        "COMMAND clanguru mock --filename mockup_power_signal_processing --source-file D:/ateliere/spledy/components/power_signal_processing/src/power_signal_processing.c --partial-object-file ${CMAKE_BUILD_DIR}/power_signal_processing/power_signal_processing_PC.o --output-dir ${CMAKE_BUILD_DIR}/power_signal_processing --compilation-database ${CMAKE_BUILD_DIR}/compile_commands.json --no-strict --exclude-symbol-pattern \"_*\""
+      ],
+      "target_type": "CUSTOM_COMMAND"
+    },
+    {
+      "name": "cmd_a7ff9d1e2d33_1aa76446d761",
+      "description": "Run the test executable, generate JUnit report and return success independent of the test result",
+      "depends": [
+        "light_controller"
+      ],
+      "outputs": [
+        "${CMAKE_BUILD_DIR}/light_controller/light_controller_junit.xml"
+      ],
+      "commands": [
+        "COMMAND ${CMAKE_BUILD_DIR}/light_controller/light_controller --gtest_output=xml:${CMAKE_BUILD_DIR}/light_controller/light_controller_junit.xml || ${CMAKE_COMMAND} -E true"
+      ],
+      "target_type": "CUSTOM_COMMAND"
+    },
+    {
+      "name": "cmd_4e9f272f3b20_768f5af01fe1",
+      "description": "Generate coverage report for component light_controller",
+      "depends": [
+        "${CMAKE_BUILD_DIR}/light_controller/light_controller_junit.xml"
+      ],
+      "outputs": [
+        "${CMAKE_BUILD_DIR}/light_controller/gcovr.cfg",
+        "${CMAKE_BUILD_DIR}/light_controller/coverage.json",
+        "${CMAKE_BUILD_DIR}/light_controller/reports/coverage/light_controller/index.html"
+      ],
+      "commands": [
+        "COMMAND yanga_cmd gcovr_config_component --component-objects $<TARGET_OBJECTS:light_controller_PC_lib> --source-files D:/ateliere/spledy/components/light_controller/src/light_controller.c --output-file ${CMAKE_BUILD_DIR}/light_controller/gcovr.cfg",
+        "COMMAND gcovr --config ${CMAKE_BUILD_DIR}/light_controller/gcovr.cfg --json --output ${CMAKE_BUILD_DIR}/light_controller/coverage.json --json-pretty",
+        "COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_BUILD_DIR}/light_controller/reports/coverage/light_controller",
+        "COMMAND gcovr --config ${CMAKE_BUILD_DIR}/light_controller/gcovr.cfg --add-tracefile ${CMAKE_BUILD_DIR}/light_controller/coverage.json --html --html-details --output ${CMAKE_BUILD_DIR}/light_controller/reports/coverage/light_controller/index.html"
+      ],
+      "target_type": "CUSTOM_COMMAND"
+    },
+    {
+      "name": "cmd_c3e8cf5baf6b_cf2fd8cd852f",
+      "description": "Create partial link library containing only the productive sources",
+      "depends": [
+        "light_controller_PC_lib"
+      ],
+      "outputs": [
+        "${CMAKE_BUILD_DIR}/light_controller/light_controller_PC.o"
+      ],
+      "commands": [
+        "COMMAND ${CMAKE_CXX_COMPILER} -r -nostdlib -o ${CMAKE_BUILD_DIR}/light_controller/light_controller_PC.o $<TARGET_OBJECTS:light_controller_PC_lib>"
+      ],
+      "target_type": "CUSTOM_COMMAND"
+    },
+    {
+      "name": "cmd_a8cd225b7d97_a4e4deb8e824",
+      "description": "Run clanguru to generate mockup sources",
+      "depends": [
+        "${CMAKE_BUILD_DIR}/light_controller/light_controller_PC.o"
+      ],
+      "outputs": [
+        "D:/ateliere/spledy/.yanga/build/Disco/gtest/light_controller/mockup_light_controller.log",
+        "D:/ateliere/spledy/.yanga/build/Disco/gtest/light_controller/mockup_light_controller.h",
+        "D:/ateliere/spledy/.yanga/build/Disco/gtest/light_controller/mockup_light_controller.cc"
+      ],
+      "commands": [
+        "COMMAND clanguru mock --filename mockup_light_controller --source-file D:/ateliere/spledy/components/light_controller/src/light_controller.c --partial-object-file ${CMAKE_BUILD_DIR}/light_controller/light_controller_PC.o --output-dir ${CMAKE_BUILD_DIR}/light_controller --compilation-database ${CMAKE_BUILD_DIR}/compile_commands.json --no-strict --exclude-symbol-pattern \"_*\""
+      ],
+      "target_type": "CUSTOM_COMMAND"
+    },
+    {
+      "name": "cmd_a7ff9d1e2d33_ada2e8645ed8",
+      "description": "Run the test executable, generate JUnit report and return success independent of the test result",
+      "depends": [
+        "power_button"
+      ],
+      "outputs": [
+        "${CMAKE_BUILD_DIR}/power_button/power_button_junit.xml"
+      ],
+      "commands": [
+        "COMMAND ${CMAKE_BUILD_DIR}/power_button/power_button --gtest_output=xml:${CMAKE_BUILD_DIR}/power_button/power_button_junit.xml || ${CMAKE_COMMAND} -E true"
+      ],
+      "target_type": "CUSTOM_COMMAND"
+    },
+    {
+      "name": "cmd_57d3a4eabf11_189116a26c82",
+      "description": "Generate coverage report for component power_button",
+      "depends": [
+        "${CMAKE_BUILD_DIR}/power_button/power_button_junit.xml"
+      ],
+      "outputs": [
+        "${CMAKE_BUILD_DIR}/power_button/gcovr.cfg",
+        "${CMAKE_BUILD_DIR}/power_button/coverage.json",
+        "${CMAKE_BUILD_DIR}/power_button/reports/coverage/power_button/index.html"
+      ],
+      "commands": [
+        "COMMAND yanga_cmd gcovr_config_component --component-objects $<TARGET_OBJECTS:power_button_PC_lib> --source-files D:/ateliere/spledy/components/power_button/src/power_button.c --output-file ${CMAKE_BUILD_DIR}/power_button/gcovr.cfg",
+        "COMMAND gcovr --config ${CMAKE_BUILD_DIR}/power_button/gcovr.cfg --json --output ${CMAKE_BUILD_DIR}/power_button/coverage.json --json-pretty",
+        "COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_BUILD_DIR}/power_button/reports/coverage/power_button",
+        "COMMAND gcovr --config ${CMAKE_BUILD_DIR}/power_button/gcovr.cfg --add-tracefile ${CMAKE_BUILD_DIR}/power_button/coverage.json --html --html-details --output ${CMAKE_BUILD_DIR}/power_button/reports/coverage/power_button/index.html"
+      ],
+      "target_type": "CUSTOM_COMMAND"
+    },
+    {
+      "name": "cmd_c3e8cf5baf6b_a44406d3cfcd",
+      "description": "Create partial link library containing only the productive sources",
+      "depends": [
+        "power_button_PC_lib"
+      ],
+      "outputs": [
+        "${CMAKE_BUILD_DIR}/power_button/power_button_PC.o"
+      ],
+      "commands": [
+        "COMMAND ${CMAKE_CXX_COMPILER} -r -nostdlib -o ${CMAKE_BUILD_DIR}/power_button/power_button_PC.o $<TARGET_OBJECTS:power_button_PC_lib>"
+      ],
+      "target_type": "CUSTOM_COMMAND"
+    },
+    {
+      "name": "cmd_a8cd225b7d97_44bbd6bdd2bc",
+      "description": "Run clanguru to generate mockup sources",
+      "depends": [
+        "${CMAKE_BUILD_DIR}/power_button/power_button_PC.o"
+      ],
+      "outputs": [
+        "D:/ateliere/spledy/.yanga/build/Disco/gtest/power_button/mockup_power_button.log",
+        "D:/ateliere/spledy/.yanga/build/Disco/gtest/power_button/mockup_power_button.h",
+        "D:/ateliere/spledy/.yanga/build/Disco/gtest/power_button/mockup_power_button.cc"
+      ],
+      "commands": [
+        "COMMAND clanguru mock --filename mockup_power_button --source-file D:/ateliere/spledy/components/power_button/src/power_button.c --partial-object-file ${CMAKE_BUILD_DIR}/power_button/power_button_PC.o --output-dir ${CMAKE_BUILD_DIR}/power_button --compilation-database ${CMAKE_BUILD_DIR}/compile_commands.json --no-strict --exclude-symbol-pattern \"_*\""
+      ],
+      "target_type": "CUSTOM_COMMAND"
+    },
+    {
+      "name": "cmd_a7ff9d1e2d33_7239c09c6b03",
+      "description": "Run the test executable, generate JUnit report and return success independent of the test result",
+      "depends": [
+        "main_control_knob"
+      ],
+      "outputs": [
+        "${CMAKE_BUILD_DIR}/main_control_knob/main_control_knob_junit.xml"
+      ],
+      "commands": [
+        "COMMAND ${CMAKE_BUILD_DIR}/main_control_knob/main_control_knob --gtest_output=xml:${CMAKE_BUILD_DIR}/main_control_knob/main_control_knob_junit.xml || ${CMAKE_COMMAND} -E true"
+      ],
+      "target_type": "CUSTOM_COMMAND"
+    },
+    {
+      "name": "cmd_7212892df5d3_310851d47789",
+      "description": "Generate coverage report for component main_control_knob",
+      "depends": [
+        "${CMAKE_BUILD_DIR}/main_control_knob/main_control_knob_junit.xml"
+      ],
+      "outputs": [
+        "${CMAKE_BUILD_DIR}/main_control_knob/gcovr.cfg",
+        "${CMAKE_BUILD_DIR}/main_control_knob/coverage.json",
+        "${CMAKE_BUILD_DIR}/main_control_knob/reports/coverage/main_control_knob/index.html"
+      ],
+      "commands": [
+        "COMMAND yanga_cmd gcovr_config_component --component-objects $<TARGET_OBJECTS:main_control_knob_PC_lib> --source-files D:/ateliere/spledy/components/main_control_knob/src/main_control_knob.c --output-file ${CMAKE_BUILD_DIR}/main_control_knob/gcovr.cfg",
+        "COMMAND gcovr --config ${CMAKE_BUILD_DIR}/main_control_knob/gcovr.cfg --json --output ${CMAKE_BUILD_DIR}/main_control_knob/coverage.json --json-pretty",
+        "COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_BUILD_DIR}/main_control_knob/reports/coverage/main_control_knob",
+        "COMMAND gcovr --config ${CMAKE_BUILD_DIR}/main_control_knob/gcovr.cfg --add-tracefile ${CMAKE_BUILD_DIR}/main_control_knob/coverage.json --html --html-details --output ${CMAKE_BUILD_DIR}/main_control_knob/reports/coverage/main_control_knob/index.html"
+      ],
+      "target_type": "CUSTOM_COMMAND"
+    },
+    {
+      "name": "cmd_c3e8cf5baf6b_ad9f92ab8703",
+      "description": "Create partial link library containing only the productive sources",
+      "depends": [
+        "main_control_knob_PC_lib"
+      ],
+      "outputs": [
+        "${CMAKE_BUILD_DIR}/main_control_knob/main_control_knob_PC.o"
+      ],
+      "commands": [
+        "COMMAND ${CMAKE_CXX_COMPILER} -r -nostdlib -o ${CMAKE_BUILD_DIR}/main_control_knob/main_control_knob_PC.o $<TARGET_OBJECTS:main_control_knob_PC_lib>"
+      ],
+      "target_type": "CUSTOM_COMMAND"
+    },
+    {
+      "name": "cmd_a8cd225b7d97_471f0c8365b2",
+      "description": "Run clanguru to generate mockup sources",
+      "depends": [
+        "${CMAKE_BUILD_DIR}/main_control_knob/main_control_knob_PC.o"
+      ],
+      "outputs": [
+        "D:/ateliere/spledy/.yanga/build/Disco/gtest/main_control_knob/mockup_main_control_knob.log",
+        "D:/ateliere/spledy/.yanga/build/Disco/gtest/main_control_knob/mockup_main_control_knob.h",
+        "D:/ateliere/spledy/.yanga/build/Disco/gtest/main_control_knob/mockup_main_control_knob.cc"
+      ],
+      "commands": [
+        "COMMAND clanguru mock --filename mockup_main_control_knob --source-file D:/ateliere/spledy/components/main_control_knob/src/main_control_knob.c --partial-object-file ${CMAKE_BUILD_DIR}/main_control_knob/main_control_knob_PC.o --output-dir ${CMAKE_BUILD_DIR}/main_control_knob --compilation-database ${CMAKE_BUILD_DIR}/compile_commands.json --no-strict --exclude-symbol-pattern \"_*\""
+      ],
+      "target_type": "CUSTOM_COMMAND"
+    },
+    {
+      "name": "cmd_a7ff9d1e2d33_08e3fe8a6c07",
+      "description": "Run the test executable, generate JUnit report and return success independent of the test result",
+      "depends": [
+        "test_integrations_spled"
+      ],
+      "outputs": [
+        "${CMAKE_BUILD_DIR}/test_integrations_spled/test_integrations_spled_junit.xml"
+      ],
+      "commands": [
+        "COMMAND ${CMAKE_BUILD_DIR}/test_integrations_spled/test_integrations_spled --gtest_output=xml:${CMAKE_BUILD_DIR}/test_integrations_spled/test_integrations_spled_junit.xml || ${CMAKE_COMMAND} -E true"
+      ],
+      "target_type": "CUSTOM_COMMAND"
+    },
+    {
+      "name": "cmd_b7e950bce41f_4f70574f3b98",
+      "description": "Generate coverage report for component test_integrations_spled",
+      "depends": [
+        "${CMAKE_BUILD_DIR}/test_integrations_spled/test_integrations_spled_junit.xml"
+      ],
+      "outputs": [
+        "${CMAKE_BUILD_DIR}/test_integrations_spled/gcovr.cfg",
+        "${CMAKE_BUILD_DIR}/test_integrations_spled/coverage.json",
+        "${CMAKE_BUILD_DIR}/test_integrations_spled/reports/coverage/test_integrations_spled/index.html"
+      ],
+      "commands": [
+        "COMMAND yanga_cmd gcovr_config_component --component-objects $<TARGET_OBJECTS:test_integrations_spled_PC_lib> --source-files D:/ateliere/spledy/components/spled/src/spled.c D:/ateliere/spledy/components/rte/src/rte.c D:/ateliere/spledy/components/brightness_controller/src/brightness_controller.c D:/ateliere/spledy/components/light_controller/src/light_controller.c D:/ateliere/spledy/components/main_control_knob/src/main_control_knob.c D:/ateliere/spledy/components/power_button/src/power_button.c D:/ateliere/spledy/components/power_signal_processing/src/power_signal_processing.c --output-file ${CMAKE_BUILD_DIR}/test_integrations_spled/gcovr.cfg",
+        "COMMAND gcovr --config ${CMAKE_BUILD_DIR}/test_integrations_spled/gcovr.cfg --json --output ${CMAKE_BUILD_DIR}/test_integrations_spled/coverage.json --json-pretty",
+        "COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_BUILD_DIR}/test_integrations_spled/reports/coverage/test_integrations_spled",
+        "COMMAND gcovr --config ${CMAKE_BUILD_DIR}/test_integrations_spled/gcovr.cfg --add-tracefile ${CMAKE_BUILD_DIR}/test_integrations_spled/coverage.json --html --html-details --output ${CMAKE_BUILD_DIR}/test_integrations_spled/reports/coverage/test_integrations_spled/index.html"
+      ],
+      "target_type": "CUSTOM_COMMAND"
+    },
+    {
+      "name": "cmd_c3e8cf5baf6b_9c0828b9a06d",
+      "description": "Create partial link library containing only the productive sources",
+      "depends": [
+        "test_integrations_spled_PC_lib"
+      ],
+      "outputs": [
+        "${CMAKE_BUILD_DIR}/test_integrations_spled/test_integrations_spled_PC.o"
+      ],
+      "commands": [
+        "COMMAND ${CMAKE_CXX_COMPILER} -r -nostdlib -o ${CMAKE_BUILD_DIR}/test_integrations_spled/test_integrations_spled_PC.o $<TARGET_OBJECTS:test_integrations_spled_PC_lib>"
+      ],
+      "target_type": "CUSTOM_COMMAND"
+    },
+    {
+      "name": "cmd_a8cd225b7d97_84fd8cd8c19c",
+      "description": "Run clanguru to generate mockup sources",
+      "depends": [
+        "${CMAKE_BUILD_DIR}/test_integrations_spled/test_integrations_spled_PC.o"
+      ],
+      "outputs": [
+        "D:/ateliere/spledy/.yanga/build/Disco/gtest/test_integrations_spled/mockup_test_integrations_spled.log",
+        "D:/ateliere/spledy/.yanga/build/Disco/gtest/test_integrations_spled/mockup_test_integrations_spled.h",
+        "D:/ateliere/spledy/.yanga/build/Disco/gtest/test_integrations_spled/mockup_test_integrations_spled.cc"
+      ],
+      "commands": [
+        "COMMAND clanguru mock --filename mockup_test_integrations_spled --source-file D:/ateliere/spledy/components/spled/src/spled.c --source-file D:/ateliere/spledy/components/rte/src/rte.c --source-file D:/ateliere/spledy/components/brightness_controller/src/brightness_controller.c --source-file D:/ateliere/spledy/components/light_controller/src/light_controller.c --source-file D:/ateliere/spledy/components/main_control_knob/src/main_control_knob.c --source-file D:/ateliere/spledy/components/power_button/src/power_button.c --source-file D:/ateliere/spledy/components/power_signal_processing/src/power_signal_processing.c --partial-object-file ${CMAKE_BUILD_DIR}/test_integrations_spled/test_integrations_spled_PC.o --output-dir ${CMAKE_BUILD_DIR}/test_integrations_spled --compilation-database ${CMAKE_BUILD_DIR}/compile_commands.json --no-strict --exclude-symbol-pattern \"_*\""
+      ],
+      "target_type": "CUSTOM_COMMAND"
+    },
+    {
+      "name": "cmd_d54ad5c4720e_2a98c9e68587",
+      "description": "Create coverage report directories",
+      "depends": [ ],
+      "outputs": [
+        "${CMAKE_BUILD_DIR}/reports/coverage"
+      ],
+      "commands": [
+        "COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_BUILD_DIR}/reports/coverage"
+      ],
+      "target_type": "CUSTOM_COMMAND"
+    },
+    {
+      "name": "cmd_30cc4bb4d7cb_0e97c0a195ac",
+      "description": "Copy coverage html report for component spled to variant report directory",
+      "depends": [
+        "spled_coverage",
+        "${CMAKE_BUILD_DIR}/reports/coverage"
+      ],
+      "outputs": [
+        "${CMAKE_BUILD_DIR}/reports/coverage/spled"
+      ],
+      "commands": [
+        "COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_BUILD_DIR}/spled/reports/coverage/spled ${CMAKE_BUILD_DIR}/reports/coverage/spled"
+      ],
+      "target_type": "CUSTOM_COMMAND"
+    },
+    {
+      "name": "cmd_4c9597d06cda_9786f70b14c8",
+      "description": "Copy coverage html report for component power_signal_processing to variant report directory",
+      "depends": [
+        "power_signal_processing_coverage",
+        "${CMAKE_BUILD_DIR}/reports/coverage"
+      ],
+      "outputs": [
+        "${CMAKE_BUILD_DIR}/reports/coverage/power_signal_processing"
+      ],
+      "commands": [
+        "COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_BUILD_DIR}/power_signal_processing/reports/coverage/power_signal_processing ${CMAKE_BUILD_DIR}/reports/coverage/power_signal_processing"
+      ],
+      "target_type": "CUSTOM_COMMAND"
+    },
+    {
+      "name": "cmd_90fdc5fa45b5_c897e3c1b88a",
+      "description": "Copy coverage html report for component light_controller to variant report directory",
+      "depends": [
+        "light_controller_coverage",
+        "${CMAKE_BUILD_DIR}/reports/coverage"
+      ],
+      "outputs": [
+        "${CMAKE_BUILD_DIR}/reports/coverage/light_controller"
+      ],
+      "commands": [
+        "COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_BUILD_DIR}/light_controller/reports/coverage/light_controller ${CMAKE_BUILD_DIR}/reports/coverage/light_controller"
+      ],
+      "target_type": "CUSTOM_COMMAND"
+    },
+    {
+      "name": "cmd_68ec8749b926_1175e8ec9581",
+      "description": "Copy coverage html report for component power_button to variant report directory",
+      "depends": [
+        "power_button_coverage",
+        "${CMAKE_BUILD_DIR}/reports/coverage"
+      ],
+      "outputs": [
+        "${CMAKE_BUILD_DIR}/reports/coverage/power_button"
+      ],
+      "commands": [
+        "COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_BUILD_DIR}/power_button/reports/coverage/power_button ${CMAKE_BUILD_DIR}/reports/coverage/power_button"
+      ],
+      "target_type": "CUSTOM_COMMAND"
+    },
+    {
+      "name": "cmd_55813a2372a7_08119a6fabc8",
+      "description": "Copy coverage html report for component main_control_knob to variant report directory",
+      "depends": [
+        "main_control_knob_coverage",
+        "${CMAKE_BUILD_DIR}/reports/coverage"
+      ],
+      "outputs": [
+        "${CMAKE_BUILD_DIR}/reports/coverage/main_control_knob"
+      ],
+      "commands": [
+        "COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_BUILD_DIR}/main_control_knob/reports/coverage/main_control_knob ${CMAKE_BUILD_DIR}/reports/coverage/main_control_knob"
+      ],
+      "target_type": "CUSTOM_COMMAND"
+    },
+    {
+      "name": "cmd_d7f33425fa6d_189f606d8ea0",
+      "description": "Copy coverage html report for component test_integrations_spled to variant report directory",
+      "depends": [
+        "test_integrations_spled_coverage",
+        "${CMAKE_BUILD_DIR}/reports/coverage"
+      ],
+      "outputs": [
+        "${CMAKE_BUILD_DIR}/reports/coverage/test_integrations_spled"
+      ],
+      "commands": [
+        "COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_BUILD_DIR}/test_integrations_spled/reports/coverage/test_integrations_spled ${CMAKE_BUILD_DIR}/reports/coverage/test_integrations_spled"
+      ],
+      "target_type": "CUSTOM_COMMAND"
+    },
+    {
+      "name": "cmd_7e3a914ea435_e07d89a72987",
+      "description": "Generate coverage report for the variant",
+      "depends": [
+        "${CMAKE_BUILD_DIR}/reports/coverage",
+        "${CMAKE_BUILD_DIR}/spled/coverage.json",
+        "${CMAKE_BUILD_DIR}/power_signal_processing/coverage.json",
+        "${CMAKE_BUILD_DIR}/light_controller/coverage.json",
+        "${CMAKE_BUILD_DIR}/power_button/coverage.json",
+        "${CMAKE_BUILD_DIR}/main_control_knob/coverage.json",
+        "${CMAKE_BUILD_DIR}/test_integrations_spled/coverage.json",
+        "${CMAKE_BUILD_DIR}/reports/coverage/spled",
+        "${CMAKE_BUILD_DIR}/reports/coverage/power_signal_processing",
+        "${CMAKE_BUILD_DIR}/reports/coverage/light_controller",
+        "${CMAKE_BUILD_DIR}/reports/coverage/power_button",
+        "${CMAKE_BUILD_DIR}/reports/coverage/main_control_knob",
+        "${CMAKE_BUILD_DIR}/reports/coverage/test_integrations_spled"
+      ],
+      "outputs": [
+        "${CMAKE_BUILD_DIR}/gcovr.cfg",
+        "${CMAKE_BUILD_DIR}/reports/coverage/index.html"
+      ],
+      "commands": [
+        "COMMAND yanga_cmd gcovr_config_variant --variant-report-config ${CMAKE_BUILD_DIR}/report_config.json --output-file ${CMAKE_BUILD_DIR}/gcovr.cfg",
+        "COMMAND gcovr --config ${CMAKE_BUILD_DIR}/gcovr.cfg --html --html-details --output ${CMAKE_BUILD_DIR}/reports/coverage/index.html"
+      ],
+      "target_type": "CUSTOM_COMMAND"
+    },
+    {
+      "name": "cmd_b67778a85547_771a98fa59a3",
+      "description": "Run cppcheck for all sources",
+      "depends": [ ],
+      "outputs": [
+        "${CMAKE_BUILD_DIR}/cppcheck_report.xml",
+        "${CMAKE_BUILD_DIR}/cppcheck_report.md"
+      ],
+      "commands": [
+        "COMMAND cppcheck --enable=all --inconclusive --std=c11 --language=c --project=${CMAKE_BUILD_DIR}/compile_commands.json --xml 2> ${CMAKE_BUILD_DIR}/cppcheck_report.xml",
+        "COMMAND yanga_cmd cppcheck_report --input-file ${CMAKE_BUILD_DIR}/cppcheck_report.xml --output-file ${CMAKE_BUILD_DIR}/cppcheck_report.md --project-dir D:/ateliere/spledy"
+      ],
+      "target_type": "CUSTOM_COMMAND"
+    },
+    {
+      "name": "cmd_41343ef7d2de_c268bd0596b9",
+      "description": "Run cppcheck for component rte",
+      "depends": [ ],
+      "outputs": [
+        "${CMAKE_BUILD_DIR}/rte/compile_commands.json",
+        "${CMAKE_BUILD_DIR}/rte/cppcheck_report.xml",
+        "${CMAKE_BUILD_DIR}/rte/cppcheck_report.md"
+      ],
+      "commands": [
+        "COMMAND yanga_cmd filter_compile_commands --compilation-database ${CMAKE_BUILD_DIR}/compile_commands.json --source-files D:/ateliere/spledy/components/rte/src/rte.c --output-file ${CMAKE_BUILD_DIR}/rte/compile_commands.json",
+        "COMMAND cppcheck --enable=all --inconclusive --std=c11 --language=c --project=${CMAKE_BUILD_DIR}/rte/compile_commands.json --xml 2> ${CMAKE_BUILD_DIR}/rte/cppcheck_report.xml",
+        "COMMAND yanga_cmd cppcheck_report --input-file ${CMAKE_BUILD_DIR}/rte/cppcheck_report.xml --output-file ${CMAKE_BUILD_DIR}/rte/cppcheck_report.md --project-dir D:/ateliere/spledy"
+      ],
+      "target_type": "CUSTOM_COMMAND"
+    },
+    {
+      "name": "cmd_bd9299d78c88_f7f2ec5d7116",
+      "description": "Run cppcheck for component spled",
+      "depends": [ ],
+      "outputs": [
+        "${CMAKE_BUILD_DIR}/spled/compile_commands.json",
+        "${CMAKE_BUILD_DIR}/spled/cppcheck_report.xml",
+        "${CMAKE_BUILD_DIR}/spled/cppcheck_report.md"
+      ],
+      "commands": [
+        "COMMAND yanga_cmd filter_compile_commands --compilation-database ${CMAKE_BUILD_DIR}/compile_commands.json --source-files D:/ateliere/spledy/components/spled/src/spled.c --output-file ${CMAKE_BUILD_DIR}/spled/compile_commands.json",
+        "COMMAND cppcheck --enable=all --inconclusive --std=c11 --language=c --project=${CMAKE_BUILD_DIR}/spled/compile_commands.json --xml 2> ${CMAKE_BUILD_DIR}/spled/cppcheck_report.xml",
+        "COMMAND yanga_cmd cppcheck_report --input-file ${CMAKE_BUILD_DIR}/spled/cppcheck_report.xml --output-file ${CMAKE_BUILD_DIR}/spled/cppcheck_report.md --project-dir D:/ateliere/spledy"
+      ],
+      "target_type": "CUSTOM_COMMAND"
+    },
+    {
+      "name": "cmd_bda1d38ee3d6_783f4ff7ada2",
+      "description": "Run cppcheck for component power_signal_processing",
+      "depends": [ ],
+      "outputs": [
+        "${CMAKE_BUILD_DIR}/power_signal_processing/compile_commands.json",
+        "${CMAKE_BUILD_DIR}/power_signal_processing/cppcheck_report.xml",
+        "${CMAKE_BUILD_DIR}/power_signal_processing/cppcheck_report.md"
+      ],
+      "commands": [
+        "COMMAND yanga_cmd filter_compile_commands --compilation-database ${CMAKE_BUILD_DIR}/compile_commands.json --source-files D:/ateliere/spledy/components/power_signal_processing/src/power_signal_processing.c --output-file ${CMAKE_BUILD_DIR}/power_signal_processing/compile_commands.json",
+        "COMMAND cppcheck --enable=all --inconclusive --std=c11 --language=c --project=${CMAKE_BUILD_DIR}/power_signal_processing/compile_commands.json --xml 2> ${CMAKE_BUILD_DIR}/power_signal_processing/cppcheck_report.xml",
+        "COMMAND yanga_cmd cppcheck_report --input-file ${CMAKE_BUILD_DIR}/power_signal_processing/cppcheck_report.xml --output-file ${CMAKE_BUILD_DIR}/power_signal_processing/cppcheck_report.md --project-dir D:/ateliere/spledy"
+      ],
+      "target_type": "CUSTOM_COMMAND"
+    },
+    {
+      "name": "cmd_ccd44de418a7_e6c7ecc52cbd",
+      "description": "Run cppcheck for component light_controller",
+      "depends": [ ],
+      "outputs": [
+        "${CMAKE_BUILD_DIR}/light_controller/compile_commands.json",
+        "${CMAKE_BUILD_DIR}/light_controller/cppcheck_report.xml",
+        "${CMAKE_BUILD_DIR}/light_controller/cppcheck_report.md"
+      ],
+      "commands": [
+        "COMMAND yanga_cmd filter_compile_commands --compilation-database ${CMAKE_BUILD_DIR}/compile_commands.json --source-files D:/ateliere/spledy/components/light_controller/src/light_controller.c --output-file ${CMAKE_BUILD_DIR}/light_controller/compile_commands.json",
+        "COMMAND cppcheck --enable=all --inconclusive --std=c11 --language=c --project=${CMAKE_BUILD_DIR}/light_controller/compile_commands.json --xml 2> ${CMAKE_BUILD_DIR}/light_controller/cppcheck_report.xml",
+        "COMMAND yanga_cmd cppcheck_report --input-file ${CMAKE_BUILD_DIR}/light_controller/cppcheck_report.xml --output-file ${CMAKE_BUILD_DIR}/light_controller/cppcheck_report.md --project-dir D:/ateliere/spledy"
+      ],
+      "target_type": "CUSTOM_COMMAND"
+    },
+    {
+      "name": "cmd_9275f3a02cda_5407e707c24d",
+      "description": "Run cppcheck for component power_button",
+      "depends": [ ],
+      "outputs": [
+        "${CMAKE_BUILD_DIR}/power_button/compile_commands.json",
+        "${CMAKE_BUILD_DIR}/power_button/cppcheck_report.xml",
+        "${CMAKE_BUILD_DIR}/power_button/cppcheck_report.md"
+      ],
+      "commands": [
+        "COMMAND yanga_cmd filter_compile_commands --compilation-database ${CMAKE_BUILD_DIR}/compile_commands.json --source-files D:/ateliere/spledy/components/power_button/src/power_button.c --output-file ${CMAKE_BUILD_DIR}/power_button/compile_commands.json",
+        "COMMAND cppcheck --enable=all --inconclusive --std=c11 --language=c --project=${CMAKE_BUILD_DIR}/power_button/compile_commands.json --xml 2> ${CMAKE_BUILD_DIR}/power_button/cppcheck_report.xml",
+        "COMMAND yanga_cmd cppcheck_report --input-file ${CMAKE_BUILD_DIR}/power_button/cppcheck_report.xml --output-file ${CMAKE_BUILD_DIR}/power_button/cppcheck_report.md --project-dir D:/ateliere/spledy"
+      ],
+      "target_type": "CUSTOM_COMMAND"
+    },
+    {
+      "name": "cmd_e47eda3ed8af_689df68d0d9e",
+      "description": "Run cppcheck for component main_control_knob",
+      "depends": [ ],
+      "outputs": [
+        "${CMAKE_BUILD_DIR}/main_control_knob/compile_commands.json",
+        "${CMAKE_BUILD_DIR}/main_control_knob/cppcheck_report.xml",
+        "${CMAKE_BUILD_DIR}/main_control_knob/cppcheck_report.md"
+      ],
+      "commands": [
+        "COMMAND yanga_cmd filter_compile_commands --compilation-database ${CMAKE_BUILD_DIR}/compile_commands.json --source-files D:/ateliere/spledy/components/main_control_knob/src/main_control_knob.c --output-file ${CMAKE_BUILD_DIR}/main_control_knob/compile_commands.json",
+        "COMMAND cppcheck --enable=all --inconclusive --std=c11 --language=c --project=${CMAKE_BUILD_DIR}/main_control_knob/compile_commands.json --xml 2> ${CMAKE_BUILD_DIR}/main_control_knob/cppcheck_report.xml",
+        "COMMAND yanga_cmd cppcheck_report --input-file ${CMAKE_BUILD_DIR}/main_control_knob/cppcheck_report.xml --output-file ${CMAKE_BUILD_DIR}/main_control_knob/cppcheck_report.md --project-dir D:/ateliere/spledy"
+      ],
+      "target_type": "CUSTOM_COMMAND"
+    },
+    {
+      "name": "cmd_d542fc4b867c_cad54cd2710c",
+      "description": "Run cppcheck for component test_integrations_spled",
+      "depends": [ ],
+      "outputs": [
+        "${CMAKE_BUILD_DIR}/test_integrations_spled/compile_commands.json",
+        "${CMAKE_BUILD_DIR}/test_integrations_spled/cppcheck_report.xml",
+        "${CMAKE_BUILD_DIR}/test_integrations_spled/cppcheck_report.md"
+      ],
+      "commands": [
+        "COMMAND yanga_cmd filter_compile_commands --compilation-database ${CMAKE_BUILD_DIR}/compile_commands.json --source-files D:/ateliere/spledy/components/spled/src/spled.c D:/ateliere/spledy/components/rte/src/rte.c D:/ateliere/spledy/components/brightness_controller/src/brightness_controller.c D:/ateliere/spledy/components/light_controller/src/light_controller.c D:/ateliere/spledy/components/main_control_knob/src/main_control_knob.c D:/ateliere/spledy/components/power_button/src/power_button.c D:/ateliere/spledy/components/power_signal_processing/src/power_signal_processing.c --output-file ${CMAKE_BUILD_DIR}/test_integrations_spled/compile_commands.json",
+        "COMMAND cppcheck --enable=all --inconclusive --std=c11 --language=c --project=${CMAKE_BUILD_DIR}/test_integrations_spled/compile_commands.json --xml 2> ${CMAKE_BUILD_DIR}/test_integrations_spled/cppcheck_report.xml",
+        "COMMAND yanga_cmd cppcheck_report --input-file ${CMAKE_BUILD_DIR}/test_integrations_spled/cppcheck_report.xml --output-file ${CMAKE_BUILD_DIR}/test_integrations_spled/cppcheck_report.md --project-dir D:/ateliere/spledy"
+      ],
+      "target_type": "CUSTOM_COMMAND"
+    },
+    {
+      "name": "cmd_fe1ed6625893_58fdd17708a9",
+      "description": "Generate variant targets data documentation",
+      "depends": [
+        "${CMAKE_BUILD_DIR}/targets_data.json"
+      ],
+      "outputs": [
+        "${CMAKE_BUILD_DIR}/targets_data.md"
+      ],
+      "commands": [
+        "COMMAND yanga_cmd targets_doc --variant-targets-data-file ${CMAKE_BUILD_DIR}/targets_data.json --output-file ${CMAKE_BUILD_DIR}/targets_data.md"
+      ],
+      "target_type": "CUSTOM_COMMAND"
+    },
+    {
+      "name": "spled_coverage",
+      "description": "Generate coverage report for spled",
+      "depends": [
+        "${CMAKE_BUILD_DIR}/spled/gcovr.cfg",
+        "${CMAKE_BUILD_DIR}/spled/coverage.json",
+        "${CMAKE_BUILD_DIR}/spled/reports/coverage/spled/index.html"
+      ],
+      "outputs": [ ],
+      "commands": [ ],
+      "target_type": "CUSTOM_TARGET"
+    },
+    {
+      "name": "spled_mockup",
+      "description": "Generate mockup sources for spled",
+      "depends": [
+        "D:/ateliere/spledy/.yanga/build/Disco/gtest/spled/mockup_spled.log",
+        "D:/ateliere/spledy/.yanga/build/Disco/gtest/spled/mockup_spled.h",
+        "D:/ateliere/spledy/.yanga/build/Disco/gtest/spled/mockup_spled.cc"
+      ],
+      "outputs": [ ],
+      "commands": [ ],
+      "target_type": "CUSTOM_TARGET"
+    },
+    {
+      "name": "spled_test",
+      "description": "Execute tests for spled",
+      "depends": [
+        "${CMAKE_BUILD_DIR}/spled/spled_junit.xml"
+      ],
+      "outputs": [ ],
+      "commands": [ ],
+      "target_type": "CUSTOM_TARGET"
+    },
+    {
+      "name": "spled_build",
+      "description": "Execute tests for spled",
+      "depends": [
+        "${CMAKE_BUILD_DIR}/spled/spled_junit.xml"
+      ],
+      "outputs": [ ],
+      "commands": [ ],
+      "target_type": "CUSTOM_TARGET"
+    },
+    {
+      "name": "power_signal_processing_coverage",
+      "description": "Generate coverage report for power_signal_processing",
+      "depends": [
+        "${CMAKE_BUILD_DIR}/power_signal_processing/gcovr.cfg",
+        "${CMAKE_BUILD_DIR}/power_signal_processing/coverage.json",
+        "${CMAKE_BUILD_DIR}/power_signal_processing/reports/coverage/power_signal_processing/index.html"
+      ],
+      "outputs": [ ],
+      "commands": [ ],
+      "target_type": "CUSTOM_TARGET"
+    },
+    {
+      "name": "power_signal_processing_mockup",
+      "description": "Generate mockup sources for power_signal_processing",
+      "depends": [
+        "D:/ateliere/spledy/.yanga/build/Disco/gtest/power_signal_processing/mockup_power_signal_processing.log",
+        "D:/ateliere/spledy/.yanga/build/Disco/gtest/power_signal_processing/mockup_power_signal_processing.h",
+        "D:/ateliere/spledy/.yanga/build/Disco/gtest/power_signal_processing/mockup_power_signal_processing.cc"
+      ],
+      "outputs": [ ],
+      "commands": [ ],
+      "target_type": "CUSTOM_TARGET"
+    },
+    {
+      "name": "power_signal_processing_test",
+      "description": "Execute tests for power_signal_processing",
+      "depends": [
+        "${CMAKE_BUILD_DIR}/power_signal_processing/power_signal_processing_junit.xml"
+      ],
+      "outputs": [ ],
+      "commands": [ ],
+      "target_type": "CUSTOM_TARGET"
+    },
+    {
+      "name": "power_signal_processing_build",
+      "description": "Execute tests for power_signal_processing",
+      "depends": [
+        "${CMAKE_BUILD_DIR}/power_signal_processing/power_signal_processing_junit.xml"
+      ],
+      "outputs": [ ],
+      "commands": [ ],
+      "target_type": "CUSTOM_TARGET"
+    },
+    {
+      "name": "light_controller_coverage",
+      "description": "Generate coverage report for light_controller",
+      "depends": [
+        "${CMAKE_BUILD_DIR}/light_controller/gcovr.cfg",
+        "${CMAKE_BUILD_DIR}/light_controller/coverage.json",
+        "${CMAKE_BUILD_DIR}/light_controller/reports/coverage/light_controller/index.html"
+      ],
+      "outputs": [ ],
+      "commands": [ ],
+      "target_type": "CUSTOM_TARGET"
+    },
+    {
+      "name": "light_controller_mockup",
+      "description": "Generate mockup sources for light_controller",
+      "depends": [
+        "D:/ateliere/spledy/.yanga/build/Disco/gtest/light_controller/mockup_light_controller.log",
+        "D:/ateliere/spledy/.yanga/build/Disco/gtest/light_controller/mockup_light_controller.h",
+        "D:/ateliere/spledy/.yanga/build/Disco/gtest/light_controller/mockup_light_controller.cc"
+      ],
+      "outputs": [ ],
+      "commands": [ ],
+      "target_type": "CUSTOM_TARGET"
+    },
+    {
+      "name": "light_controller_test",
+      "description": "Execute tests for light_controller",
+      "depends": [
+        "${CMAKE_BUILD_DIR}/light_controller/light_controller_junit.xml"
+      ],
+      "outputs": [ ],
+      "commands": [ ],
+      "target_type": "CUSTOM_TARGET"
+    },
+    {
+      "name": "light_controller_build",
+      "description": "Execute tests for light_controller",
+      "depends": [
+        "${CMAKE_BUILD_DIR}/light_controller/light_controller_junit.xml"
+      ],
+      "outputs": [ ],
+      "commands": [ ],
+      "target_type": "CUSTOM_TARGET"
+    },
+    {
+      "name": "power_button_coverage",
+      "description": "Generate coverage report for power_button",
+      "depends": [
+        "${CMAKE_BUILD_DIR}/power_button/gcovr.cfg",
+        "${CMAKE_BUILD_DIR}/power_button/coverage.json",
+        "${CMAKE_BUILD_DIR}/power_button/reports/coverage/power_button/index.html"
+      ],
+      "outputs": [ ],
+      "commands": [ ],
+      "target_type": "CUSTOM_TARGET"
+    },
+    {
+      "name": "power_button_mockup",
+      "description": "Generate mockup sources for power_button",
+      "depends": [
+        "D:/ateliere/spledy/.yanga/build/Disco/gtest/power_button/mockup_power_button.log",
+        "D:/ateliere/spledy/.yanga/build/Disco/gtest/power_button/mockup_power_button.h",
+        "D:/ateliere/spledy/.yanga/build/Disco/gtest/power_button/mockup_power_button.cc"
+      ],
+      "outputs": [ ],
+      "commands": [ ],
+      "target_type": "CUSTOM_TARGET"
+    },
+    {
+      "name": "power_button_test",
+      "description": "Execute tests for power_button",
+      "depends": [
+        "${CMAKE_BUILD_DIR}/power_button/power_button_junit.xml"
+      ],
+      "outputs": [ ],
+      "commands": [ ],
+      "target_type": "CUSTOM_TARGET"
+    },
+    {
+      "name": "power_button_build",
+      "description": "Execute tests for power_button",
+      "depends": [
+        "${CMAKE_BUILD_DIR}/power_button/power_button_junit.xml"
+      ],
+      "outputs": [ ],
+      "commands": [ ],
+      "target_type": "CUSTOM_TARGET"
+    },
+    {
+      "name": "main_control_knob_coverage",
+      "description": "Generate coverage report for main_control_knob",
+      "depends": [
+        "${CMAKE_BUILD_DIR}/main_control_knob/gcovr.cfg",
+        "${CMAKE_BUILD_DIR}/main_control_knob/coverage.json",
+        "${CMAKE_BUILD_DIR}/main_control_knob/reports/coverage/main_control_knob/index.html"
+      ],
+      "outputs": [ ],
+      "commands": [ ],
+      "target_type": "CUSTOM_TARGET"
+    },
+    {
+      "name": "main_control_knob_mockup",
+      "description": "Generate mockup sources for main_control_knob",
+      "depends": [
+        "D:/ateliere/spledy/.yanga/build/Disco/gtest/main_control_knob/mockup_main_control_knob.log",
+        "D:/ateliere/spledy/.yanga/build/Disco/gtest/main_control_knob/mockup_main_control_knob.h",
+        "D:/ateliere/spledy/.yanga/build/Disco/gtest/main_control_knob/mockup_main_control_knob.cc"
+      ],
+      "outputs": [ ],
+      "commands": [ ],
+      "target_type": "CUSTOM_TARGET"
+    },
+    {
+      "name": "main_control_knob_test",
+      "description": "Execute tests for main_control_knob",
+      "depends": [
+        "${CMAKE_BUILD_DIR}/main_control_knob/main_control_knob_junit.xml"
+      ],
+      "outputs": [ ],
+      "commands": [ ],
+      "target_type": "CUSTOM_TARGET"
+    },
+    {
+      "name": "main_control_knob_build",
+      "description": "Execute tests for main_control_knob",
+      "depends": [
+        "${CMAKE_BUILD_DIR}/main_control_knob/main_control_knob_junit.xml"
+      ],
+      "outputs": [ ],
+      "commands": [ ],
+      "target_type": "CUSTOM_TARGET"
+    },
+    {
+      "name": "test_integrations_spled_coverage",
+      "description": "Generate coverage report for test_integrations_spled",
+      "depends": [
+        "${CMAKE_BUILD_DIR}/test_integrations_spled/gcovr.cfg",
+        "${CMAKE_BUILD_DIR}/test_integrations_spled/coverage.json",
+        "${CMAKE_BUILD_DIR}/test_integrations_spled/reports/coverage/test_integrations_spled/index.html"
+      ],
+      "outputs": [ ],
+      "commands": [ ],
+      "target_type": "CUSTOM_TARGET"
+    },
+    {
+      "name": "test_integrations_spled_mockup",
+      "description": "Generate mockup sources for test_integrations_spled",
+      "depends": [
+        "D:/ateliere/spledy/.yanga/build/Disco/gtest/test_integrations_spled/mockup_test_integrations_spled.log",
+        "D:/ateliere/spledy/.yanga/build/Disco/gtest/test_integrations_spled/mockup_test_integrations_spled.h",
+        "D:/ateliere/spledy/.yanga/build/Disco/gtest/test_integrations_spled/mockup_test_integrations_spled.cc"
+      ],
+      "outputs": [ ],
+      "commands": [ ],
+      "target_type": "CUSTOM_TARGET"
+    },
+    {
+      "name": "test_integrations_spled_test",
+      "description": "Execute tests for test_integrations_spled",
+      "depends": [
+        "${CMAKE_BUILD_DIR}/test_integrations_spled/test_integrations_spled_junit.xml"
+      ],
+      "outputs": [ ],
+      "commands": [ ],
+      "target_type": "CUSTOM_TARGET"
+    },
+    {
+      "name": "test_integrations_spled_build",
+      "description": "Execute tests for test_integrations_spled",
+      "depends": [
+        "${CMAKE_BUILD_DIR}/test_integrations_spled/test_integrations_spled_junit.xml"
+      ],
+      "outputs": [ ],
+      "commands": [ ],
+      "target_type": "CUSTOM_TARGET"
+    },
+    {
+      "name": "coverage",
+      "description": "Generate variant coverage report",
+      "depends": [
+        "${CMAKE_BUILD_DIR}/gcovr.cfg",
+        "${CMAKE_BUILD_DIR}/reports/coverage/index.html"
+      ],
+      "outputs": [ ],
+      "commands": [ ],
+      "target_type": "CUSTOM_TARGET"
+    },
+    {
+      "name": "lint",
+      "description": "Lint the entire variant",
+      "depends": [
+        "${CMAKE_BUILD_DIR}/cppcheck_report.xml",
+        "${CMAKE_BUILD_DIR}/cppcheck_report.md"
+      ],
+      "outputs": [ ],
+      "commands": [ ],
+      "target_type": "CUSTOM_TARGET"
+    },
+    {
+      "name": "rte_lint",
+      "description": "Lint the rte component",
+      "depends": [
+        "${CMAKE_BUILD_DIR}/rte/compile_commands.json",
+        "${CMAKE_BUILD_DIR}/rte/cppcheck_report.xml",
+        "${CMAKE_BUILD_DIR}/rte/cppcheck_report.md"
+      ],
+      "outputs": [ ],
+      "commands": [ ],
+      "target_type": "CUSTOM_TARGET"
+    },
+    {
+      "name": "spled_lint",
+      "description": "Lint the spled component",
+      "depends": [
+        "${CMAKE_BUILD_DIR}/spled/compile_commands.json",
+        "${CMAKE_BUILD_DIR}/spled/cppcheck_report.xml",
+        "${CMAKE_BUILD_DIR}/spled/cppcheck_report.md"
+      ],
+      "outputs": [ ],
+      "commands": [ ],
+      "target_type": "CUSTOM_TARGET"
+    },
+    {
+      "name": "power_signal_processing_lint",
+      "description": "Lint the power_signal_processing component",
+      "depends": [
+        "${CMAKE_BUILD_DIR}/power_signal_processing/compile_commands.json",
+        "${CMAKE_BUILD_DIR}/power_signal_processing/cppcheck_report.xml",
+        "${CMAKE_BUILD_DIR}/power_signal_processing/cppcheck_report.md"
+      ],
+      "outputs": [ ],
+      "commands": [ ],
+      "target_type": "CUSTOM_TARGET"
+    },
+    {
+      "name": "light_controller_lint",
+      "description": "Lint the light_controller component",
+      "depends": [
+        "${CMAKE_BUILD_DIR}/light_controller/compile_commands.json",
+        "${CMAKE_BUILD_DIR}/light_controller/cppcheck_report.xml",
+        "${CMAKE_BUILD_DIR}/light_controller/cppcheck_report.md"
+      ],
+      "outputs": [ ],
+      "commands": [ ],
+      "target_type": "CUSTOM_TARGET"
+    },
+    {
+      "name": "power_button_lint",
+      "description": "Lint the power_button component",
+      "depends": [
+        "${CMAKE_BUILD_DIR}/power_button/compile_commands.json",
+        "${CMAKE_BUILD_DIR}/power_button/cppcheck_report.xml",
+        "${CMAKE_BUILD_DIR}/power_button/cppcheck_report.md"
+      ],
+      "outputs": [ ],
+      "commands": [ ],
+      "target_type": "CUSTOM_TARGET"
+    },
+    {
+      "name": "main_control_knob_lint",
+      "description": "Lint the main_control_knob component",
+      "depends": [
+        "${CMAKE_BUILD_DIR}/main_control_knob/compile_commands.json",
+        "${CMAKE_BUILD_DIR}/main_control_knob/cppcheck_report.xml",
+        "${CMAKE_BUILD_DIR}/main_control_knob/cppcheck_report.md"
+      ],
+      "outputs": [ ],
+      "commands": [ ],
+      "target_type": "CUSTOM_TARGET"
+    },
+    {
+      "name": "test_integrations_spled_lint",
+      "description": "Lint the test_integrations_spled component",
+      "depends": [
+        "${CMAKE_BUILD_DIR}/test_integrations_spled/compile_commands.json",
+        "${CMAKE_BUILD_DIR}/test_integrations_spled/cppcheck_report.xml",
+        "${CMAKE_BUILD_DIR}/test_integrations_spled/cppcheck_report.md"
+      ],
+      "outputs": [ ],
+      "commands": [ ],
+      "target_type": "CUSTOM_TARGET"
+    },
+    {
+      "name": "targets_data",
+      "description": "Generate targets data report",
+      "depends": [
+        "${CMAKE_BUILD_DIR}/targets_data.md"
+      ],
+      "outputs": [ ],
+      "commands": [ ],
+      "target_type": "CUSTOM_TARGET"
+    },
+    {
+      "name": "rte_docs",
+      "description": "Generate sources docs for component rte",
+      "depends": [
+        "${CMAKE_BUILD_DIR}/compile_commands.json"
+      ],
+      "outputs": [
+        "${CMAKE_BUILD_DIR}/rte/rte.c.md"
+      ],
+      "commands": [
+        "COMMAND clanguru docs --source-file D:/ateliere/spledy/components/rte/src/rte.c --output-file ${CMAKE_BUILD_DIR}/rte/rte.c.md --compilation-database ${CMAKE_BUILD_DIR}/compile_commands.json --format myst"
+      ],
+      "target_type": "CUSTOM_TARGET"
+    },
+    {
+      "name": "rte_results",
+      "description": "Execute targets to get all results for component rte",
+      "depends": [
+        "${CMAKE_BUILD_DIR}/report_config.json",
+        "rte_lint",
+        "rte_docs"
+      ],
+      "outputs": [ ],
+      "commands": [ ],
+      "target_type": "CUSTOM_TARGET"
+    },
+    {
+      "name": "rte_report",
+      "description": "Generate report for component rte",
+      "depends": [
+        "rte_results"
+      ],
+      "outputs": [ ],
+      "commands": [
+        "COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_BUILD_DIR}/rte/reports",
+        "COMMAND yanga_cmd report_config --component-name rte --output-file ${CMAKE_BUILD_DIR}/rte/report_config.json --variant-report-config ${CMAKE_BUILD_DIR}/report_config.json",
+        "COMMAND ${CMAKE_COMMAND} -E env REPORT_CONFIGURATION_FILE=${CMAKE_BUILD_DIR}/rte/report_config.json -- sphinx-build -E -b html D:/ateliere/spledy ${CMAKE_BUILD_DIR}/rte/reports",
+        "COMMAND yanga_cmd fix_html_links --report-dir ${CMAKE_BUILD_DIR}/rte/reports"
+      ],
+      "target_type": "CUSTOM_TARGET"
+    },
+    {
+      "name": "spled_docs",
+      "description": "Generate sources docs for component spled",
+      "depends": [
+        "${CMAKE_BUILD_DIR}/compile_commands.json"
+      ],
+      "outputs": [
+        "${CMAKE_BUILD_DIR}/spled/spled.c.md",
+        "${CMAKE_BUILD_DIR}/spled/test_spled.cc.md"
+      ],
+      "commands": [
+        "COMMAND clanguru docs --source-file D:/ateliere/spledy/components/spled/src/spled.c --output-file ${CMAKE_BUILD_DIR}/spled/spled.c.md --compilation-database ${CMAKE_BUILD_DIR}/compile_commands.json --format myst",
+        "COMMAND clanguru docs --source-file D:/ateliere/spledy/components/spled/test/test_spled.cc --output-file ${CMAKE_BUILD_DIR}/spled/test_spled.cc.md --compilation-database ${CMAKE_BUILD_DIR}/compile_commands.json --format myst"
+      ],
+      "target_type": "CUSTOM_TARGET"
+    },
+    {
+      "name": "spled_results",
+      "description": "Execute targets to get all results for component spled",
+      "depends": [
+        "${CMAKE_BUILD_DIR}/report_config.json",
+        "spled_coverage",
+        "spled_lint",
+        "spled_docs"
+      ],
+      "outputs": [ ],
+      "commands": [ ],
+      "target_type": "CUSTOM_TARGET"
+    },
+    {
+      "name": "spled_report",
+      "description": "Generate report for component spled",
+      "depends": [
+        "spled_results"
+      ],
+      "outputs": [ ],
+      "commands": [
+        "COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_BUILD_DIR}/spled/reports",
+        "COMMAND yanga_cmd report_config --component-name spled --output-file ${CMAKE_BUILD_DIR}/spled/report_config.json --variant-report-config ${CMAKE_BUILD_DIR}/report_config.json",
+        "COMMAND ${CMAKE_COMMAND} -E env REPORT_CONFIGURATION_FILE=${CMAKE_BUILD_DIR}/spled/report_config.json -- sphinx-build -E -b html D:/ateliere/spledy ${CMAKE_BUILD_DIR}/spled/reports",
+        "COMMAND yanga_cmd fix_html_links --report-dir ${CMAKE_BUILD_DIR}/spled/reports"
+      ],
+      "target_type": "CUSTOM_TARGET"
+    },
+    {
+      "name": "power_signal_processing_docs",
+      "description": "Generate sources docs for component power_signal_processing",
+      "depends": [
+        "${CMAKE_BUILD_DIR}/compile_commands.json"
+      ],
+      "outputs": [
+        "${CMAKE_BUILD_DIR}/power_signal_processing/power_signal_processing.c.md",
+        "${CMAKE_BUILD_DIR}/power_signal_processing/test_power_signal_processing.cc.md"
+      ],
+      "commands": [
+        "COMMAND clanguru docs --source-file D:/ateliere/spledy/components/power_signal_processing/src/power_signal_processing.c --output-file ${CMAKE_BUILD_DIR}/power_signal_processing/power_signal_processing.c.md --compilation-database ${CMAKE_BUILD_DIR}/compile_commands.json --format myst",
+        "COMMAND clanguru docs --source-file D:/ateliere/spledy/components/power_signal_processing/test/test_power_signal_processing.cc --output-file ${CMAKE_BUILD_DIR}/power_signal_processing/test_power_signal_processing.cc.md --compilation-database ${CMAKE_BUILD_DIR}/compile_commands.json --format myst"
+      ],
+      "target_type": "CUSTOM_TARGET"
+    },
+    {
+      "name": "power_signal_processing_results",
+      "description": "Execute targets to get all results for component power_signal_processing",
+      "depends": [
+        "${CMAKE_BUILD_DIR}/report_config.json",
+        "power_signal_processing_coverage",
+        "power_signal_processing_lint",
+        "power_signal_processing_docs"
+      ],
+      "outputs": [ ],
+      "commands": [ ],
+      "target_type": "CUSTOM_TARGET"
+    },
+    {
+      "name": "power_signal_processing_report",
+      "description": "Generate report for component power_signal_processing",
+      "depends": [
+        "power_signal_processing_results"
+      ],
+      "outputs": [ ],
+      "commands": [
+        "COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_BUILD_DIR}/power_signal_processing/reports",
+        "COMMAND yanga_cmd report_config --component-name power_signal_processing --output-file ${CMAKE_BUILD_DIR}/power_signal_processing/report_config.json --variant-report-config ${CMAKE_BUILD_DIR}/report_config.json",
+        "COMMAND ${CMAKE_COMMAND} -E env REPORT_CONFIGURATION_FILE=${CMAKE_BUILD_DIR}/power_signal_processing/report_config.json -- sphinx-build -E -b html D:/ateliere/spledy ${CMAKE_BUILD_DIR}/power_signal_processing/reports",
+        "COMMAND yanga_cmd fix_html_links --report-dir ${CMAKE_BUILD_DIR}/power_signal_processing/reports"
+      ],
+      "target_type": "CUSTOM_TARGET"
+    },
+    {
+      "name": "light_controller_docs",
+      "description": "Generate sources docs for component light_controller",
+      "depends": [
+        "${CMAKE_BUILD_DIR}/compile_commands.json"
+      ],
+      "outputs": [
+        "${CMAKE_BUILD_DIR}/light_controller/light_controller.c.md",
+        "${CMAKE_BUILD_DIR}/light_controller/test_light_controller.cc.md"
+      ],
+      "commands": [
+        "COMMAND clanguru docs --source-file D:/ateliere/spledy/components/light_controller/src/light_controller.c --output-file ${CMAKE_BUILD_DIR}/light_controller/light_controller.c.md --compilation-database ${CMAKE_BUILD_DIR}/compile_commands.json --format myst",
+        "COMMAND clanguru docs --source-file D:/ateliere/spledy/components/light_controller/test/test_light_controller.cc --output-file ${CMAKE_BUILD_DIR}/light_controller/test_light_controller.cc.md --compilation-database ${CMAKE_BUILD_DIR}/compile_commands.json --format myst"
+      ],
+      "target_type": "CUSTOM_TARGET"
+    },
+    {
+      "name": "light_controller_results",
+      "description": "Execute targets to get all results for component light_controller",
+      "depends": [
+        "${CMAKE_BUILD_DIR}/report_config.json",
+        "light_controller_coverage",
+        "light_controller_lint",
+        "light_controller_docs"
+      ],
+      "outputs": [ ],
+      "commands": [ ],
+      "target_type": "CUSTOM_TARGET"
+    },
+    {
+      "name": "light_controller_report",
+      "description": "Generate report for component light_controller",
+      "depends": [
+        "light_controller_results"
+      ],
+      "outputs": [ ],
+      "commands": [
+        "COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_BUILD_DIR}/light_controller/reports",
+        "COMMAND yanga_cmd report_config --component-name light_controller --output-file ${CMAKE_BUILD_DIR}/light_controller/report_config.json --variant-report-config ${CMAKE_BUILD_DIR}/report_config.json",
+        "COMMAND ${CMAKE_COMMAND} -E env REPORT_CONFIGURATION_FILE=${CMAKE_BUILD_DIR}/light_controller/report_config.json -- sphinx-build -E -b html D:/ateliere/spledy ${CMAKE_BUILD_DIR}/light_controller/reports",
+        "COMMAND yanga_cmd fix_html_links --report-dir ${CMAKE_BUILD_DIR}/light_controller/reports"
+      ],
+      "target_type": "CUSTOM_TARGET"
+    },
+    {
+      "name": "power_button_docs",
+      "description": "Generate sources docs for component power_button",
+      "depends": [
+        "${CMAKE_BUILD_DIR}/compile_commands.json"
+      ],
+      "outputs": [
+        "${CMAKE_BUILD_DIR}/power_button/power_button.c.md",
+        "${CMAKE_BUILD_DIR}/power_button/test_power_button.cc.md"
+      ],
+      "commands": [
+        "COMMAND clanguru docs --source-file D:/ateliere/spledy/components/power_button/src/power_button.c --output-file ${CMAKE_BUILD_DIR}/power_button/power_button.c.md --compilation-database ${CMAKE_BUILD_DIR}/compile_commands.json --format myst",
+        "COMMAND clanguru docs --source-file D:/ateliere/spledy/components/power_button/test/test_power_button.cc --output-file ${CMAKE_BUILD_DIR}/power_button/test_power_button.cc.md --compilation-database ${CMAKE_BUILD_DIR}/compile_commands.json --format myst"
+      ],
+      "target_type": "CUSTOM_TARGET"
+    },
+    {
+      "name": "power_button_results",
+      "description": "Execute targets to get all results for component power_button",
+      "depends": [
+        "${CMAKE_BUILD_DIR}/report_config.json",
+        "power_button_coverage",
+        "power_button_lint",
+        "power_button_docs"
+      ],
+      "outputs": [ ],
+      "commands": [ ],
+      "target_type": "CUSTOM_TARGET"
+    },
+    {
+      "name": "power_button_report",
+      "description": "Generate report for component power_button",
+      "depends": [
+        "power_button_results"
+      ],
+      "outputs": [ ],
+      "commands": [
+        "COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_BUILD_DIR}/power_button/reports",
+        "COMMAND yanga_cmd report_config --component-name power_button --output-file ${CMAKE_BUILD_DIR}/power_button/report_config.json --variant-report-config ${CMAKE_BUILD_DIR}/report_config.json",
+        "COMMAND ${CMAKE_COMMAND} -E env REPORT_CONFIGURATION_FILE=${CMAKE_BUILD_DIR}/power_button/report_config.json -- sphinx-build -E -b html D:/ateliere/spledy ${CMAKE_BUILD_DIR}/power_button/reports",
+        "COMMAND yanga_cmd fix_html_links --report-dir ${CMAKE_BUILD_DIR}/power_button/reports"
+      ],
+      "target_type": "CUSTOM_TARGET"
+    },
+    {
+      "name": "main_control_knob_docs",
+      "description": "Generate sources docs for component main_control_knob",
+      "depends": [
+        "${CMAKE_BUILD_DIR}/compile_commands.json"
+      ],
+      "outputs": [
+        "${CMAKE_BUILD_DIR}/main_control_knob/main_control_knob.c.md",
+        "${CMAKE_BUILD_DIR}/main_control_knob/test_main_control_knob.cc.md"
+      ],
+      "commands": [
+        "COMMAND clanguru docs --source-file D:/ateliere/spledy/components/main_control_knob/src/main_control_knob.c --output-file ${CMAKE_BUILD_DIR}/main_control_knob/main_control_knob.c.md --compilation-database ${CMAKE_BUILD_DIR}/compile_commands.json --format myst",
+        "COMMAND clanguru docs --source-file D:/ateliere/spledy/components/main_control_knob/test/test_main_control_knob.cc --output-file ${CMAKE_BUILD_DIR}/main_control_knob/test_main_control_knob.cc.md --compilation-database ${CMAKE_BUILD_DIR}/compile_commands.json --format myst"
+      ],
+      "target_type": "CUSTOM_TARGET"
+    },
+    {
+      "name": "main_control_knob_results",
+      "description": "Execute targets to get all results for component main_control_knob",
+      "depends": [
+        "${CMAKE_BUILD_DIR}/report_config.json",
+        "main_control_knob_coverage",
+        "main_control_knob_lint",
+        "main_control_knob_docs"
+      ],
+      "outputs": [ ],
+      "commands": [ ],
+      "target_type": "CUSTOM_TARGET"
+    },
+    {
+      "name": "main_control_knob_report",
+      "description": "Generate report for component main_control_knob",
+      "depends": [
+        "main_control_knob_results"
+      ],
+      "outputs": [ ],
+      "commands": [
+        "COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_BUILD_DIR}/main_control_knob/reports",
+        "COMMAND yanga_cmd report_config --component-name main_control_knob --output-file ${CMAKE_BUILD_DIR}/main_control_knob/report_config.json --variant-report-config ${CMAKE_BUILD_DIR}/report_config.json",
+        "COMMAND ${CMAKE_COMMAND} -E env REPORT_CONFIGURATION_FILE=${CMAKE_BUILD_DIR}/main_control_knob/report_config.json -- sphinx-build -E -b html D:/ateliere/spledy ${CMAKE_BUILD_DIR}/main_control_knob/reports",
+        "COMMAND yanga_cmd fix_html_links --report-dir ${CMAKE_BUILD_DIR}/main_control_knob/reports"
+      ],
+      "target_type": "CUSTOM_TARGET"
+    },
+    {
+      "name": "test_integrations_spled_docs",
+      "description": "Generate sources docs for component test_integrations_spled",
+      "depends": [
+        "${CMAKE_BUILD_DIR}/compile_commands.json"
+      ],
+      "outputs": [
+        "${CMAKE_BUILD_DIR}/test_integrations_spled/test_spled.cc.md"
+      ],
+      "commands": [
+        "COMMAND clanguru docs --source-file D:/ateliere/spledy/test/integrations/spled/test_spled.cc --output-file ${CMAKE_BUILD_DIR}/test_integrations_spled/test_spled.cc.md --compilation-database ${CMAKE_BUILD_DIR}/compile_commands.json --format myst"
+      ],
+      "target_type": "CUSTOM_TARGET"
+    },
+    {
+      "name": "test_integrations_spled_results",
+      "description": "Execute targets to get all results for component test_integrations_spled",
+      "depends": [
+        "${CMAKE_BUILD_DIR}/report_config.json",
+        "test_integrations_spled_coverage",
+        "test_integrations_spled_lint",
+        "test_integrations_spled_docs"
+      ],
+      "outputs": [ ],
+      "commands": [ ],
+      "target_type": "CUSTOM_TARGET"
+    },
+    {
+      "name": "test_integrations_spled_report",
+      "description": "Generate report for component test_integrations_spled",
+      "depends": [
+        "test_integrations_spled_results"
+      ],
+      "outputs": [ ],
+      "commands": [
+        "COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_BUILD_DIR}/test_integrations_spled/reports",
+        "COMMAND yanga_cmd report_config --component-name test_integrations_spled --output-file ${CMAKE_BUILD_DIR}/test_integrations_spled/report_config.json --variant-report-config ${CMAKE_BUILD_DIR}/report_config.json",
+        "COMMAND ${CMAKE_COMMAND} -E env REPORT_CONFIGURATION_FILE=${CMAKE_BUILD_DIR}/test_integrations_spled/report_config.json -- sphinx-build -E -b html D:/ateliere/spledy ${CMAKE_BUILD_DIR}/test_integrations_spled/reports",
+        "COMMAND yanga_cmd fix_html_links --report-dir ${CMAKE_BUILD_DIR}/test_integrations_spled/reports"
+      ],
+      "target_type": "CUSTOM_TARGET"
+    },
+    {
+      "name": "results",
+      "description": "Run all targets for all component results for Disco",
+      "depends": [
+        "${CMAKE_BUILD_DIR}/report_config.json",
+        "rte_results",
+        "spled_results",
+        "power_signal_processing_results",
+        "light_controller_results",
+        "power_button_results",
+        "main_control_knob_results",
+        "test_integrations_spled_results",
+        "coverage",
+        "targets_data"
+      ],
+      "outputs": [ ],
+      "commands": [ ],
+      "target_type": "CUSTOM_TARGET"
+    },
+    {
+      "name": "report",
+      "description": "Run sphinx build for variant Disco",
+      "depends": [
+        "${CMAKE_BUILD_DIR}/report_config.json",
+        "results"
+      ],
+      "outputs": [ ],
+      "commands": [
+        "COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_BUILD_DIR}/reports",
+        "COMMAND ${CMAKE_COMMAND} -E env REPORT_CONFIGURATION_FILE=${CMAKE_BUILD_DIR}/report_config.json -- sphinx-build -E -b html D:/ateliere/spledy ${CMAKE_BUILD_DIR}/reports",
+        "COMMAND yanga_cmd fix_html_links --report-dir ${CMAKE_BUILD_DIR}/reports"
+      ],
+      "target_type": "CUSTOM_TARGET"
+    },
+    {
+      "name": "spled",
+      "description": "Executable target: spled",
+      "depends": [
+        "GTest::gtest_main",
+        "GTest::gmock_main",
+        "pthread",
+        "spled_PC_lib"
+      ],
+      "outputs": [
+        "spled"
+      ],
+      "commands": [ ],
+      "target_type": "EXECUTABLE"
+    },
+    {
+      "name": "power_signal_processing",
+      "description": "Executable target: power_signal_processing",
+      "depends": [
+        "GTest::gtest_main",
+        "GTest::gmock_main",
+        "pthread",
+        "power_signal_processing_PC_lib"
+      ],
+      "outputs": [
+        "power_signal_processing"
+      ],
+      "commands": [ ],
+      "target_type": "EXECUTABLE"
+    },
+    {
+      "name": "light_controller",
+      "description": "Executable target: light_controller",
+      "depends": [
+        "GTest::gtest_main",
+        "GTest::gmock_main",
+        "pthread",
+        "light_controller_PC_lib"
+      ],
+      "outputs": [
+        "light_controller"
+      ],
+      "commands": [ ],
+      "target_type": "EXECUTABLE"
+    },
+    {
+      "name": "power_button",
+      "description": "Executable target: power_button",
+      "depends": [
+        "GTest::gtest_main",
+        "GTest::gmock_main",
+        "pthread",
+        "power_button_PC_lib"
+      ],
+      "outputs": [
+        "power_button"
+      ],
+      "commands": [ ],
+      "target_type": "EXECUTABLE"
+    },
+    {
+      "name": "main_control_knob",
+      "description": "Executable target: main_control_knob",
+      "depends": [
+        "GTest::gtest_main",
+        "GTest::gmock_main",
+        "pthread",
+        "main_control_knob_PC_lib"
+      ],
+      "outputs": [
+        "main_control_knob"
+      ],
+      "commands": [ ],
+      "target_type": "EXECUTABLE"
+    },
+    {
+      "name": "test_integrations_spled",
+      "description": "Executable target: test_integrations_spled",
+      "depends": [
+        "GTest::gtest_main",
+        "GTest::gmock_main",
+        "pthread",
+        "test_integrations_spled_PC_lib"
+      ],
+      "outputs": [
+        "test_integrations_spled"
+      ],
+      "commands": [ ],
+      "target_type": "EXECUTABLE"
+    },
+    {
+      "name": "rte_PC_lib",
+      "description": "Object library: rte_PC",
+      "depends": [
+        "D:\\ateliere\\spledy\\components\\rte\\src\\rte.c"
+      ],
+      "outputs": [
+        "rte_PC_lib"
+      ],
+      "commands": [ ],
+      "target_type": "OBJECT_LIBRARY"
+    },
+    {
+      "name": "spled_PC_lib",
+      "description": "Object library: spled_PC",
+      "depends": [
+        "D:\\ateliere\\spledy\\components\\spled\\src\\spled.c"
+      ],
+      "outputs": [
+        "spled_PC_lib"
+      ],
+      "commands": [ ],
+      "target_type": "OBJECT_LIBRARY"
+    },
+    {
+      "name": "power_signal_processing_PC_lib",
+      "description": "Object library: power_signal_processing_PC",
+      "depends": [
+        "D:\\ateliere\\spledy\\components\\power_signal_processing\\src\\power_signal_processing.c"
+      ],
+      "outputs": [
+        "power_signal_processing_PC_lib"
+      ],
+      "commands": [ ],
+      "target_type": "OBJECT_LIBRARY"
+    },
+    {
+      "name": "light_controller_PC_lib",
+      "description": "Object library: light_controller_PC",
+      "depends": [
+        "D:\\ateliere\\spledy\\components\\light_controller\\src\\light_controller.c"
+      ],
+      "outputs": [
+        "light_controller_PC_lib"
+      ],
+      "commands": [ ],
+      "target_type": "OBJECT_LIBRARY"
+    },
+    {
+      "name": "power_button_PC_lib",
+      "description": "Object library: power_button_PC",
+      "depends": [
+        "D:\\ateliere\\spledy\\components\\power_button\\src\\power_button.c"
+      ],
+      "outputs": [
+        "power_button_PC_lib"
+      ],
+      "commands": [ ],
+      "target_type": "OBJECT_LIBRARY"
+    },
+    {
+      "name": "main_control_knob_PC_lib",
+      "description": "Object library: main_control_knob_PC",
+      "depends": [
+        "D:\\ateliere\\spledy\\components\\main_control_knob\\src\\main_control_knob.c"
+      ],
+      "outputs": [
+        "main_control_knob_PC_lib"
+      ],
+      "commands": [ ],
+      "target_type": "OBJECT_LIBRARY"
+    },
+    {
+      "name": "test_integrations_spled_PC_lib",
+      "description": "Object library: test_integrations_spled_PC",
+      "depends": [
+        "D:\\ateliere\\spledy\\components\\spled\\src\\spled.c",
+        "D:\\ateliere\\spledy\\components\\rte\\src\\rte.c",
+        "D:\\ateliere\\spledy\\components\\brightness_controller\\src\\brightness_controller.c",
+        "D:\\ateliere\\spledy\\components\\light_controller\\src\\light_controller.c",
+        "D:\\ateliere\\spledy\\components\\main_control_knob\\src\\main_control_knob.c",
+        "D:\\ateliere\\spledy\\components\\power_button\\src\\power_button.c",
+        "D:\\ateliere\\spledy\\components\\power_signal_processing\\src\\power_signal_processing.c"
+      ],
+      "outputs": [
+        "test_integrations_spled_PC_lib"
+      ],
+      "commands": [ ],
+      "target_type": "OBJECT_LIBRARY"
+    }
+  ]
+}

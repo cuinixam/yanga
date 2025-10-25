@@ -1,7 +1,9 @@
+import hashlib
 from abc import ABC, abstractmethod
 from collections.abc import Sequence
 from dataclasses import dataclass, field
 from enum import Enum, auto
+from functools import cached_property
 from pathlib import Path
 from typing import Any, Optional, Union
 
@@ -356,6 +358,14 @@ class CMakeCustomCommand(CMakeElement):
     byproducts: Optional[list[CMakePath]] = None
     target: Optional[str] = None
     command_expand_lists: bool = False
+
+    @cached_property
+    def id(self) -> str:
+        """Combine the first 12 characters of the sha256 hash of the description with the commands hash for uniqueness."""
+        desc_hash = hashlib.sha256(self.description.encode("utf-8")).hexdigest()[:12]
+        commands_str = "".join(str(command) for command in self.commands)
+        commands_hash = hashlib.sha256(commands_str.encode("utf-8")).hexdigest()[:12]
+        return f"cmd_{desc_hash}_{commands_hash}"
 
     def to_string(self) -> str:
         content = [CMakeComment(self.description), "add_custom_command("]

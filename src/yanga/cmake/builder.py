@@ -176,6 +176,7 @@ class CMakeBuildSystemGenerator:
         for custom_command in custom_commands:
             dependencies = []
             outputs = []
+            commands = []
 
             # Extract dependencies
             if custom_command.depends:
@@ -185,12 +186,17 @@ class CMakeBuildSystemGenerator:
             if custom_command.outputs:
                 outputs.extend([str(output) for output in custom_command.outputs])
 
+            # Extract commands
+            if custom_command.commands:
+                commands.extend([str(command) for command in custom_command.commands])
+
             targets.append(
                 Target(
-                    name=f"cmd_{custom_command.description.replace(' ', '_').lower()}",
+                    name=custom_command.id,
                     description=custom_command.description,
                     depends=dependencies,
                     outputs=outputs,
+                    commands=commands,
                     target_type=TargetType.CUSTOM_COMMAND,
                 )
             )
@@ -200,6 +206,7 @@ class CMakeBuildSystemGenerator:
         for custom_target in custom_targets:
             dependencies = []
             outputs = []
+            commands = []
 
             # Extract dependencies
             if custom_target.depends:
@@ -209,7 +216,20 @@ class CMakeBuildSystemGenerator:
             if custom_target.byproducts:
                 outputs.extend([str(byproduct) for byproduct in custom_target.byproducts])
 
-            targets.append(Target(name=custom_target.name, description=custom_target.description, depends=dependencies, outputs=outputs, target_type=TargetType.CUSTOM_TARGET))
+            # Extract commands
+            if custom_target.commands:
+                commands.extend([str(command) for command in custom_target.commands])
+
+            targets.append(
+                Target(
+                    name=custom_target.name,
+                    description=custom_target.description,
+                    depends=dependencies,
+                    outputs=outputs,
+                    commands=commands,
+                    target_type=TargetType.CUSTOM_TARGET,
+                )
+            )
 
         # Find all executables
         executables = find_elements_of_type(all_elements, CMakeAddExecutable)
@@ -237,7 +257,8 @@ class CMakeBuildSystemGenerator:
                 Target(
                     name=obj_lib.target_name,
                     description=f"Object library: {obj_lib.name}",
-                    depends=[],  # Object libraries typically don't have explicit dependencies in our structure
+                    # Object libraries depend on their source files
+                    depends=[str(file) for file in obj_lib.files],
                     outputs=[obj_lib.target_name],
                     target_type=TargetType.OBJECT_LIBRARY,
                 )
