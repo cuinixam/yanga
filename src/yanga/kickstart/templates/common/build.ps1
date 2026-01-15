@@ -10,8 +10,8 @@ param(
     [switch]$startVSCode = $false,
     [Parameter(Mandatory = $false, HelpMessage = 'Clean build, wipe out all build artifacts. (Switch, default: false)')]
     [switch]$clean = $false,
-    [Parameter(Mandatory = $false, HelpMessage = 'Wait for a key press before exiting. (Switch, default: false)')]
-    [switch]$waitForKey = $false
+    [Parameter(Mandatory = $false, HelpMessage = 'Command to be executed (String)')]
+    [string]$command = ""
 )
 
 function Remove-Path {
@@ -40,7 +40,7 @@ function Get-User-Menu-Selection {
 
 function Invoke-Bootstrap {
     # Download bootstrap scripts from external repository
-    Invoke-RestMethod -Uri https://raw.githubusercontent.com/avengineers/bootstrap-installer/v1.17.2/install.ps1 | Invoke-Expression
+    Invoke-RestMethod -Uri https://raw.githubusercontent.com/avengineers/bootstrap-installer/v1.19.0/install.ps1 | Invoke-Expression
     # Execute bootstrap script
     . .\.bootstrap\bootstrap.ps1
 }
@@ -76,6 +76,11 @@ try {
         }
     }
 
+    if ($clean) {
+        Remove-Path ".venv"
+        Remove-Path ".yanga"
+    }
+
     if ($install) {
         # bootstrap environment
         Invoke-Bootstrap
@@ -84,10 +89,6 @@ try {
     # Load bootstrap's utility functions
     . .\.bootstrap\utils.ps1
 
-    if ($clean) {
-        Remove-Path ".venv"
-        Remove-Path ".yanga"
-    }
 
     Invoke-CommandLine ".venv\Scripts\yanga run --step GenerateEnvSetupScript --not-interactive"
 
@@ -98,11 +99,13 @@ try {
         Write-Output "Starting Visual Studio Code..."
         Invoke-CommandLine "code ." -StopAtError $false
     }
+
+    if ($command -ne "") {
+        Write-Output "Executing command: $command"
+        Invoke-CommandLine $command
+    }
 }
 finally {
     Pop-Location
-    if (-Not (Test-RunningInCIorTestEnvironment) -and $waitForKey) {
-        Read-Host -Prompt "Press Enter to continue ..."
-    }
 }
 ## end of script

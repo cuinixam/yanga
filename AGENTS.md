@@ -1,16 +1,19 @@
 # Yanga Development Guide for AI Agents
 
 ## Project Overview
+
 Yanga is a C/C++ build system generator, it uses yaml file as configuration and generates the CMake build files.
 It supports Software Product Line (SPL) development with feature model, variants, components, and platform-specific configurations.
 
 ## Core Architecture
+
 - **Domain Layer**: `src/yanga/domain/` - Core business logic and data models
 - **Backend Layer**: `src/yanga/cmake/` - CMake-specific build system generators
 - **Commands Layer**: `src/yanga/commands/` - CLI command implementations
 - **Kickstart**: `src/yanga/kickstart/` - Project template system
 
 ### Key Domain Concepts
+
 - **ExecutionContext**: Central coordination object containing project state, components, and user requests
 - **Component**: Represents a buildable unit with sources, tests, and metadata (`src/yanga/domain/components.py`)
 - **VariantConfig**: SPL variant definitions with feature configurations
@@ -19,12 +22,14 @@ It supports Software Product Line (SPL) development with feature model, variants
 ## Development Workflow
 
 ### Environment Setup
+
 ```bash
 pipx install pypeline-runner
 pypeline run  # Bootstraps project and runs full pipeline
 ```
 
 ### Key Commands
+
 - `pypeline run --step PyTest --single` - Run tests only
 - `pypeline run --step PreCommit --single` - Run linters/formatters
 - `pypeline run --step Docs --single` - Generate documentation
@@ -32,7 +37,9 @@ pypeline run  # Bootstraps project and runs full pipeline
 - `yanga run` - Execute build pipeline for variants/components
 
 ### VS Code Integration
+
 Use predefined tasks via Command Palette:
+
 - "Tasks: Run Task" → "run tests"
 - "Tasks: Run Task" → "run pre-commit checks"
 - "Tasks: Run Task" → "generate docs"
@@ -40,7 +47,9 @@ Use predefined tasks via Command Palette:
 ## Code Patterns & Conventions
 
 ### Configuration Management
+
 Uses **mashumaro** dataclasses with YAML serialization:
+
 ```python
 @dataclass
 class MyConfig(DataClassDictMixin):
@@ -49,14 +58,18 @@ class MyConfig(DataClassDictMixin):
 ```
 
 ### Error Handling
+
 Use `UserNotificationException` from `py-app-dev` for user-facing errors:
+
 ```python
 from py_app_dev.core.exceptions import UserNotificationException
 raise UserNotificationException("Clear message for users")
 ```
 
 ### Logging & Timing
+
 Prefer `py-app-dev` logging utilities:
+
 ```python
 from py_app_dev.core.logging import logger, time_it
 
@@ -66,6 +79,7 @@ def my_function():
 ```
 
 ### Testing Patterns
+
 - Use `conftest.py` fixtures for common test setup
 - Mock `ProjectArtifactsLocator.locate_artifact` for file location tests
 - Create `ExecutionContext` mocks for domain testing
@@ -74,18 +88,23 @@ def my_function():
 ## Project Structure Conventions
 
 ### Template System
+
 Project templates in `src/yanga/kickstart/templates/`:
+
 - `mini/` - Minimal project template
 - `max/` - Full-featured project template
 - `common/` - Shared template components
 
 ### Dynamic Module Loading
+
 Build steps and CMake generators are loaded dynamically from:
+
 - `src/yanga/steps/` - Custom pipeline steps
 - `src/yanga/cmake/` - CMake generators
 - User configuration can reference these modules by name
 
 ### Configuration Files
+
 - `pypeline.yaml` - Development pipeline configuration
 - `pyproject.toml` - Package metadata and tool configuration
 - `build_exe.spec` - PyInstaller executable build specification
@@ -93,17 +112,21 @@ Build steps and CMake generators are loaded dynamically from:
 ## Integration Points
 
 ### pypeline Integration
+
 Yanga uses pypeline for development automation. Steps are defined in `pypeline.yaml` and can be executed individually or as a pipeline.
 
 ### CMake Backend
+
 The `yanga.cmake` module contains generators that produce CMake files for different build targets (executables, tests, coverage, etc.).
 
 ### West Integration
+
 Supports Zephyr West tool for dependency management via `WestManifest` configuration.
 
 ## Development Guidelines
 
 ### Adding New Features
+
 1. Create domain models in `src/yanga/domain/`
 2. Implement CLI commands in `src/yanga/commands/`
 3. Add backend generators in `src/yanga/cmake/` if needed
@@ -111,12 +134,14 @@ Supports Zephyr West tool for dependency management via `WestManifest` configura
 5. Update documentation in `docs/`
 
 ### Code Quality
+
 - Ruff handles linting/formatting (configured in `pyproject.toml`)
 - Pre-commit hooks enforce code standards
 - Type hints are required (`py.typed` marker present)
 - Docstrings follow standard conventions but are not required for all functions
 
 ### Dependencies
+
 - Core: `typer` (CLI), `mashumaro` (serialization), `loguru` (logging)
 - Build: `pypeline-runner` (automation), `pyinstaller` (executable builds)
 - Dev: `pytest` (testing), `ruff` (linting), `pre-commit` (hooks)

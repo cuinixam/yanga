@@ -15,7 +15,6 @@ classifiers = [
   "Programming Language :: Python :: 3.13",
 ]
 dependencies = [
-  "pip-system-certs>=4,<5",
   "py-app-dev>=2,<3",
   "sphinx-copybutton>=0,<1",
   "sphinx-design>=0,<1",
@@ -28,3 +27,6 @@ dependencies = [
   "west>=1,<2",
   "yanga>=2,<3",
 ]
+
+[tool.poetry]
+package-mode = false
