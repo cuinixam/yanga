@@ -1,11 +1,9 @@
-import os
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from enum import Enum, auto
 from pathlib import Path
 from typing import Optional, Union
 
-from py_app_dev.core.subprocess import SubprocessExecutor
 from pypeline.domain.execution_context import ExecutionContext as _ExecutionContext
 
 from .artifacts import ProjectArtifactsLocator
@@ -100,19 +98,8 @@ class ExecutionContext(_ExecutionContext):
             include_dirs.extend(provider.get_include_directories())
         return include_dirs
 
-    def add_install_dirs(self, install_dirs: list[Path]) -> None:
-        self.install_dirs.extend(install_dirs)
-
     def add_include_dirs_provider(self, provider: IncludeDirectoriesProvider) -> None:
         self.include_dirs_providers.append(provider)
-
-    def create_process_executor(self, command: list[str | Path], cwd: Optional[Path] = None) -> SubprocessExecutor:
-        env = os.environ.copy()
-        # Update the environment variables with the ones from the execution context
-        env.update(self.env_vars)
-        # Add the install directories to the PATH
-        env["PATH"] = os.pathsep.join([path.absolute().as_posix() for path in self.install_dirs] + [env["PATH"]])
-        return SubprocessExecutor(command, cwd=cwd, env=env, shell=True)  # noqa: S604
 
     def create_artifacts_locator(self) -> ProjectArtifactsLocator:
         return ProjectArtifactsLocator(
