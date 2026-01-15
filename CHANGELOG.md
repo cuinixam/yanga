@@ -1,5 +1,15 @@
 # Changelog
 
+## v2.26.0 (2026-01-15)
+
+### Features
+
+- Update bootstrap for kickstart projects ([`96e6469`](https://github.com/cuinixam/yanga/commit/96e6469857fbf4f6266bad733b9cf6be8aa10d5a))
+
+### Bug fixes
+
+- Does not handle subprocess flag for windows shell ([`9377aa5`](https://github.com/cuinixam/yanga/commit/9377aa5b4694243890279c802481f7f664af4f01))
+
 ## v2.25.1 (2025-10-25)
 
 ### Bug fixes
