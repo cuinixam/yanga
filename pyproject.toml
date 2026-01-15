@@ -54,13 +54,12 @@ scripts.yanga_cmd = "yanga.commands.__main__:main"
 dev = [
   "coverage>=7,<8",
   "mlx-traceability>=11,<12",
-  # docs
-  "pip-system-certs>=4,<5",
   "pre-commit>=4,<5",
   "pyinstaller>=6.11,<7",
   "pytest>=8.3,<9",
   "pytest-cov>=6,<7",
   "ruff>=0.9,<1",
+  # docs
   "sphinx-book-theme>=1.1,<2",
   "sphinx-copybutton>=0,<1",
   "sphinx-design>=0,<1",
