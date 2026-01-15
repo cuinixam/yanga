@@ -1,3 +1,6 @@
+import shutil
+import tempfile
+from collections.abc import Generator
 from pathlib import Path
 from unittest.mock import Mock, patch
 
@@ -65,18 +68,29 @@ def get_test_data_path():
 
 
 @pytest.fixture
-def mini_project(tmp_path: Path) -> Path:
-    project_dir = tmp_path.joinpath("mini")
-    # Create example project
-    KickstartProject(project_dir).run()
-    assert project_dir.joinpath("yanga.yaml").exists()
+def mini_project(request: pytest.FixtureRequest) -> Generator[Path, None, None]:
+    # Create temp directory in the repository to ensure same drive as yanga source
+    # This avoids cross-drive path issues on Windows with Poetry
+    test_name = request.node.name
+    tests_dir = this_repository_root_dir() / "build" / "tests"
+    tests_dir.mkdir(parents=True, exist_ok=True)
 
-    # Replace the YANGA dependency in the pyproject.toml
-    pyproject_toml = project_dir.joinpath("pyproject.toml")
-    # "yanga @ file:///C:/yanga",
-    new_dependency = f"yanga @ file:///{this_repository_root_dir().as_posix()}"
-    pyproject_toml.write_text(pyproject_toml.read_text().replace("yanga>=2,<3", new_dependency))
+    project_dir = Path(tempfile.mkdtemp(prefix=f"{test_name}_", dir=tests_dir))
 
-    assert '"yanga @ file:///' in pyproject_toml.read_text(), "Failed to set the local yanga dependency in the mini project."
+    try:
+        # Create example project
+        KickstartProject(project_dir).run()
+        assert project_dir.joinpath("yanga.yaml").exists()
 
-    return project_dir
+        # Replace the YANGA dependency in the pyproject.toml
+        pyproject_toml = project_dir.joinpath("pyproject.toml")
+        new_dependency = f"yanga @ file:///{this_repository_root_dir().as_posix()}"
+        pyproject_toml.write_text(pyproject_toml.read_text().replace("yanga>=2,<3", new_dependency))
+
+        assert '"yanga @ file:///' in pyproject_toml.read_text(), "Failed to set the local yanga dependency in the mini project."
+
+        yield project_dir
+    finally:
+        # Cleanup: remove the test project directory
+        if project_dir.exists():
+            shutil.rmtree(project_dir, ignore_errors=True)

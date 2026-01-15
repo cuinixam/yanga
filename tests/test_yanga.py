@@ -1,3 +1,4 @@
+import os
 import sys
 from pathlib import Path
 
@@ -16,6 +17,8 @@ def test_yanga_mini(mini_project: Path) -> None:
     completed_process = SubprocessExecutor(["powershell", "-File", build_script_path.as_posix(), "-install"]).execute(handle_errors=False)
     assert completed_process is not None
     assert completed_process.returncode == 0, "Bootstrapping the project failed."
+    # "Refresh" the PATH to make sure the Scoop shims are available
+    os.environ["PATH"] += os.pathsep + str(Path.home() / "scoop" / "shims")
     # Build the project
     run_cmd_config = RunCommandConfig(
         project_dir,
