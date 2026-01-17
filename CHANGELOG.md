@@ -1,5 +1,11 @@
 # Changelog
 
+## v2.27.0 (2026-01-17)
+
+### Features
+
+- Scoop install step only enabled on windows ([`e375d71`](https://github.com/cuinixam/yanga/commit/e375d71443636f906c2dbdcb105253c76abbeaf0))
+
 ## v2.26.0 (2026-01-15)
 
 ### Features
