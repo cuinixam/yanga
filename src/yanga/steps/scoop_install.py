@@ -1,5 +1,6 @@
 import io
 import json
+import platform
 import traceback
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -161,6 +162,10 @@ class ScoopInstall(PipelineStep[ExecutionContext]):
 
     def run(self) -> int:
         self.logger.debug(f"Run {self.get_name()} step. Output dir: {self.output_dir}")
+
+        if platform.system() != "Windows":
+            self.logger.warning(f"ScoopInstall step is only supported on Windows. Skipping. Current platform: {platform.system()}")
+            return 0
 
         try:
             # Collect dependencies from all sources

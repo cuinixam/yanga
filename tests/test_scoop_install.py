@@ -1,5 +1,6 @@
 import json
 from pathlib import Path
+from unittest.mock import MagicMock, patch
 
 from py_app_dev.core.scoop_wrapper import ScoopFileElement
 
@@ -336,3 +337,36 @@ def test_scoop_install_execution_info_serialization(tmp_path: Path) -> None:
     assert tmp_path / "app2" in loaded_info.install_dirs
     assert loaded_info.env_vars["PATH"] == "/usr/bin"
     assert loaded_info.env_vars["EDITOR"] == "vim"
+
+
+def test_scoop_install_run_skips_on_non_windows(tmp_path: Path) -> None:
+    project_dir = tmp_path
+    exec_context = ExecutionContext(
+        project_root_dir=project_dir,
+        variant_name="test_variant",
+        user_request=UserVariantRequest("test_variant"),
+    )
+    scoop_install = ScoopInstall(exec_context, "install")
+
+    with patch("platform.system", return_value="Linux"):
+        assert scoop_install.run() == 0
+
+    with patch("platform.system", return_value="Darwin"):
+        assert scoop_install.run() == 0
+
+
+def test_scoop_install_run_executes_on_windows(tmp_path: Path) -> None:
+    project_dir = tmp_path
+    exec_context = ExecutionContext(
+        project_root_dir=project_dir,
+        variant_name="test_variant",
+        user_request=UserVariantRequest("test_variant"),
+    )
+    scoop_install = ScoopInstall(exec_context, "install")
+
+    # Mock internal methods to avoid side effects and just check if logic proceeds
+    scoop_install._collect_dependencies = MagicMock(return_value=ScoopManifest())  # type: ignore
+
+    with patch("platform.system", return_value="Windows"):
+        assert scoop_install.run() == 0
+        scoop_install._collect_dependencies.assert_called_once()
