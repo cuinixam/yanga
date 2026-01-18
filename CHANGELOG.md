@@ -1,5 +1,11 @@
 # Changelog
 
+## v2.27.1 (2026-01-18)
+
+### Bug fixes
+
+- Cli crashes on dev containers without gui support (tkinter) ([`57575b3`](https://github.com/cuinixam/yanga/commit/57575b3265146e77ce20176106be30588d3f138e))
+
 ## v2.27.0 (2026-01-17)
 
 ### Features
