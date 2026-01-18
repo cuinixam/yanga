@@ -9,10 +9,8 @@ from py_app_dev.core.logging import logger, setup_logger, time_it
 from yanga import __version__
 
 from .commands.run import RunCommand, RunCommandConfig
-from .gui import YangaGui
 from .kickstart.create import KickstartProject
 from .yide import IDEProjectGenerator
-from .yview import KConfigView
 
 package_name = "yanga"
 
@@ -107,11 +105,26 @@ def run(
     )
 
 
+def _check_tkinter_available() -> None:
+    """Check if tkinter is available, raise UserNotificationException if not."""
+    try:
+        import tkinter  # noqa: F401
+    except ImportError as e:
+        raise UserNotificationException(
+            "GUI functionality requires tkinter, which is not available in this environment.\n"
+            "This is expected in headless environments like Docker containers or dev containers.\n"
+            "Please use CLI commands instead (e.g., 'yanga run', 'yanga view')."
+        ) from e
+
+
 @app.command(help="Launch the YANGA GUI to build variants and components.")
 @time_it("gui")
 def gui(
     project_dir: Path = project_dir_option,
 ) -> None:
+    _check_tkinter_available()
+    from .gui import YangaGui
+
     YangaGui(project_dir).run()
 
 
@@ -120,6 +133,9 @@ def gui(
 def view(
     project_dir: Path = project_dir_option,
 ) -> None:
+    _check_tkinter_available()
+    from .yview import KConfigView
+
     KConfigView(project_dir).run()
 
 
