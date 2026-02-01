@@ -12,6 +12,7 @@ from py_app_dev.core.exceptions import UserNotificationException
 from py_app_dev.core.pipeline import PipelineConfig as GenericPipelineConfig
 from py_app_dev.core.scoop_wrapper import ScoopFileElement
 from pypeline.domain.pipeline import PipelineConfig
+from pypeline.steps.west_install import WestManifest
 from yaml.parser import ParserError
 from yaml.scanner import ScannerError
 
@@ -26,60 +27,6 @@ class BaseConfigJSONMixin(DataClassJSONMixin):
 
     def to_json_file(self, file_path: Path) -> None:
         file_path.write_text(self.to_json_string())
-
-
-@dataclass
-class WestDependency(BaseConfigDictMixin):
-    #: Project name
-    name: str
-    #: Remote name
-    remote: str
-    #: Revision (tag, branch, or commit)
-    revision: str
-    #: Path where the dependency will be installed
-    path: str
-
-
-@dataclass
-class WestRemote(BaseConfigDictMixin):
-    #: Remote name
-    name: str
-    #: URL base
-    url_base: str = field(metadata={"alias": "url-base"})
-
-
-@dataclass
-class WestManifest(BaseConfigDictMixin):
-    #: Remote configurations
-    remotes: list[WestRemote] = field(default_factory=list)
-    #: Project dependencies
-    projects: list[WestDependency] = field(default_factory=list)
-
-
-@dataclass
-class WestManifestFile(BaseConfigDictMixin):
-    manifest: WestManifest
-    # This field is intended to keep track of where configuration was loaded from and
-    # it is automatically added when configuration is loaded from file
-    file: Optional[Path] = None
-
-    @classmethod
-    def from_file(cls, config_file: Path) -> "WestManifestFile":
-        config_dict = cls.parse_to_dict(config_file)
-        return cls.from_dict(config_dict)
-
-    @staticmethod
-    def parse_to_dict(config_file: Path) -> dict[str, Any]:
-        try:
-            with open(config_file) as fs:
-                config_dict = yaml.safe_load(fs)
-                # Add file name to config to keep track of where configuration was loaded from
-                config_dict["file"] = config_file
-            return config_dict
-        except ScannerError as e:
-            raise UserNotificationException(f"Failed scanning west manifest file '{config_file}'. \nError: {e}") from e
-        except ParserError as e:
-            raise UserNotificationException(f"Failed parsing west manifest file '{config_file}'. \nError: {e}") from e
 
 
 @dataclass

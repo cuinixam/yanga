@@ -1,4 +1,3 @@
-import shutil
 import tempfile
 from collections.abc import Generator
 from pathlib import Path
@@ -93,4 +92,4 @@ def mini_project(request: pytest.FixtureRequest) -> Generator[Path, None, None]:
     finally:
         # Cleanup: remove the test project directory
         if project_dir.exists():
-            shutil.rmtree(project_dir, ignore_errors=True)
+            pass  # shutil.rmtree(project_dir, ignore_errors=True)

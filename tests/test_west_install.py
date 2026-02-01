@@ -1,16 +1,11 @@
 from pathlib import Path
 
-from yanga.domain.config import (
-    PlatformConfig,
-    VariantConfig,
-    VariantPlatformsConfig,
-    WestDependency,
-    WestManifest,
-    WestManifestFile,
-    WestRemote,
-)
+from pypeline.steps.west_install import WestDependency, WestInstallResult, WestManifest, WestManifestFile, WestRemote
+
+from tests.utils import assert_element_of_type, assert_elements_of_type
+from yanga.domain.config import PlatformConfig, VariantConfig, VariantPlatformsConfig
 from yanga.domain.execution_context import ExecutionContext, UserVariantRequest
-from yanga.steps.west_install import WestInstall, WestInstallExecutionInfo
+from yanga.steps.west_install import WestInstall
 
 
 def test_west_install_with_platform_dependencies(tmp_path: Path) -> None:
@@ -28,17 +23,17 @@ def test_west_install_with_platform_dependencies(tmp_path: Path) -> None:
     exec_context = ExecutionContext(project_root_dir=project_dir, variant_name="test_variant", user_request=UserVariantRequest("test_variant"), platform=platform)
 
     west_install = WestInstall(exec_context, "install")
-    collected_dependencies = west_install._collect_dependencies()
+    merged_manifest = west_install._merge_manifests()
 
-    assert len(collected_dependencies.remotes) == 1
-    assert collected_dependencies.remotes[0].name == "gtest"
-    assert collected_dependencies.remotes[0].url_base == "https://github.com/google"
+    remote = assert_element_of_type(merged_manifest.remotes, WestRemote)
+    assert remote.name == "gtest"
+    assert remote.url_base == "https://github.com/google"
 
-    assert len(collected_dependencies.projects) == 1
-    assert collected_dependencies.projects[0].name == "googletest"
-    assert collected_dependencies.projects[0].remote == "gtest"
-    assert collected_dependencies.projects[0].revision == "v1.14.0"
-    assert collected_dependencies.projects[0].path == "external/gtest"
+    project = assert_element_of_type(merged_manifest.projects, WestDependency)
+    assert project.name == "googletest"
+    assert project.remote == "gtest"
+    assert project.revision == "v1.14.0"
+    assert project.path == "external/gtest"
 
 
 def test_west_install_with_variant_dependencies(tmp_path: Path) -> None:
@@ -56,17 +51,17 @@ def test_west_install_with_variant_dependencies(tmp_path: Path) -> None:
     exec_context = ExecutionContext(project_root_dir=project_dir, variant_name="test_variant", user_request=UserVariantRequest("test_variant"), variant=variant)
 
     west_install = WestInstall(exec_context, "install")
-    collected_dependencies = west_install._collect_dependencies()
+    merged_manifest = west_install._merge_manifests()
 
-    assert len(collected_dependencies.remotes) == 1
-    assert collected_dependencies.remotes[0].name == "catch2"
-    assert collected_dependencies.remotes[0].url_base == "https://github.com/catchorg"
+    remote = assert_element_of_type(merged_manifest.remotes, WestRemote)
+    assert remote.name == "catch2"
+    assert remote.url_base == "https://github.com/catchorg"
 
-    assert len(collected_dependencies.projects) == 1
-    assert collected_dependencies.projects[0].name == "Catch2"
-    assert collected_dependencies.projects[0].remote == "catch2"
-    assert collected_dependencies.projects[0].revision == "v3.4.0"
-    assert collected_dependencies.projects[0].path == "external/catch2"
+    project = assert_element_of_type(merged_manifest.projects, WestDependency)
+    assert project.name == "Catch2"
+    assert project.remote == "catch2"
+    assert project.revision == "v3.4.0"
+    assert project.path == "external/catch2"
 
 
 def test_west_install_merges_platform_and_variant_dependencies(tmp_path: Path) -> None:
@@ -91,15 +86,13 @@ def test_west_install_merges_platform_and_variant_dependencies(tmp_path: Path) -
     exec_context = ExecutionContext(project_root_dir=project_dir, variant_name="test_variant", user_request=UserVariantRequest("test_variant"), platform=platform, variant=variant)
 
     west_install = WestInstall(exec_context, "install")
-    collected_dependencies = west_install._collect_dependencies()
+    merged_manifest = west_install._merge_manifests()
 
-    assert len(collected_dependencies.remotes) == 2
-    remote_names = {remote.name for remote in collected_dependencies.remotes}
-    assert remote_names == {"gtest", "catch2"}
+    remotes = assert_elements_of_type(merged_manifest.remotes, WestRemote, 2)
+    assert {remote.name for remote in remotes} == {"gtest", "catch2"}
 
-    assert len(collected_dependencies.projects) == 2
-    project_names = {project.name for project in collected_dependencies.projects}
-    assert project_names == {"googletest", "Catch2"}
+    projects = assert_elements_of_type(merged_manifest.projects, WestDependency, 2)
+    assert {project.name for project in projects} == {"googletest", "Catch2"}
 
 
 def test_west_install_with_no_dependencies(tmp_path: Path) -> None:
@@ -108,10 +101,10 @@ def test_west_install_with_no_dependencies(tmp_path: Path) -> None:
     exec_context = ExecutionContext(project_root_dir=project_dir, variant_name="test_variant", user_request=UserVariantRequest("test_variant"))
 
     west_install = WestInstall(exec_context, "install")
-    collected_dependencies = west_install._collect_dependencies()
+    merged_manifest = west_install._merge_manifests()
 
-    assert len(collected_dependencies.remotes) == 0
-    assert len(collected_dependencies.projects) == 0
+    assert_elements_of_type(merged_manifest.remotes, WestRemote, 0)
+    assert_elements_of_type(merged_manifest.projects, WestDependency, 0)
 
 
 def test_west_install_generates_west_yaml(tmp_path: Path) -> None:
@@ -128,14 +121,14 @@ def test_west_install_generates_west_yaml(tmp_path: Path) -> None:
     exec_context = ExecutionContext(project_root_dir=project_dir, variant_name="test_variant", user_request=UserVariantRequest("test_variant"), platform=platform)
 
     west_install = WestInstall(exec_context, "install")
-    manifest = west_install._collect_dependencies()
-    west_install._generate_west_manifest(manifest)
+    manifest = west_install._merge_manifests()
+    west_install._write_west_manifest_file(manifest)
 
-    assert west_install.west_manifest_file.exists()
+    assert west_install._output_manifest_file.exists()
 
     import yaml
 
-    with west_install.west_manifest_file.open() as yaml_file:
+    with west_install._output_manifest_file.open() as yaml_file:
         content = yaml.safe_load(yaml_file)
 
     assert "manifest" in content
@@ -144,15 +137,17 @@ def test_west_install_generates_west_yaml(tmp_path: Path) -> None:
 
     remotes = content["manifest"]["remotes"]
     assert len(remotes) == 1
-    assert remotes[0]["name"] == "gtest"
-    assert remotes[0]["url-base"] == "https://github.com/google"
+    remote = remotes[0]
+    assert remote["name"] == "gtest"
+    assert remote["url-base"] == "https://github.com/google"
 
     projects = content["manifest"]["projects"]
     assert len(projects) == 1
-    assert projects[0]["name"] == "googletest"
-    assert projects[0]["remote"] == "gtest"
-    assert projects[0]["revision"] == "v1.14.0"
-    assert projects[0]["path"] == "external/gtest"
+    project = projects[0]
+    assert project["name"] == "googletest"
+    assert project["remote"] == "gtest"
+    assert project["revision"] == "v1.14.0"
+    assert project["path"] == "external/gtest"
 
 
 def test_west_install_variant_specific_directories(tmp_path: Path) -> None:
@@ -167,20 +162,22 @@ def test_west_install_variant_specific_directories(tmp_path: Path) -> None:
     )
 
     for variant_name in ["variant_a", "variant_b"]:
+        variant = VariantConfig(name=variant_name)
         exec_context = ExecutionContext(
             project_root_dir=project_dir,
             variant_name=variant_name,
             user_request=UserVariantRequest(variant_name),
             platform=platform,
+            variant=variant,
         )
 
         west_install = WestInstall(exec_context, "install")
-        collected_dependencies = west_install._collect_dependencies()
-        west_install._generate_west_manifest(collected_dependencies)
+        merged_manifest = west_install._merge_manifests()
+        west_install._write_west_manifest_file(merged_manifest)
 
         expected_west_file = project_dir / ".yanga" / "build" / variant_name / "linux_platform" / "west.yaml"
         assert expected_west_file.exists(), f"west.yaml should exist for variant {variant_name}"
-        assert west_install.west_manifest_file == expected_west_file
+        assert west_install._output_manifest_file == expected_west_file
 
     variant_a_file = project_dir / ".yanga" / "build" / "variant_a" / "linux_platform" / "west.yaml"
     variant_b_file = project_dir / ".yanga" / "build" / "variant_b" / "linux_platform" / "west.yaml"
@@ -199,11 +196,15 @@ def test_west_install_uses_shared_external_directory(tmp_path: Path) -> None:
         ),
     )
 
+    variant_a = VariantConfig(name="variant_a")
+    variant_b = VariantConfig(name="variant_b")
+
     exec_context_a = ExecutionContext(
         project_root_dir=project_dir,
         variant_name="variant_a",
         user_request=UserVariantRequest("variant_a"),
         platform=platform,
+        variant=variant_a,
     )
 
     exec_context_b = ExecutionContext(
@@ -211,6 +212,7 @@ def test_west_install_uses_shared_external_directory(tmp_path: Path) -> None:
         variant_name="variant_b",
         user_request=UserVariantRequest("variant_b"),
         platform=platform,
+        variant=variant_b,
     )
 
     west_install_a = WestInstall(exec_context_a, "install")
@@ -223,18 +225,13 @@ def test_west_install_uses_shared_external_directory(tmp_path: Path) -> None:
 
     expected_west_a = project_dir / ".yanga" / "build" / "variant_a" / "test_platform" / "west.yaml"
     expected_west_b = project_dir / ".yanga" / "build" / "variant_b" / "test_platform" / "west.yaml"
-    assert west_install_a.west_manifest_file == expected_west_a
-    assert west_install_b.west_manifest_file == expected_west_b
-
-    west_install_a._collected_dependencies = west_install_a._collect_dependencies()
-    west_install_b._collected_dependencies = west_install_b._collect_dependencies()
+    assert west_install_a._output_manifest_file == expected_west_a
+    assert west_install_b._output_manifest_file == expected_west_b
 
     outputs_a = west_install_a.get_outputs()
-    assert expected_external_dir in outputs_a
     assert expected_west_a in outputs_a
 
     outputs_b = west_install_b.get_outputs()
-    assert expected_external_dir in outputs_b
     assert expected_west_b in outputs_b
 
 
@@ -252,43 +249,40 @@ def test_west_install_tracks_individual_dependency_directories(tmp_path: Path) -
         ),
     )
 
+    variant = VariantConfig(name="test_variant")
     exec_context = ExecutionContext(
         project_root_dir=project_dir,
         variant_name="test_variant",
         user_request=UserVariantRequest("test_variant"),
         platform=platform,
+        variant=variant,
     )
 
     west_install = WestInstall(exec_context, "install")
-    west_install._collected_dependencies = west_install._collect_dependencies()
+    merged_manifest = west_install._merge_manifests()
 
-    external_dir = west_install.artifacts_locator.external_dependencies_dir
-    external_dir.mkdir(parents=True, exist_ok=True)
-    gtest_dir = external_dir / "gtest"
+    workspace_dir = west_install._west_workspace_dir
+    workspace_dir.mkdir(parents=True, exist_ok=True)
+    gtest_dir = workspace_dir / "external" / "gtest"
     gtest_dir.mkdir(parents=True, exist_ok=True)
-    foo_dir = external_dir / "foo"
+    foo_dir = workspace_dir / "external" / "foo"
     foo_dir.mkdir(parents=True, exist_ok=True)
 
-    west_install._track_dependency_directories()
+    west_install._record_installed_directories(merged_manifest)
 
-    assert len(west_install.execution_info.dependency_dirs) == 3
-    assert external_dir in west_install.execution_info.dependency_dirs
-    assert gtest_dir in west_install.execution_info.dependency_dirs
-    assert foo_dir in west_install.execution_info.dependency_dirs
+    assert len(west_install.install_result.installed_dirs) == 3
+    assert workspace_dir in west_install.install_result.installed_dirs
+    assert gtest_dir in west_install.install_result.installed_dirs
+    assert foo_dir in west_install.install_result.installed_dirs
 
-    outputs = west_install.get_outputs()
-    assert external_dir in outputs
-    assert gtest_dir in outputs
-    assert foo_dir in outputs
+    west_install.install_result.to_json_file(west_install._install_result_file)
+    assert west_install._install_result_file.exists()
 
-    west_install.execution_info.to_json_file(west_install.execution_info_file)
-    assert west_install.execution_info_file.exists()
-
-    loaded_info = WestInstallExecutionInfo.from_json_file(west_install.execution_info_file)
-    assert len(loaded_info.dependency_dirs) == 3
-    assert external_dir in loaded_info.dependency_dirs
-    assert gtest_dir in loaded_info.dependency_dirs
-    assert foo_dir in loaded_info.dependency_dirs
+    loaded_result = WestInstallResult.from_json_file(west_install._install_result_file)
+    assert len(loaded_result.installed_dirs) == 3
+    assert workspace_dir in loaded_result.installed_dirs
+    assert gtest_dir in loaded_result.installed_dirs
+    assert foo_dir in loaded_result.installed_dirs
 
 
 def test_west_manifest_file_from_file(tmp_path: Path) -> None:
@@ -321,24 +315,18 @@ manifest:
 
     manifest = manifest_file.manifest
 
-    assert len(manifest.remotes) == 2
-    gtest_remote = next((remote for remote in manifest.remotes if remote.name == "gtest"), None)
-    assert gtest_remote is not None
+    gtest_remote = assert_element_of_type(manifest.remotes, WestRemote, lambda r: r.name == "gtest")
     assert gtest_remote.url_base == "https://github.com/google"
 
-    catch2_remote = next((remote for remote in manifest.remotes if remote.name == "catch2"), None)
-    assert catch2_remote is not None
+    catch2_remote = assert_element_of_type(manifest.remotes, WestRemote, lambda r: r.name == "catch2")
     assert catch2_remote.url_base == "https://github.com/catchorg"
 
-    assert len(manifest.projects) == 2
-    gtest_project = next((project for project in manifest.projects if project.name == "googletest"), None)
-    assert gtest_project is not None
+    gtest_project = assert_element_of_type(manifest.projects, WestDependency, lambda p: p.name == "googletest")
     assert gtest_project.remote == "gtest"
     assert gtest_project.revision == "v1.14.0"
     assert gtest_project.path == "external/gtest"
 
-    catch2_project = next((project for project in manifest.projects if project.name == "Catch2"), None)
-    assert catch2_project is not None
+    catch2_project = assert_element_of_type(manifest.projects, WestDependency, lambda p: p.name == "Catch2")
     assert catch2_project.remote == "catch2"
     assert catch2_project.revision == "v3.4.0"
     assert catch2_project.path == "external/catch2"
@@ -370,17 +358,17 @@ manifest:
     )
 
     west_install = WestInstall(exec_context, "install")
-    collected_dependencies = west_install._collect_dependencies()
+    merged_manifest = west_install._merge_manifests()
 
-    assert len(collected_dependencies.remotes) == 1
-    assert collected_dependencies.remotes[0].name == "global_remote"
-    assert collected_dependencies.remotes[0].url_base == "https://github.com/global"
+    remote = assert_element_of_type(merged_manifest.remotes, WestRemote)
+    assert remote.name == "global_remote"
+    assert remote.url_base == "https://github.com/global"
 
-    assert len(collected_dependencies.projects) == 1
-    assert collected_dependencies.projects[0].name == "global_project"
-    assert collected_dependencies.projects[0].remote == "global_remote"
-    assert collected_dependencies.projects[0].revision == "main"
-    assert collected_dependencies.projects[0].path == "external/global_dep"
+    project = assert_element_of_type(merged_manifest.projects, WestDependency)
+    assert project.name == "global_project"
+    assert project.remote == "global_remote"
+    assert project.revision == "main"
+    assert project.path == "external/global_dep"
 
 
 def test_west_install_with_variant_platform_specific_dependencies(tmp_path: Path) -> None:
@@ -410,17 +398,17 @@ def test_west_install_with_variant_platform_specific_dependencies(tmp_path: Path
     )
 
     west_install = WestInstall(exec_context, "install")
-    collected_dependencies = west_install._collect_dependencies()
+    merged_manifest = west_install._merge_manifests()
 
-    assert len(collected_dependencies.remotes) == 1
-    assert collected_dependencies.remotes[0].name == "platform_remote"
-    assert collected_dependencies.remotes[0].url_base == "https://github.com/platform"
+    remote = assert_element_of_type(merged_manifest.remotes, WestRemote)
+    assert remote.name == "platform_remote"
+    assert remote.url_base == "https://github.com/platform"
 
-    assert len(collected_dependencies.projects) == 1
-    assert collected_dependencies.projects[0].name == "platform_lib"
-    assert collected_dependencies.projects[0].remote == "platform_remote"
-    assert collected_dependencies.projects[0].revision == "v1.0.0"
-    assert collected_dependencies.projects[0].path == "external/platform_lib"
+    project = assert_element_of_type(merged_manifest.projects, WestDependency)
+    assert project.name == "platform_lib"
+    assert project.remote == "platform_remote"
+    assert project.revision == "v1.0.0"
+    assert project.path == "external/platform_lib"
 
 
 def test_west_install_merges_all_dependencies_including_variant_platform_specific(tmp_path: Path) -> None:
@@ -462,14 +450,12 @@ def test_west_install_merges_all_dependencies_including_variant_platform_specifi
     )
 
     west_install = WestInstall(exec_context, "install")
-    collected_dependencies = west_install._collect_dependencies()
+    merged_manifest = west_install._merge_manifests()
 
     # Should have 3 remotes: platform, variant, and variant-platform-specific
-    assert len(collected_dependencies.remotes) == 3
-    remote_names = {remote.name for remote in collected_dependencies.remotes}
-    assert remote_names == {"platform_remote", "variant_remote", "variant_platform_remote"}
+    remotes = assert_elements_of_type(merged_manifest.remotes, WestRemote, 3)
+    assert {remote.name for remote in remotes} == {"platform_remote", "variant_remote", "variant_platform_remote"}
 
     # Should have 3 projects: platform, variant, and variant-platform-specific
-    assert len(collected_dependencies.projects) == 3
-    project_names = {project.name for project in collected_dependencies.projects}
-    assert project_names == {"platform_lib", "variant_lib", "variant_platform_lib"}
+    projects = assert_elements_of_type(merged_manifest.projects, WestDependency, 3)
+    assert {project.name for project in projects} == {"platform_lib", "variant_lib", "variant_platform_lib"}
