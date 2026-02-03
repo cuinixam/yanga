@@ -2355,7 +2355,7 @@ wheels = [
 
 [[package]]
 name = "yanga"
-version = "2.27.1"
+version = "2.27.2"
 source = { editable = "." }
 dependencies = [
     { name = "clanguru" },

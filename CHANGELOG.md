@@ -1,5 +1,11 @@
 # Changelog
 
+## v2.27.2 (2026-02-03)
+
+### Bug fixes
+
+- Wrong kickstart boostrap path ([`d3f6509`](https://github.com/cuinixam/yanga/commit/d3f650914ab3aaa8f5194f6863f29e1d6b551ab6))
+
 ## v2.27.1 (2026-01-18)
 
 ### Bug fixes
