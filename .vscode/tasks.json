@@ -33,7 +33,13 @@
     },
     {
       "label": "open docs index.html",
-      "command": "${workspaceFolder}/docs/_build/index.html",
+      "command": "xdg-open ${workspaceFolder}/docs/_build/index.html",
+      "osx": {
+        "command": "open ${workspaceFolder}/docs/_build/index.html"
+      },
+      "windows": {
+        "command": "explorer ${workspaceFolder}\\docs\\_build\\index.html"
+      },
       "type": "shell",
       "presentation": {
         "reveal": "always"

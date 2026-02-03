@@ -1,0 +1,16 @@
+{
+    "name": "Yanga Dev Environment",
+    "image": "cuinixam/yanga-dev:latest",
+    "customizations": {
+        "vscode": {
+            "extensions": [
+                "ms-vscode.cpptools",
+                "ms-vscode.cmake-tools",
+                "ms-python.python",
+                "ms-python.vscode-pylance",
+                "twxs.cmake",
+                "mhutchie.git-graph"
+            ]
+        }
+    }
+}
