@@ -1,5 +1,11 @@
 # Changelog
 
+## v2.27.3 (2026-02-05)
+
+### Bug fixes
+
+- Kickstart platform name is not correct ([`6c6b25d`](https://github.com/cuinixam/yanga/commit/6c6b25dad6216bca7c17c3681c85681c0dcda220))
+
 ## v2.27.2 (2026-02-03)
 
 ### Bug fixes
