@@ -1,5 +1,5 @@
 platforms:
-  - name: win_exe
+  - name: host_exe
     description: Build Windows executable with clang
     build_types:
       - Debug

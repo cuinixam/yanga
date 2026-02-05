@@ -22,7 +22,7 @@ def test_yanga_mini(mini_project: Path) -> None:
     # Build the project
     run_cmd_config = RunCommandConfig(
         project_dir,
-        "win_exe",
+        "host_exe",
         "GermanVariant",
         build_type="Debug",
         not_interactive=True,
@@ -30,7 +30,7 @@ def test_yanga_mini(mini_project: Path) -> None:
 
     assert 0 == RunCommand().do_run(run_cmd_config)
     # Check for the build artifacts
-    binary_exe = project_dir.joinpath(".yanga/build/GermanVariant/win_exe/Debug/GermanVariant.exe")
+    binary_exe = project_dir.joinpath(".yanga/build/GermanVariant/host_exe/Debug/GermanVariant.exe")
     assert binary_exe.exists()
     # Incremental build shall not rebuild the project
     write_time = binary_exe.stat().st_mtime

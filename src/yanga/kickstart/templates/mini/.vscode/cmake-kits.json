@@ -1,10 +1,10 @@
 [
   {
-    "name": "win_exe",
-    "toolchainFile": "platforms/windows/clang.cmake"
+    "name": "host_exe",
+    "toolchainFile": "platforms/host_exe/clang.cmake"
   },
   {
     "name": "gtest",
-    "toolchainFile": "platforms/windows/gcc.cmake"
+    "toolchainFile": "platforms/host_exe/gcc.cmake"
   }
 ]

@@ -61,7 +61,7 @@ def test_run(mini_project: Path) -> None:
 
 
 @pytest.mark.skipif(not Path("D:/ateliere/spledy").exists(), reason="Exploratory test. Not meant to be run in CI.")
-@pytest.mark.parametrize("platform", ["arduino_uno_r3", "win_exe", "gtest"])
+@pytest.mark.parametrize("platform", ["arduino_uno_r3", "host_exe", "gtest"])
 def test_spled(platform: str) -> None:
     project_dir = Path("D:/ateliere/spledy")
     result = runner.invoke(

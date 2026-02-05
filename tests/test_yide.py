@@ -11,12 +11,12 @@ def test_create_cmake_kits_file_with_platforms(tmp_path: Path) -> None:
     # Create a sample yanga.yaml configuration file with platforms
     config_content = """
 platforms:
-  - name: win_exe
+  - name: host_exe
     description: Build Windows executable
-    toolchain_file: platforms/windows/clang.cmake
+    toolchain_file: platforms/host_exe/clang.cmake
   - name: gtest
     description: Build GTest tests
-    toolchain_file: platforms/windows/gcc.cmake
+    toolchain_file: platforms/host_exe/gcc.cmake
 """
     config_file = project_dir / "yanga.yaml"
     config_file.write_text(config_content.strip())
@@ -34,13 +34,13 @@ platforms:
     # Check that the kits are correct
     assert len(cmake_kits_file.kits) == 2
 
-    win_exe_kit = next((kit for kit in cmake_kits_file.kits if kit.name == "win_exe"), None)
-    assert win_exe_kit is not None
-    assert win_exe_kit.toolchainFile == "platforms/windows/clang.cmake"
+    host_exe_kit = next((kit for kit in cmake_kits_file.kits if kit.name == "host_exe"), None)
+    assert host_exe_kit is not None
+    assert host_exe_kit.toolchainFile == "platforms/host_exe/clang.cmake"
 
     gtest_kit = next((kit for kit in cmake_kits_file.kits if kit.name == "gtest"), None)
     assert gtest_kit is not None
-    assert gtest_kit.toolchainFile == "platforms/windows/gcc.cmake"
+    assert gtest_kit.toolchainFile == "platforms/host_exe/gcc.cmake"
 
 
 def test_create_cmake_kits_file_no_platforms(tmp_path: Path) -> None:
@@ -98,8 +98,8 @@ def test_ide_project_generator_run(tmp_path: Path) -> None:
     # Create a sample yanga.yaml configuration file
     config_content = """
 platforms:
-  - name: win_exe
-    toolchain_file: platforms/windows/clang.cmake
+  - name: host_exe
+    toolchain_file: platforms/host_exe/clang.cmake
 """
     config_file = project_dir / "yanga.yaml"
     config_file.write_text(config_content.strip())
@@ -116,8 +116,8 @@ platforms:
     content = json.loads(cmake_kits_file_path.read_text())
     expected_content = [
         {
-            "name": "win_exe",
-            "toolchainFile": "platforms/windows/clang.cmake",
+            "name": "host_exe",
+            "toolchainFile": "platforms/host_exe/clang.cmake",
         }
     ]
     assert content == expected_content
@@ -154,9 +154,9 @@ variants:
     components: []
 
 platforms:
-  - name: win_exe
-    description: Build Windows executable
-    toolchain_file: platforms/windows/clang.cmake
+  - name: host_exe
+    description: Build host executable
+    toolchain_file: platforms/host_exe/clang.cmake
     build_types: ["Debug", "Release", "RelWithDebInfo"]
   - name: linux_exe
     description: Build Linux executable
