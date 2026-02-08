@@ -1,5 +1,11 @@
 # Changelog
 
+## v2.27.4 (2026-02-08)
+
+### Bug fixes
+
+- West clone depth attribute is ignored ([`819e2d2`](https://github.com/cuinixam/yanga/commit/819e2d2341fcb9a5cdd6ad2cc0a74d1800df8072))
+
 ## v2.27.3 (2026-02-05)
 
 ### Bug fixes
