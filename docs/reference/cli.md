@@ -1,4 +1,4 @@
-# {octicon}`terminal;1.5em;sd-mr-1` Command Line Interface
+# Command Line Interface
 
 Yanga provides a command-line interface (CLI) to manage your projects, run builds, and interact with the ecosystem. All commands are accessed through the main `yanga` executable.
 
@@ -20,8 +20,8 @@ This command creates the basic directory structure and a default `yanga.yaml` co
 
 **Arguments:**
 
-*   `--project-dir <PATH>`: The directory where the project will be created. Defaults to the current directory.
-*   `--force`: If set, Yanga will initialize the project even if the target directory is not empty.
+* `--project-dir <PATH>`: The directory where the project will be created. Defaults to the current directory.
+* `--force`: If set, Yanga will initialize the project even if the target directory is not empty.
 
 ## `yanga run`
 
@@ -33,16 +33,16 @@ yanga run [OPTIONS]
 
 **Key Options:**
 
-*   `--platform <NAME>`: Specifies the target platform to build for (e.g., `windows`, `linux`).
-*   `--variant <NAME>`: Selects the product variant to build. If not provided, Yanga will prompt you to choose from the available variants.
-*   `--component <NAME>`: Narrows the build scope to a single component.
-*   `--target <NAME>`: Defines a specific build target to execute (e.g., a specific test executable or report).
-*   `--build-type <TYPE>`: Sets the build type, such as `Debug` or `Release`.
-*   `--step <NAME>`: Runs the pipeline up to the specified step.
-*   `--single`: When used with `--step`, it runs only that single step.
-*   `--force-run`: Forces a step to execute even if it's not considered "dirty" (i.e., its inputs haven't changed).
-*   `--not-interactive`: Runs in non-interactive mode, failing instead of prompting for user input.
-*   `--print`: Prints the project's configuration and pipeline steps without executing them.
+* `--platform <NAME>`: Specifies the target platform to build for (e.g., `windows`, `linux`).
+* `--variant <NAME>`: Selects the product variant to build. If not provided, Yanga will prompt you to choose from the available variants.
+* `--component <NAME>`: Narrows the build scope to a single component.
+* `--target <NAME>`: Defines a specific build target to execute (e.g., a specific test executable or report).
+* `--build-type <TYPE>`: Sets the build type, such as `Debug` or `Release`.
+* `--step <NAME>`: Runs the pipeline up to the specified step.
+* `--single`: When used with `--step`, it runs only that single step.
+* `--force-run`: Forces a step to execute even if it's not considered "dirty" (i.e., its inputs haven't changed).
+* `--not-interactive`: Runs in non-interactive mode, failing instead of prompting for user input.
+* `--print`: Prints the project's configuration and pipeline steps without executing them.
 
 For more details on pipeline execution, see the [Pipeline Management](./pipeline.md) documentation.
 
@@ -58,7 +58,7 @@ The GUI provides a visual way to select variants and components, trigger builds,
 
 **Arguments:**
 
-*   `--project-dir <PATH>`: The project directory to open in the GUI.
+* `--project-dir <PATH>`: The project directory to open in the GUI.
 
 ## `yanga view`
 
@@ -72,7 +72,7 @@ This command is useful for inspecting the final feature set of each variant afte
 
 **Arguments:**
 
-*   `--project-dir <PATH>`: The project directory to analyze.
+* `--project-dir <PATH>`: The project directory to analyze.
 
 ## `yanga ide`
 
@@ -86,4 +86,4 @@ This command creates the necessary `.vscode` configuration files (`cmake-kits.js
 
 **Arguments:**
 
-*   `--project-dir <PATH>`: The project directory for which to generate IDE files.
+* `--project-dir <PATH>`: The project directory for which to generate IDE files.

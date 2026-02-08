@@ -1,4 +1,4 @@
-# {octicon}`cpu;1.5em;sd-mr-1` Platform Configuration
+# Platform Configuration
 
 Yanga's platform configuration allows you to define target-specific build environments, toolchains, and dependencies. This ensures that your project can be built consistently across different hardware, operating systems, or custom environments.
 

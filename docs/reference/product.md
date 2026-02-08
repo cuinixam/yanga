@@ -1,4 +1,4 @@
-# {octicon}`container;1.5em;sd-mr-1` Software Product Line
+# Software Product Line
 
 Yanga provides robust support for managing Software Product Lines (SPL) through its flexible variant and component system. This allows you to define multiple product variants from a common set of assets.
 
@@ -46,15 +46,17 @@ pypeline:
 
 ### Generic Configuration
 
-You can pass custom key-value pairs to the build system using the `config` section. These values are exported as CMake variables in the `config.cmake` generated file.
+You can pass custom key-value pairs to the build system using the `configs` section with `id: vars`. These values are exported as CMake variables in the `config.cmake` generated file.
 
 ```yaml
 variants:
   - name: ConfigVariant
     components: [main]
-    config:
-      MY_CUSTOM_FLAG: "enabled"
-      BUILD_NUMBER: 123
+    configs:
+      - id: vars
+        content:
+          MY_CUSTOM_FLAG: "enabled"
+          BUILD_NUMBER: 123
 ```
 
 ### Platform-Specific Configuration
@@ -70,9 +72,10 @@ variants:
     platforms:
       my_platform:
         components: [platform_specific_component]
-        config:
-          PLATFORM_SPECIFIC_FLAG: "true"
         configs:
+          - id: vars
+            content:
+              PLATFORM_SPECIFIC_FLAG: "true"
           - id: west
             content:
               remotes:

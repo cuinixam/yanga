@@ -1,6 +1,6 @@
 (pipeline-management)=
 
-# {octicon}`workflow;1.5em;sd-mr-1` Pipeline Management
+# Pipeline Management
 
 Yanga's build process is orchestrated through a configurable pipeline, a sequence of steps defined in your `yanga.yaml` file. This system allows you to automate everything from dependency installation to code generation and compilation.
 

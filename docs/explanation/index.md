@@ -1,9 +1,12 @@
-# {octicon}`light-bulb;1.5em;sd-mr-1` Explanation
+(explanation)=
 
-Understanding-oriented content that explains the "why" behind design decisions.
+# 💡 Explanation
+
+Understanding-oriented content that explains the concepts, design decisions, and "why" behind Yanga.
 
 ```{toctree}
 :maxdepth: 1
 
+concepts
 enhancements/index.md
 ```

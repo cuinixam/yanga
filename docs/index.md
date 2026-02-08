@@ -11,39 +11,56 @@ It offers an extensible architecture, allowing users to customize and enhance it
 
 ---
 
-::::{grid} 1 2 2 3
+::::{grid} 1 2 2 4
 :gutter: 1 1 1 2
 
-:::{grid-item-card} {octicon}`rocket;1.5em;sd-mr-1` Getting Started
-:link: getting-started
+:::{grid-item-card} {octicon}`mortar-board;1.5em;sd-mr-1` Tutorials
+:link: tutorials
 :link-type: ref
 
-Get familiar with the basic concepts and get started with a simple example.
+Learn Yanga step-by-step with hands-on examples.
 
 +++
-[Learn more »](getting-started)
+[Start learning »](tutorials)
 :::
 
-:::{grid-item-card} {octicon}`tools;1.5em;sd-mr-1` Features
-:link: yanga-features
+:::{grid-item-card} {octicon}`tools;1.5em;sd-mr-1` How-to Guides
+:link: how-to-guides
 :link-type: ref
 
-Discover the main features and how it can help you manage your software product lines.
+Task-oriented guides for accomplishing specific goals.
 
 +++
-[Learn more »](yanga-features)
+[Find solutions »](how-to-guides)
 :::
 
-:::{grid-item-card} {octicon}`play;1.5em;sd-mr-1` YANGA Presentation
-:link: https://cuinixam.github.io/yanga/presentation.html
+:::{grid-item-card} {octicon}`book;1.5em;sd-mr-1` Reference
+:link: reference
+:link-type: ref
 
-Watch the presentation to get an overview of YANGA and its main features.
+Technical reference for configuration, CLI, and APIs.
 
 +++
-[Open »](https://cuinixam.github.io/yanga/presentation.html)
+[Browse reference »](reference)
+:::
+
+:::{grid-item-card} {octicon}`light-bulb;1.5em;sd-mr-1` Explanation
+:link: explanation
+:link-type: ref
+
+Understand the concepts and design decisions.
+
++++
+[Learn why »](explanation)
 :::
 
 ::::
+
+---
+
+:::{tip}
+📺 **[Watch the YANGA Presentation](https://cuinixam.github.io/yanga/presentation.html)** to get an overview of YANGA and its main features.
+:::
 
 ---
 
@@ -51,8 +68,9 @@ Watch the presentation to get an overview of YANGA and its main features.
 :hidden:
 :maxdepth: 2
 
-getting_started/index.md
-features/index.md
+tutorials/index.md
+how-to/index.md
+reference/index.md
 explanation/index.md
 internals/index.md
 about/index.md

@@ -1,4 +1,4 @@
-# {octicon}`tools;1.5em;sd-mr-1` Configuration
+# Configuration
 
 The project configuration is defined as `.yaml` files.
 YANGA parses all `yanga.yaml` files in the project.
