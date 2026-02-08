@@ -1585,15 +1585,15 @@ wheels = [
 
 [[package]]
 name = "py-app-dev"
-version = "2.18.0"
+version = "2.19.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "loguru" },
     { name = "mashumaro" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/cb/20/2e9a0be4597f932f538966a987a9d22aafc3834fea8e5d0d9497ee50d377/py_app_dev-2.18.0.tar.gz", hash = "sha256:2e13a0758f0250a00f028744d20bfee23e3dffd9839e24abd2e6e5132f13d686", size = 19901, upload-time = "2025-09-24T12:51:06.117Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/84/5c/6b6ebb9cb373d76a4f5bbbed1575e31a5855916c88628e8592d4173dd4e7/py_app_dev-2.19.0.tar.gz", hash = "sha256:872846f2bc1f408a0320599afc0aeda17189a7e99a1ccb12d744c8105cf24f06", size = 20144, upload-time = "2026-02-05T19:03:36.835Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/4d/7b/387fd9f5293dc4bb8bcad62afc8cf3b092ee5df35d7ab1218178c5e218ba/py_app_dev-2.18.0-py3-none-any.whl", hash = "sha256:47038e64878ed154aa3a1bb0a183ee3d9cbb6fa78d041198106548d40fece74a", size = 23628, upload-time = "2025-09-24T12:51:04.946Z" },
+    { url = "https://files.pythonhosted.org/packages/07/d5/8e5e4057968d07cc2cb7947b85cb2c717f20c84716b9dd1fae9adbd14416/py_app_dev-2.19.0-py3-none-any.whl", hash = "sha256:f14f181731bc0762c201226baa40a60a1692b84f1f94e5d43517c7f58d4be9b1", size = 23837, upload-time = "2026-02-05T19:03:35.433Z" },
 ]
 
 [[package]]
@@ -1691,7 +1691,7 @@ wheels = [
 
 [[package]]
 name = "pypeline-runner"
-version = "1.26.0"
+version = "1.27.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "py-app-dev" },
@@ -1699,9 +1699,9 @@ dependencies = [
     { name = "typer" },
     { name = "west" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/98/2f/98b99951bf4f079e5b560eb937f86745f6ee7ea65f2334aaa0898545d359/pypeline_runner-1.26.0.tar.gz", hash = "sha256:2744938c6445c5c662e88cceaf0cdb01d6ac9e62a7505f9bed5ce65c2e96df4c", size = 33622, upload-time = "2026-02-01T13:42:05.775Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/28/44/69d2a026e4c8882886be3fc3a725c88ed67124edbe1cee1b2470f3de53a0/pypeline_runner-1.27.0.tar.gz", hash = "sha256:f29a0076f614c4b66b8f669ccf8d0d72d8583e359c28e79d7eb62756072e5ee7", size = 33878, upload-time = "2026-02-05T19:44:35.695Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/55/94/c35392818f2a3e5852b7f74a542f73421cb42c46cac3fa60a73b87beea76/pypeline_runner-1.26.0-py3-none-any.whl", hash = "sha256:d39fb56b34c6ee2cae290567b400e3bd32c23f138902f41b5465f681fe3f01f6", size = 40494, upload-time = "2026-02-01T13:42:04.556Z" },
+    { url = "https://files.pythonhosted.org/packages/45/53/39a340bae1bd4779d3aa67fe61f3ae8f80a82ec3ec80b89a634adb31174b/pypeline_runner-1.27.0-py3-none-any.whl", hash = "sha256:94239bd7a48b198210ea31519bcdd0a8e0f1e59c385e2d705fe45fd6836ea3a3", size = 40723, upload-time = "2026-02-05T19:44:34.68Z" },
 ]
 
 [[package]]
@@ -2403,7 +2403,7 @@ requires-dist = [
     { name = "pick", specifier = ">=2.2,<3" },
     { name = "pillow", specifier = ">=10.1,<11" },
     { name = "py-app-dev", specifier = ">=2.14,<3" },
-    { name = "pypeline-runner", specifier = ">=1,<2" },
+    { name = "pypeline-runner", specifier = ">=1.27,<2" },
     { name = "typer", specifier = ">=0.12,<1" },
 ]
 

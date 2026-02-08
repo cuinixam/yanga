@@ -114,7 +114,7 @@ def test_west_install_generates_west_yaml(tmp_path: Path) -> None:
         name="test_platform",
         west_manifest=WestManifest(
             remotes=[WestRemote(name="gtest", url_base="https://github.com/google")],
-            projects=[WestDependency(name="googletest", remote="gtest", revision="v1.14.0", path="external/gtest")],
+            projects=[WestDependency(name="googletest", remote="gtest", revision="v1.14.0", path="external/gtest", clone_depth=1)],
         ),
     )
 
@@ -148,6 +148,7 @@ def test_west_install_generates_west_yaml(tmp_path: Path) -> None:
     assert project["remote"] == "gtest"
     assert project["revision"] == "v1.14.0"
     assert project["path"] == "external/gtest"
+    assert project["clone-depth"] == 1
 
 
 def test_west_install_variant_specific_directories(tmp_path: Path) -> None:
