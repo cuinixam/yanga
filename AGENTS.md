@@ -125,6 +125,20 @@ Supports Zephyr West tool for dependency management via `WestManifest` configura
 
 ## Development Guidelines
 
+### ⚠️ MANDATORY: Plan Before Execution
+
+**NEVER start making changes without presenting a plan first.** This is a critical rule.
+
+1. **Create an implementation plan** documenting:
+   - What files will be modified, created, or deleted
+   - What changes will be made and why
+   - How the changes will be verified
+2. **Present the plan for user review** via `notify_user` with `BlockedOnUser=true`
+3. **Wait for explicit approval** before proceeding with any file modifications
+4. **Only after approval**, begin execution
+
+Skipping this step is unacceptable.
+
 ### Adding New Features
 
 1. Create domain models in `src/yanga/domain/`
