@@ -3,7 +3,7 @@ from pathlib import Path
 from tests.utils import assert_elements_of_type
 from yanga.cmake.cmake_backend import CMakeComment, CMakeVariable
 from yanga.cmake.variant_config import ConfigCMakeGenerator
-from yanga.domain.config import PlatformConfig, VariantConfig, VariantPlatformsConfig
+from yanga.domain.config import ConfigFile, PlatformConfig, VariantConfig, VariantPlatformsConfig
 from yanga.domain.execution_context import ExecutionContext, UserVariantRequest
 
 
@@ -28,12 +28,17 @@ def test_config_cmake_generator_with_variant_config(tmp_path: Path) -> None:
     output_dir = tmp_path
     variant = VariantConfig(
         name="test_variant",
-        config={
-            "LINKER_SCRIPT": "STM32F103.ld",
-            "GREETING": "Hallo, Welt!",
-            "DEBUG_LEVEL": "2",
-            "ENABLE_FEATURE": "ON",
-        },
+        configs=[
+            ConfigFile(
+                id="vars",
+                content={
+                    "LINKER_SCRIPT": "STM32F103.ld",
+                    "GREETING": "Hallo, Welt!",
+                    "DEBUG_LEVEL": "2",
+                    "ENABLE_FEATURE": "ON",
+                },
+            )
+        ],
     )
 
     execution_context = ExecutionContext(
@@ -52,7 +57,7 @@ def test_config_cmake_generator_with_variant_config(tmp_path: Path) -> None:
     # Check the comments
     comments = assert_elements_of_type(elements, CMakeComment, 2)
     assert "ConfigCMakeGenerator" in comments[0].to_string()
-    assert "Variant-specific configuration variables" in comments[1].to_string()
+    assert "Configuration variables" in comments[1].to_string()
 
     # Check the variables
     variables = assert_elements_of_type(elements, CMakeVariable, 4)
@@ -66,7 +71,7 @@ def test_config_cmake_generator_with_variant_config(tmp_path: Path) -> None:
 
 def test_config_cmake_generator_with_empty_config(tmp_path: Path) -> None:
     output_dir = tmp_path
-    variant = VariantConfig(name="test_variant", config={})
+    variant = VariantConfig(name="test_variant", configs=[])
 
     execution_context = ExecutionContext(
         project_root_dir=output_dir,
@@ -90,11 +95,16 @@ def test_config_cmake_generator_with_platform_specific_config(tmp_path: Path) ->
     # Create platform config
     platform = PlatformConfig(name="test_platform")
 
-    # Create variant with platform-specific config
+    # Create variant with platform-specific config using configs with id="vars"
     variant = VariantConfig(
         name="test_variant",
-        config={"BASE_CONFIG": "base_value"},
-        platforms={"test_platform": VariantPlatformsConfig(components=["platform_component"], config={"PLATFORM_CONFIG": "platform_value", "OVERRIDE_CONFIG": "override_value"})},
+        configs=[ConfigFile(id="vars", content={"BASE_CONFIG": "base_value"})],
+        platforms={
+            "test_platform": VariantPlatformsConfig(
+                components=["platform_component"],
+                configs=[ConfigFile(id="vars", content={"PLATFORM_CONFIG": "platform_value", "OVERRIDE_CONFIG": "override_value"})],
+            )
+        },
     )
 
     execution_context = ExecutionContext(
@@ -108,14 +118,13 @@ def test_config_cmake_generator_with_platform_specific_config(tmp_path: Path) ->
     generator = ConfigCMakeGenerator(execution_context, output_dir)
     elements = generator.generate()
 
-    # Should contain generator comment + base config comment + 1 base variable + platform config comment + 2 platform variables
-    assert len(elements) == 6
+    # Should contain generator comment + config comment + 3 variables (all configs merged)
+    assert len(elements) == 5
 
     # Check the comments
-    comments = assert_elements_of_type(elements, CMakeComment, 3)
+    comments = assert_elements_of_type(elements, CMakeComment, 2)
     assert "ConfigCMakeGenerator" in comments[0].to_string()
-    assert "Variant-specific configuration variables" in comments[1].to_string()
-    assert "Platform-specific configuration variables for 'test_platform'" in comments[2].to_string()
+    assert "Configuration variables" in comments[1].to_string()
 
     # Check the variables
     variables = assert_elements_of_type(elements, CMakeVariable, 3)
@@ -132,8 +141,12 @@ def test_config_cmake_generator_with_platform_no_specific_config(tmp_path: Path)
     # Create platform config
     platform = PlatformConfig(name="test_platform")
 
-    # Create variant with platforms but no config for this platform
-    variant = VariantConfig(name="test_variant", config={"BASE_CONFIG": "base_value"}, platforms={"other_platform": VariantPlatformsConfig(config={"OTHER_CONFIG": "other_value"})})
+    # Create variant with platform-specific config for a different platform
+    variant = VariantConfig(
+        name="test_variant",
+        configs=[ConfigFile(id="vars", content={"BASE_CONFIG": "base_value"})],
+        platforms={"other_platform": VariantPlatformsConfig(configs=[ConfigFile(id="vars", content={"OTHER_CONFIG": "other_value"})])},
+    )
 
     execution_context = ExecutionContext(
         project_root_dir=output_dir,
@@ -146,13 +159,13 @@ def test_config_cmake_generator_with_platform_no_specific_config(tmp_path: Path)
     generator = ConfigCMakeGenerator(execution_context, output_dir)
     elements = generator.generate()
 
-    # Should contain generator comment + base config comment + 1 base variable (no platform-specific config)
+    # Should contain generator comment + config comment + 1 base variable (no platform-specific config)
     assert len(elements) == 3
 
     # Check the comments
     comments = assert_elements_of_type(elements, CMakeComment, 2)
     assert "ConfigCMakeGenerator" in comments[0].to_string()
-    assert "Variant-specific configuration variables" in comments[1].to_string()
+    assert "Configuration variables" in comments[1].to_string()
 
     # Check the variables
     variables = assert_elements_of_type(elements, CMakeVariable, 1)

@@ -69,6 +69,25 @@ class ConfigFile(BaseConfigDictMixin):
 
 
 @dataclass
+class VarsConfig:
+    """Generic configuration variables to be added as `configs` with id `vars`."""
+
+    vars: dict[str, Any]
+
+    @classmethod
+    def from_dict(cls, data: dict[str, Any]) -> "VarsConfig":
+        """Create from dict - treats the entire dict as vars."""
+        return cls(vars=data)
+
+    @classmethod
+    def from_file(cls, path: Path) -> "VarsConfig":
+        """Load from YAML file - treats file content as vars dict."""
+        with open(path) as fs:
+            data = yaml.safe_load(fs) or {}
+        return cls(vars=data)
+
+
+@dataclass
 class MockingConfiguration(BaseConfigDictMixin):
     enabled: Optional[bool] = None
     strict: Optional[bool] = None
@@ -121,8 +140,6 @@ class VariantPlatformsConfig(BaseConfigDictMixin):
 
     #: Components
     components: list[str] = field(default_factory=list)
-    #: Generic configuration key-value pairs that will be exported as CMake variables
-    config: dict[str, Any] = field(default_factory=dict)
     #: Generic config files for steps
     configs: list[ConfigFile] = field(default_factory=list)
 
@@ -139,8 +156,6 @@ class VariantConfig(BaseConfigDictMixin):
     platforms: Optional[dict[str, VariantPlatformsConfig]] = None
     #: Configuration
     features_selection_file: Optional[str] = None
-    #: Generic configuration key-value pairs that will be exported as CMake variables
-    config: dict[str, Any] = field(default_factory=dict)
     #: Generic config files for steps
     configs: list[ConfigFile] = field(default_factory=list)
     # This field is intended to keep track of where configuration was loaded from and

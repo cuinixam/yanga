@@ -22,7 +22,7 @@ def test_collect_variant_components_with_platform_specific(tmp_path: Path) -> No
     variant = VariantConfig(
         name="test_variant",
         components=["base_component"],
-        platforms={"test_platform": VariantPlatformsConfig(components=["platform_component"], config={"PLATFORM_CONFIG": "platform_value"})},
+        platforms={"test_platform": VariantPlatformsConfig(components=["platform_component"])},
     )
 
     # Create a project slurper instance
