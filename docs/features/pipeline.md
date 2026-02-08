@@ -1,4 +1,5 @@
 (pipeline-management)=
+
 # {octicon}`workflow;1.5em;sd-mr-1` Pipeline Management
 
 Yanga's build process is orchestrated through a configurable pipeline, a sequence of steps defined in your `yanga.yaml` file. This system allows you to automate everything from dependency installation to code generation and compilation.
@@ -30,10 +31,10 @@ Each step is defined by its `step` (the class name) and `module` (the Python mod
 
 You run the pipeline using the `yanga run` command. Yanga's smart scheduler determines which steps need to be executed based on whether their inputs have changed or outputs are missing.
 
-*   **Run the full pipeline**: `yanga run`
-*   **Run up to a specific step**: `yanga run --step ExecuteBuild`
-*   **Run only a single step**: `yanga run --step KConfigGen --single`
-*   **Force re-execution of steps**: `yanga run --force-run`
+* **Run the full pipeline**: `yanga run`
+* **Run up to a specific step**: `yanga run --step ExecuteBuild`
+* **Run only a single step**: `yanga run --step KConfigGen --single`
+* **Force re-execution of steps**: `yanga run --force-run`
 
 ## Built-in Pipeline Steps
 
@@ -45,7 +46,7 @@ Yanga includes several pre-built steps to handle common build tasks.
 
 **Purpose:** Manages external Git repository dependencies using `west`.
 
-This step automatically clones and updates repositories defined in `west_manifest` sections within your platform and variant configurations. It's a powerful way to manage third-party libraries and components.
+This step automatically clones and updates repositories defined in `configs` with `id: west` sections within your platform and variant configurations. It's a powerful way to manage third-party libraries and components.
 
 **Configuration:** Add the step to your pipeline. The dependency details are configured in platforms and variants, as described in the [Software Product Line](#product-dependency-management) documentation.
 
@@ -62,7 +63,7 @@ pipeline:
 
 **Purpose:** Manages Windows-based tool dependencies using `scoop`.
 
-For projects that require specific tools on Windows (like compilers or build tools), this step reads `scoop_manifest` sections from your configuration and ensures the required tools are installed.
+For projects that require specific tools on Windows (like compilers or build tools), this step reads `configs` with `id: scoop` sections from your configuration and ensures the required tools are installed.
 
 **Configuration:** Add the step to your pipeline. Tool dependencies are configured in platforms and variants.
 

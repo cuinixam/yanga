@@ -39,12 +39,14 @@ platforms:
       - step: ReportCMakeGenerator
         module: yanga.cmake.reports
     toolchain_file: gcc.cmake
-    west_manifest:
-      remotes:
-        - name: gtest
-          url-base: https://github.com/google
-      projects:
-        - name: googletest
-          remote: gtest
-          revision: v1.16.0
-          path: gtest
+    configs:
+      - id: west
+        content:
+          remotes:
+            - name: gtest
+              url-base: https://github.com/google
+          projects:
+            - name: googletest
+              remote: gtest
+              revision: v1.16.0
+              path: gtest

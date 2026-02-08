@@ -47,31 +47,35 @@ Platforms can define their own dependencies, which are essential for setting up 
 
 ### West Manifest
 
-For platforms that require external Git-based dependencies, you can include a `west_manifest`. This allows you to specify repositories, remotes, and revisions, and `yanga` will ensure they are cloned and updated correctly.
+For platforms that require external Git-based dependencies, you can include a `config` with `id: west`. This allows you to specify repositories, remotes, and revisions, and `yanga` will ensure they are cloned and updated correctly.
 
 ```yaml
 platforms:
   - name: my_platform_with_deps
-    west_manifest:
-      remotes:
-        - name: my-remote
-          url-base: https://github.com/my-org
-      projects:
-        - name: my-library
-          remote: my-remote
-          revision: v2.1.0
-          path: vendor/my-library
+    configs:
+      - id: west
+        content:
+          remotes:
+            - name: my-remote
+              url-base: https://github.com/my-org
+          projects:
+            - name: my-library
+              remote: my-remote
+              revision: v2.1.0
+              path: vendor/my-library
 ```
 
 ### Scoop Manifest
 
-For Windows-based platforms, you can use a `scoop_manifest` to ensure the necessary development tools are available.
+For Windows-based platforms, you can use a `config` with `id: scoop` to ensure the necessary development tools are available.
 
 ```yaml
 platforms:
   - name: windows_dev
-    scoopy_manifest:
-      apps:
-        - name: git
-        - name: ninja
+    configs:
+      - id: scoop
+        content:
+          apps:
+            - name: git
+            - name: ninja
 ```

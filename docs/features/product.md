@@ -72,37 +72,42 @@ variants:
         components: [platform_specific_component]
         config:
           PLATFORM_SPECIFIC_FLAG: "true"
-        west_manifest:
-          remotes:
-            - name: platform_specific_remote
-              url-base: https://github.com/platform-specific
-          projects:
-            - name: platform_specific_lib
-              remote: platform_specific_remote
-              revision: v1.0.0
-              path: external/platform_lib
+        configs:
+          - id: west
+            content:
+              remotes:
+                - name: platform_specific_remote
+                  url-base: https://github.com/platform-specific
+              projects:
+                - name: platform_specific_lib
+                  remote: platform_specific_remote
+                  revision: v1.0.0
+                  path: external/platform_lib
 ```
 
-The `west_manifest` in the platform-specific configuration allows you to define dependencies that are only needed when building for that specific platform.
+The `configs` with `id: west` in the platform-specific configuration allows you to define dependencies that are only needed when building for that specific platform.
 
 (product-dependency-management)=
+
 ### Dependency Management
 
-Variants can declare their own external dependencies using `west_manifest` for managing external Git repositories. This ensures that the correct dependencies are fetched and installed for each variant.
+Variants can declare their own external dependencies using  `configs` with `id: west` for managing external Git repositories. This ensures that the correct dependencies are fetched and installed for each variant.
 
 ```yaml
 variants:
   - name: VariantWithDependencies
     components: [main]
-    west_manifest:
-      remotes:
-        - name: gtest
-          url-base: https://github.com/google
-      projects:
-        - name: googletest
-          remote: gtest
-          revision: v1.16.0
-          path: gtest
+    configs:
+      - id: west
+        content:
+          remotes:
+            - name: gtest
+              url-base: https://github.com/google
+          projects:
+            - name: googletest
+              remote: gtest
+              revision: v1.16.0
+              path: gtest
 ```
 
 ## Component-Based Architecture
@@ -136,6 +141,7 @@ components:
 ### Include Directories
 
 You can specify include directories for a component, controlling their visibility with a `scope`.
+
 - `PUBLIC` directories are exposed to any component that depends on this one.
 - `PRIVATE` directories are only used for compiling this component's sources.
 
@@ -201,7 +207,6 @@ platforms:
 
 ````
 
-
 ### Container Components (🚧to be implemented🚧)
 
 For better organization, you can create "container" components that group other components together. This simplifies variant definitions by allowing you to include a single container instead of a long list of individual components.
@@ -214,7 +219,9 @@ components:
       - feature_a
       - feature_b
 ```
+
 A variant can then be defined more concisely:
+
 ```yaml
 variants:
   - name: FullFeatureVariant
@@ -231,11 +238,11 @@ There are several CMakeGenerators available to generate reports relevant for a c
 
 For a component there are multiple documentation sources generated and collected:
 
-* user defined component documentation (e.g., `docs/*.md` files)
-* source code documentation (e.g., productive and test code) - for every source file a separate markdown file is generated using the `clanguru` Python package
-* static analysis reports - `cppcheck` xml report is converted to markdown
-* test execution report - the `GoogleTest` JUnit report is converted to markdown
-* code coverage report - the `gcovr` markdown report
+- user defined component documentation (e.g., `docs/*.md` files)
+- source code documentation (e.g., productive and test code) - for every source file a separate markdown file is generated using the `clanguru` Python package
+- static analysis reports - `cppcheck` xml report is converted to markdown
+- test execution report - the `GoogleTest` JUnit report is converted to markdown
+- code coverage report - the `gcovr` markdown report
 
 These files are collected and configured to be processed by Sphinx to generate a single HTML documentation for the component.
 
@@ -243,8 +250,8 @@ There is a dependency between the different build targets to ensure that the rep
 
 The `<component>_report` target depends on:
 
-* `<component>_docs` - to generate the documentation from the source code and user defined documentation
-* `<component>_lint` - to generate the static analysis report
-* `<component>_coverage` - to generate the code coverage report
+- `<component>_docs` - to generate the documentation from the source code and user defined documentation
+- `<component>_lint` - to generate the static analysis report
+- `<component>_coverage` - to generate the code coverage report
 
 All these targets depend on the component build target `<component>_build` to ensure that the component is built before generating the reports.
