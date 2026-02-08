@@ -162,5 +162,7 @@ Supports Zephyr West tool for dependency management via `WestManifest` configura
 ## Definition of Done
 
 Changes are NOT complete until:
+
 - `pypeline run` executes with **zero failures**
-- New functionality has appropriate test coverage
+- **All new functionality has tests** - never skip writing tests for new code
+- Test coverage includes edge cases and error conditions

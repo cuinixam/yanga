@@ -3,9 +3,14 @@ from pathlib import Path
 from pypeline.steps.west_install import WestDependency, WestInstallResult, WestManifest, WestManifestFile, WestRemote
 
 from tests.utils import assert_element_of_type, assert_elements_of_type
-from yanga.domain.config import PlatformConfig, VariantConfig, VariantPlatformsConfig
+from yanga.domain.config import ConfigFile, PlatformConfig, VariantConfig, VariantPlatformsConfig
 from yanga.domain.execution_context import ExecutionContext, UserVariantRequest
 from yanga.steps.west_install import WestInstall
+
+
+def _west_config(manifest: WestManifest) -> ConfigFile:
+    """Helper to create a west ConfigFile from a WestManifest."""
+    return ConfigFile(id="west", content=manifest.to_dict())
 
 
 def test_west_install_with_platform_dependencies(tmp_path: Path) -> None:
@@ -14,10 +19,14 @@ def test_west_install_with_platform_dependencies(tmp_path: Path) -> None:
     platform = PlatformConfig(
         name="test_platform",
         description="Test platform",
-        west_manifest=WestManifest(
-            remotes=[WestRemote(name="gtest", url_base="https://github.com/google")],
-            projects=[WestDependency(name="googletest", remote="gtest", revision="v1.14.0", path="external/gtest")],
-        ),
+        configs=[
+            _west_config(
+                WestManifest(
+                    remotes=[WestRemote(name="gtest", url_base="https://github.com/google")],
+                    projects=[WestDependency(name="googletest", remote="gtest", revision="v1.14.0", path="external/gtest")],
+                )
+            )
+        ],
     )
 
     exec_context = ExecutionContext(project_root_dir=project_dir, variant_name="test_variant", user_request=UserVariantRequest("test_variant"), platform=platform)
@@ -42,10 +51,14 @@ def test_west_install_with_variant_dependencies(tmp_path: Path) -> None:
     variant = VariantConfig(
         name="test_variant",
         description="Test variant",
-        west_manifest=WestManifest(
-            remotes=[WestRemote(name="catch2", url_base="https://github.com/catchorg")],
-            projects=[WestDependency(name="Catch2", remote="catch2", revision="v3.4.0", path="external/catch2")],
-        ),
+        configs=[
+            _west_config(
+                WestManifest(
+                    remotes=[WestRemote(name="catch2", url_base="https://github.com/catchorg")],
+                    projects=[WestDependency(name="Catch2", remote="catch2", revision="v3.4.0", path="external/catch2")],
+                )
+            )
+        ],
     )
 
     exec_context = ExecutionContext(project_root_dir=project_dir, variant_name="test_variant", user_request=UserVariantRequest("test_variant"), variant=variant)
@@ -69,18 +82,26 @@ def test_west_install_merges_platform_and_variant_dependencies(tmp_path: Path) -
 
     platform = PlatformConfig(
         name="test_platform",
-        west_manifest=WestManifest(
-            remotes=[WestRemote(name="gtest", url_base="https://github.com/google")],
-            projects=[WestDependency(name="googletest", remote="gtest", revision="v1.14.0", path="external/gtest")],
-        ),
+        configs=[
+            _west_config(
+                WestManifest(
+                    remotes=[WestRemote(name="gtest", url_base="https://github.com/google")],
+                    projects=[WestDependency(name="googletest", remote="gtest", revision="v1.14.0", path="external/gtest")],
+                )
+            )
+        ],
     )
 
     variant = VariantConfig(
         name="test_variant",
-        west_manifest=WestManifest(
-            remotes=[WestRemote(name="catch2", url_base="https://github.com/catchorg")],
-            projects=[WestDependency(name="Catch2", remote="catch2", revision="v3.4.0", path="external/catch2")],
-        ),
+        configs=[
+            _west_config(
+                WestManifest(
+                    remotes=[WestRemote(name="catch2", url_base="https://github.com/catchorg")],
+                    projects=[WestDependency(name="Catch2", remote="catch2", revision="v3.4.0", path="external/catch2")],
+                )
+            )
+        ],
     )
 
     exec_context = ExecutionContext(project_root_dir=project_dir, variant_name="test_variant", user_request=UserVariantRequest("test_variant"), platform=platform, variant=variant)
@@ -112,10 +133,14 @@ def test_west_install_generates_west_yaml(tmp_path: Path) -> None:
 
     platform = PlatformConfig(
         name="test_platform",
-        west_manifest=WestManifest(
-            remotes=[WestRemote(name="gtest", url_base="https://github.com/google")],
-            projects=[WestDependency(name="googletest", remote="gtest", revision="v1.14.0", path="external/gtest", clone_depth=1)],
-        ),
+        configs=[
+            _west_config(
+                WestManifest(
+                    remotes=[WestRemote(name="gtest", url_base="https://github.com/google")],
+                    projects=[WestDependency(name="googletest", remote="gtest", revision="v1.14.0", path="external/gtest", clone_depth=1)],
+                )
+            )
+        ],
     )
 
     exec_context = ExecutionContext(project_root_dir=project_dir, variant_name="test_variant", user_request=UserVariantRequest("test_variant"), platform=platform)
@@ -156,10 +181,14 @@ def test_west_install_variant_specific_directories(tmp_path: Path) -> None:
 
     platform = PlatformConfig(
         name="linux_platform",
-        west_manifest=WestManifest(
-            remotes=[WestRemote(name="test_remote", url_base="https://github.com/test")],
-            projects=[WestDependency(name="test_project", remote="test_remote", revision="main", path="external/test")],
-        ),
+        configs=[
+            _west_config(
+                WestManifest(
+                    remotes=[WestRemote(name="test_remote", url_base="https://github.com/test")],
+                    projects=[WestDependency(name="test_project", remote="test_remote", revision="main", path="external/test")],
+                )
+            )
+        ],
     )
 
     for variant_name in ["variant_a", "variant_b"]:
@@ -191,10 +220,14 @@ def test_west_install_uses_shared_external_directory(tmp_path: Path) -> None:
 
     platform = PlatformConfig(
         name="test_platform",
-        west_manifest=WestManifest(
-            remotes=[WestRemote(name="test_remote", url_base="https://github.com/test")],
-            projects=[WestDependency(name="test_project", remote="test_remote", revision="main", path="external/test")],
-        ),
+        configs=[
+            _west_config(
+                WestManifest(
+                    remotes=[WestRemote(name="test_remote", url_base="https://github.com/test")],
+                    projects=[WestDependency(name="test_project", remote="test_remote", revision="main", path="external/test")],
+                )
+            )
+        ],
     )
 
     variant_a = VariantConfig(name="variant_a")
@@ -241,13 +274,17 @@ def test_west_install_tracks_individual_dependency_directories(tmp_path: Path) -
 
     platform = PlatformConfig(
         name="test_platform",
-        west_manifest=WestManifest(
-            remotes=[WestRemote(name="github", url_base="https://github.com")],
-            projects=[
-                WestDependency(name="googletest", remote="github", revision="v1.14.0", path="external/gtest"),
-                WestDependency(name="libfoo", remote="github", revision="main", path="external/foo"),
-            ],
-        ),
+        configs=[
+            _west_config(
+                WestManifest(
+                    remotes=[WestRemote(name="github", url_base="https://github.com")],
+                    projects=[
+                        WestDependency(name="googletest", remote="github", revision="v1.14.0", path="external/gtest"),
+                        WestDependency(name="libfoo", remote="github", revision="main", path="external/foo"),
+                    ],
+                )
+            )
+        ],
     )
 
     variant = VariantConfig(name="test_variant")
@@ -382,10 +419,14 @@ def test_west_install_with_variant_platform_specific_dependencies(tmp_path: Path
         platforms={
             "test_platform": VariantPlatformsConfig(
                 components=["platform_component"],
-                west_manifest=WestManifest(
-                    remotes=[WestRemote(name="platform_remote", url_base="https://github.com/platform")],
-                    projects=[WestDependency(name="platform_lib", remote="platform_remote", revision="v1.0.0", path="external/platform_lib")],
-                ),
+                configs=[
+                    _west_config(
+                        WestManifest(
+                            remotes=[WestRemote(name="platform_remote", url_base="https://github.com/platform")],
+                            projects=[WestDependency(name="platform_lib", remote="platform_remote", revision="v1.0.0", path="external/platform_lib")],
+                        )
+                    )
+                ],
             )
         },
     )
@@ -418,26 +459,38 @@ def test_west_install_merges_all_dependencies_including_variant_platform_specifi
     # Platform with its own dependencies
     platform = PlatformConfig(
         name="test_platform",
-        west_manifest=WestManifest(
-            remotes=[WestRemote(name="platform_remote", url_base="https://github.com/platform")],
-            projects=[WestDependency(name="platform_lib", remote="platform_remote", revision="v2.0.0", path="external/platform")],
-        ),
+        configs=[
+            _west_config(
+                WestManifest(
+                    remotes=[WestRemote(name="platform_remote", url_base="https://github.com/platform")],
+                    projects=[WestDependency(name="platform_lib", remote="platform_remote", revision="v2.0.0", path="external/platform")],
+                )
+            )
+        ],
     )
 
     # Variant with global dependencies and platform-specific dependencies
     variant = VariantConfig(
         name="test_variant",
-        west_manifest=WestManifest(
-            remotes=[WestRemote(name="variant_remote", url_base="https://github.com/variant")],
-            projects=[WestDependency(name="variant_lib", remote="variant_remote", revision="v1.0.0", path="external/variant")],
-        ),
+        configs=[
+            _west_config(
+                WestManifest(
+                    remotes=[WestRemote(name="variant_remote", url_base="https://github.com/variant")],
+                    projects=[WestDependency(name="variant_lib", remote="variant_remote", revision="v1.0.0", path="external/variant")],
+                )
+            )
+        ],
         platforms={
             "test_platform": VariantPlatformsConfig(
                 components=["platform_component"],
-                west_manifest=WestManifest(
-                    remotes=[WestRemote(name="variant_platform_remote", url_base="https://github.com/variant-platform")],
-                    projects=[WestDependency(name="variant_platform_lib", remote="variant_platform_remote", revision="v3.0.0", path="external/variant_platform")],
-                ),
+                configs=[
+                    _west_config(
+                        WestManifest(
+                            remotes=[WestRemote(name="variant_platform_remote", url_base="https://github.com/variant-platform")],
+                            projects=[WestDependency(name="variant_platform_lib", remote="variant_platform_remote", revision="v3.0.0", path="external/variant_platform")],
+                        )
+                    )
+                ],
             )
         },
     )

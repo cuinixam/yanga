@@ -12,7 +12,6 @@ from py_app_dev.core.exceptions import UserNotificationException
 from py_app_dev.core.pipeline import PipelineConfig as GenericPipelineConfig
 from py_app_dev.core.scoop_wrapper import ScoopFileElement
 from pypeline.domain.pipeline import PipelineConfig
-from pypeline.steps.west_install import WestManifest
 from yaml.parser import ParserError
 from yaml.scanner import ScannerError
 
@@ -57,6 +56,19 @@ class ScoopManifest(BaseConfigJSONMixin):
 
 
 @dataclass
+class ConfigFile(BaseConfigDictMixin):
+    """Generic configuration file reference for steps to consume."""
+
+    id: str
+    file: Optional[Path] = None
+    content: Optional[dict[str, Any]] = None
+
+    def __post_init__(self) -> None:
+        if self.file is None and self.content is None:
+            raise ValueError(f"ConfigFile '{self.id}' must have either 'file' or 'content'")
+
+
+@dataclass
 class MockingConfiguration(BaseConfigDictMixin):
     enabled: Optional[bool] = None
     strict: Optional[bool] = None
@@ -94,8 +106,8 @@ class PlatformConfig(BaseConfigDictMixin):
     build_types: list[str] = field(default_factory=list)
     #: Supported targets
     build_targets: Optional[list[str]] = None
-    #: West dependencies for this platform
-    west_manifest: Optional[WestManifest] = None
+    #: Generic config files for steps
+    configs: list[ConfigFile] = field(default_factory=list)
     #: Scoop dependencies for this platform
     scoop_manifest: Optional[ScoopManifest] = None
     #: Platform specific components
@@ -113,8 +125,8 @@ class VariantPlatformsConfig(BaseConfigDictMixin):
     components: list[str] = field(default_factory=list)
     #: Generic configuration key-value pairs that will be exported as CMake variables
     config: dict[str, Any] = field(default_factory=dict)
-    #: West dependencies for this platform-specific variant configuration
-    west_manifest: Optional[WestManifest] = None
+    #: Generic config files for steps
+    configs: list[ConfigFile] = field(default_factory=list)
 
 
 @dataclass
@@ -131,8 +143,8 @@ class VariantConfig(BaseConfigDictMixin):
     features_selection_file: Optional[str] = None
     #: Generic configuration key-value pairs that will be exported as CMake variables
     config: dict[str, Any] = field(default_factory=dict)
-    #: West dependencies for this variant
-    west_manifest: Optional[WestManifest] = None
+    #: Generic config files for steps
+    configs: list[ConfigFile] = field(default_factory=list)
     #: Scoop dependencies for this variant
     scoop_manifest: Optional[ScoopManifest] = None
     # This field is intended to keep track of where configuration was loaded from and
@@ -229,6 +241,8 @@ class YangaUserConfig(BaseConfigDictMixin):
     variants: list[VariantConfig] = field(default_factory=list)
     #: Software components that can be used to create variants
     components: list[ComponentConfig] = field(default_factory=list)
+    #: Generic config files for steps
+    configs: list[ConfigFile] = field(default_factory=list)
 
     # This field is intended to keep track of where the configuration was loaded from and
     # it is automatically added when the configuration is loaded from the file

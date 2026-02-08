@@ -101,7 +101,7 @@ variants:
 Steps delegate config collection to a shared utils module:
 
 ```python
-from yanga.steps.utils import collect_configs_by_id, parse_config
+from yanga.domain.config_utils import collect_configs_by_id, parse_config
 
 class WestInstall(PipelineStep):
     def _collect_manifests(self) -> list[WestManifest]:

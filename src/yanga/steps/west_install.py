@@ -15,39 +15,15 @@ class WestInstall(PypelineWestInstallStep[ExecutionContext]):
     def _collect_manifests(self) -> list[WestManifestFile]:
         manifests: list[WestManifestFile] = super()._collect_manifests()
 
-        # Add platform manifest
-        if self.execution_context.platform and self.execution_context.platform.west_manifest:
-            manifests.append(
-                WestManifestFile(
-                    self.execution_context.platform.west_manifest,
-                    self.execution_context.platform.file,
-                )
-            )
+        # Collect configs with id="west" from variant, platform, variant-platform
+        from pypeline.steps.west_install import WestManifest
 
-        # Add variant manifest
-        if self.execution_context.variant and self.execution_context.variant.west_manifest:
-            manifests.append(
-                WestManifestFile(
-                    self.execution_context.variant.west_manifest,
-                    self.execution_context.variant.file,
-                )
-            )
+        from yanga.domain.config_utils import collect_configs_by_id, parse_config
 
-        # Add variant-platform manifest
-        if (
-            self.execution_context.variant
-            and self.execution_context.platform
-            and self.execution_context.variant.platforms
-            and self.execution_context.platform.name in self.execution_context.variant.platforms
-        ):
-            variant_platform_config = self.execution_context.variant.platforms[self.execution_context.platform.name]
-            if variant_platform_config.west_manifest:
-                manifests.append(
-                    WestManifestFile(
-                        variant_platform_config.west_manifest,
-                        self.execution_context.variant.file,
-                    )
-                )
+        configs = collect_configs_by_id(self.execution_context, "west")
+        for cfg in configs:
+            manifest = parse_config(cfg, WestManifest, self.project_root_dir)
+            manifests.append(WestManifestFile(manifest, cfg.file))
 
         return manifests
 
