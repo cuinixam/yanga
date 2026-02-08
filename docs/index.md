@@ -53,6 +53,7 @@ Watch the presentation to get an overview of YANGA and its main features.
 
 getting_started/index.md
 features/index.md
+explanation/index.md
 internals/index.md
 about/index.md
 ```
