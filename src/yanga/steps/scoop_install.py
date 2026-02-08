@@ -14,6 +14,7 @@ from py_app_dev.core.scoop_wrapper import ScoopFileElement, ScoopWrapper
 from pypeline.domain.pipeline import PipelineStep
 
 from yanga.domain.config import ScoopManifest
+from yanga.domain.config_utils import collect_configs_by_id, parse_config
 from yanga.domain.execution_context import ExecutionContext
 
 
@@ -101,25 +102,16 @@ class ScoopInstall(PipelineStep[ExecutionContext]):
             except Exception as e:
                 self.logger.warning(f"Failed to parse global scoopfile.json: {e}")
 
-        # Add platform dependencies
-        if self.execution_context.platform and self.execution_context.platform.scoop_manifest:
-            platform_manifest = self.execution_context.platform.scoop_manifest
+        # Add dependencies from configuration
+        configs = collect_configs_by_id(self.execution_context, "scoop")
+        for cfg in configs:
+            manifest = parse_config(cfg, ScoopManifest, self.project_root_dir)
 
             # Merge buckets
-            self._merge_buckets(collected_manifest, platform_manifest.buckets)
+            self._merge_buckets(collected_manifest, manifest.buckets)
 
             # Merge apps
-            self._merge_apps(collected_manifest, platform_manifest.apps)
-
-        # Add variant dependencies
-        if self.execution_context.variant and self.execution_context.variant.scoop_manifest:
-            variant_manifest = self.execution_context.variant.scoop_manifest
-
-            # Merge buckets
-            self._merge_buckets(collected_manifest, variant_manifest.buckets)
-
-            # Merge apps
-            self._merge_apps(collected_manifest, variant_manifest.apps)
+            self._merge_apps(collected_manifest, manifest.apps)
 
         return collected_manifest
 

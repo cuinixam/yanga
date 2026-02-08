@@ -79,10 +79,10 @@ def test_collect_configs_filters_by_id(tmp_path: Path) -> None:
 
 @dataclass
 class MockConfig:
-    data: dict
+    data: dict[str, str]
 
     @classmethod
-    def from_dict(cls, data: dict) -> "MockConfig":
+    def from_dict(cls, data: dict[str, str]) -> "MockConfig":
         return cls(data=data)
 
     @classmethod

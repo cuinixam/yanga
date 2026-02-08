@@ -4,7 +4,7 @@ from unittest.mock import MagicMock, patch
 
 from py_app_dev.core.scoop_wrapper import ScoopFileElement
 
-from yanga.domain.config import PlatformConfig, ScoopManifest, VariantConfig
+from yanga.domain.config import ConfigFile, PlatformConfig, ScoopManifest, VariantConfig
 from yanga.domain.execution_context import ExecutionContext, UserVariantRequest
 from yanga.steps.scoop_install import ScoopInstall
 
@@ -53,7 +53,15 @@ def test_scoop_install_with_global_scoopfile_and_platform_scoop_manifest(tmp_pat
         project_root_dir=project_dir,
         variant_name="test_variant",
         user_request=UserVariantRequest("test_variant"),
-        platform=PlatformConfig(name="test_platform", scoop_manifest=ScoopManifest.from_dict(platform_specific_content)),
+        platform=PlatformConfig(
+            name="test_platform",
+            configs=[
+                ConfigFile(
+                    id="scoop",
+                    content=platform_specific_content,
+                )
+            ],
+        ),
     )
 
     scoop_install = ScoopInstall(exec_context, "install")
@@ -71,10 +79,15 @@ def test_scoop_install_with_platform_dependencies(tmp_path: Path) -> None:
 
     platform = PlatformConfig(
         name="test_platform",
-        scoop_manifest=ScoopManifest(
-            buckets=[ScoopFileElement.from_dict({"name": "main", "source": "https://github.com/ScoopInstaller/Main"})],
-            apps=[ScoopFileElement.from_dict({"name": "git", "source": "main", "version": "2.42.0"})],
-        ),
+        configs=[
+            ConfigFile(
+                id="scoop",
+                content=ScoopManifest(
+                    buckets=[ScoopFileElement.from_dict({"name": "main", "source": "https://github.com/ScoopInstaller/Main"})],
+                    apps=[ScoopFileElement.from_dict({"name": "git", "source": "main", "version": "2.42.0"})],
+                ).to_dict(),
+            )
+        ],
     )
 
     exec_context = ExecutionContext(project_root_dir=project_dir, variant_name="test_variant", user_request=UserVariantRequest("test_variant"), platform=platform)
@@ -97,10 +110,15 @@ def test_scoop_install_with_variant_dependencies(tmp_path: Path) -> None:
 
     variant = VariantConfig(
         name="test_variant",
-        scoop_manifest=ScoopManifest(
-            buckets=[ScoopFileElement.from_dict({"name": "extras", "source": "https://github.com/ScoopInstaller/Extras"})],
-            apps=[ScoopFileElement.from_dict({"name": "vscode", "source": "extras"})],
-        ),
+        configs=[
+            ConfigFile(
+                id="scoop",
+                content=ScoopManifest(
+                    buckets=[ScoopFileElement.from_dict({"name": "extras", "source": "https://github.com/ScoopInstaller/Extras"})],
+                    apps=[ScoopFileElement.from_dict({"name": "vscode", "source": "extras"})],
+                ).to_dict(),
+            )
+        ],
     )
 
     exec_context = ExecutionContext(project_root_dir=project_dir, variant_name="test_variant", user_request=UserVariantRequest("test_variant"), variant=variant)
@@ -123,18 +141,28 @@ def test_scoop_install_merges_platform_and_variant_dependencies(tmp_path: Path) 
 
     platform = PlatformConfig(
         name="test_platform",
-        scoop_manifest=ScoopManifest(
-            buckets=[ScoopFileElement.from_dict({"name": "main", "source": "https://github.com/ScoopInstaller/Main"})],
-            apps=[ScoopFileElement.from_dict({"name": "git", "source": "main", "version": "2.42.0"})],
-        ),
+        configs=[
+            ConfigFile(
+                id="scoop",
+                content=ScoopManifest(
+                    buckets=[ScoopFileElement.from_dict({"name": "main", "source": "https://github.com/ScoopInstaller/Main"})],
+                    apps=[ScoopFileElement.from_dict({"name": "git", "source": "main", "version": "2.42.0"})],
+                ).to_dict(),
+            )
+        ],
     )
 
     variant = VariantConfig(
         name="test_variant",
-        scoop_manifest=ScoopManifest(
-            buckets=[ScoopFileElement.from_dict({"name": "extras", "source": "https://github.com/ScoopInstaller/Extras"})],
-            apps=[ScoopFileElement.from_dict({"name": "vscode", "source": "extras"})],
-        ),
+        configs=[
+            ConfigFile(
+                id="scoop",
+                content=ScoopManifest(
+                    buckets=[ScoopFileElement.from_dict({"name": "extras", "source": "https://github.com/ScoopInstaller/Extras"})],
+                    apps=[ScoopFileElement.from_dict({"name": "vscode", "source": "extras"})],
+                ).to_dict(),
+            )
+        ],
     )
 
     exec_context = ExecutionContext(project_root_dir=project_dir, variant_name="test_variant", user_request=UserVariantRequest("test_variant"), platform=platform, variant=variant)
@@ -168,10 +196,15 @@ def test_scoop_install_generates_scoop_manifest(tmp_path: Path) -> None:
 
     platform = PlatformConfig(
         name="test_platform",
-        scoop_manifest=ScoopManifest(
-            buckets=[ScoopFileElement.from_dict({"name": "main", "source": "https://github.com/ScoopInstaller/Main"})],
-            apps=[ScoopFileElement.from_dict({"name": "git", "source": "main", "version": "2.42.0"})],
-        ),
+        configs=[
+            ConfigFile(
+                id="scoop",
+                content=ScoopManifest(
+                    buckets=[ScoopFileElement.from_dict({"name": "main", "source": "https://github.com/ScoopInstaller/Main"})],
+                    apps=[ScoopFileElement.from_dict({"name": "git", "source": "main", "version": "2.42.0"})],
+                ).to_dict(),
+            )
+        ],
     )
 
     exec_context = ExecutionContext(project_root_dir=project_dir, variant_name="test_variant", user_request=UserVariantRequest("test_variant"), platform=platform)
@@ -205,18 +238,28 @@ def test_scoop_install_merges_buckets_with_conflicts(tmp_path: Path) -> None:
 
     platform = PlatformConfig(
         name="test_platform",
-        scoop_manifest=ScoopManifest(
-            buckets=[ScoopFileElement.from_dict({"name": "main", "source": "https://github.com/ScoopInstaller/Main"})],
-            apps=[],
-        ),
+        configs=[
+            ConfigFile(
+                id="scoop",
+                content=ScoopManifest(
+                    buckets=[ScoopFileElement.from_dict({"name": "main", "source": "https://github.com/ScoopInstaller/Main"})],
+                    apps=[],
+                ).to_dict(),
+            )
+        ],
     )
 
     variant = VariantConfig(
         name="test_variant",
-        scoop_manifest=ScoopManifest(
-            buckets=[ScoopFileElement.from_dict({"name": "main", "source": "https://github.com/different/main"})],
-            apps=[],
-        ),
+        configs=[
+            ConfigFile(
+                id="scoop",
+                content=ScoopManifest(
+                    buckets=[ScoopFileElement.from_dict({"name": "main", "source": "https://github.com/different/main"})],
+                    apps=[],
+                ).to_dict(),
+            )
+        ],
     )
 
     exec_context = ExecutionContext(project_root_dir=project_dir, variant_name="test_variant", user_request=UserVariantRequest("test_variant"), platform=platform, variant=variant)
@@ -226,7 +269,7 @@ def test_scoop_install_merges_buckets_with_conflicts(tmp_path: Path) -> None:
 
     assert len(collected_dependencies.buckets) == 1
     assert collected_dependencies.buckets[0].name == "main"
-    assert collected_dependencies.buckets[0].source == "https://github.com/ScoopInstaller/Main"
+    assert collected_dependencies.buckets[0].source == "https://github.com/different/main"
 
 
 def test_scoop_install_variant_specific_directories(tmp_path: Path) -> None:
@@ -234,10 +277,15 @@ def test_scoop_install_variant_specific_directories(tmp_path: Path) -> None:
 
     platform = PlatformConfig(
         name="windows_platform",
-        scoop_manifest=ScoopManifest(
-            buckets=[ScoopFileElement.from_dict({"name": "main", "source": "https://github.com/ScoopInstaller/Main"})],
-            apps=[ScoopFileElement.from_dict({"name": "git", "source": "main"})],
-        ),
+        configs=[
+            ConfigFile(
+                id="scoop",
+                content=ScoopManifest(
+                    buckets=[ScoopFileElement.from_dict({"name": "main", "source": "https://github.com/ScoopInstaller/Main"})],
+                    apps=[ScoopFileElement.from_dict({"name": "git", "source": "main"})],
+                ).to_dict(),
+            )
+        ],
     )
 
     for variant_name in ["variant_a", "variant_b"]:

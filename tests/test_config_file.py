@@ -13,7 +13,7 @@ def test_config_file_with_file_path() -> None:
 
 
 def test_config_file_with_content() -> None:
-    content = {"remotes": [], "projects": []}
+    content: dict[str, list[str]] = {"remotes": [], "projects": []}
     config = ConfigFile(id="west", content=content)
     assert config.id == "west"
     assert config.file is None
@@ -21,7 +21,7 @@ def test_config_file_with_content() -> None:
 
 
 def test_config_file_with_both_file_and_content() -> None:
-    content = {"remotes": [], "projects": []}
+    content: dict[str, list[str]] = {"remotes": [], "projects": []}
     config = ConfigFile(id="west", file=Path("west.yaml"), content=content)
     assert config.id == "west"
     assert config.file == Path("west.yaml")
