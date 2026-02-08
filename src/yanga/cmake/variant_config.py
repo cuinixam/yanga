@@ -30,6 +30,10 @@ class ConfigCMakeGenerator(CMakeGenerator):
             for config_file in vars_configs:
                 vars_config = parse_config(config_file, VarsConfig, self.execution_context.project_root_dir)
                 for key, value in vars_config.vars.items():
-                    elements.append(CMakeVariable(key, str(value)))
+                    str_value = str(value)
+                    # Quote values containing spaces for valid CMake syntax
+                    if " " in str_value:
+                        str_value = f'"{str_value}"'
+                    elements.append(CMakeVariable(key, str_value))
 
         return elements

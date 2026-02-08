@@ -64,7 +64,7 @@ def test_config_cmake_generator_with_variant_config(tmp_path: Path) -> None:
     variable_dict = {var.name: var.value for var in variables}
 
     assert variable_dict["LINKER_SCRIPT"] == "STM32F103.ld"
-    assert variable_dict["GREETING"] == "Hallo, Welt!"
+    assert variable_dict["GREETING"] == '"Hallo, Welt!"'
     assert variable_dict["DEBUG_LEVEL"] == "2"
     assert variable_dict["ENABLE_FEATURE"] == "ON"
 
