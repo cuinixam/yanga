@@ -1,18 +1,24 @@
+import sys
 from pathlib import Path
 from typing import Any, Protocol, TypeVar, cast
 
 from yanga.domain.config import ConfigFile
 from yanga.domain.execution_context import ExecutionContext
 
+if sys.version_info >= (3, 11):
+    from typing import Self
+else:
+    from typing_extensions import Self
+
 
 class ConfigPrototype(Protocol):
     """Protocol for config classes that support from_dict and from_file."""
 
     @classmethod
-    def from_dict(cls, data: dict[str, Any]) -> "ConfigPrototype": ...
+    def from_dict(cls, data: dict[str, Any]) -> Self: ...
 
     @classmethod
-    def from_file(cls, path: Path) -> "ConfigPrototype": ...
+    def from_file(cls, path: Path) -> Self: ...
 
 
 T = TypeVar("T", bound=ConfigPrototype)

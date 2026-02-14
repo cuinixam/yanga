@@ -180,3 +180,7 @@ Changes are NOT complete until:
 - `pypeline run` executes with **zero failures**
 - **All new functionality has tests** - never skip writing tests for new code
 - Test coverage includes edge cases and error conditions
+
+> ⚠️ **Before running `pypeline run`**, stage all modified files with `git add` first.
+> Pre-commit hooks only check **staged** files — unstaged changes will be silently skipped.
+> When `pyproject.toml` dependencies change, run `uv lock` first and stage `uv.lock` too — the `uv-lock` pre-commit hook will fail otherwise.

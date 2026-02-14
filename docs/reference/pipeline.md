@@ -74,6 +74,38 @@ pipeline:
       module: yanga.steps.scoop_install
 ```
 
+### `PoksInstall`
+
+**Module:** `yanga.steps.poks_install`
+
+**Purpose:** Manages cross-platform tool dependencies using `poks`.
+
+Unlike `ScoopInstall` which only works on Windows, `PoksInstall` works on Windows, Linux, and macOS. It reads `configs` with `id: poks` sections from your configuration and installs the specified tools into a user-space directory (`~/.poks/`). Installed tool paths and environment variables are automatically made available to subsequent pipeline steps.
+
+**Configuration:** Add the step to your pipeline. Tool dependencies are configured in platforms and variants using the `configs` mechanism (see [YEP-001](../explanation/enhancements/yep-001-generic-config-files.md)).
+
+```yaml
+pipeline:
+  - install:
+    - step: PoksInstall
+      module: yanga.steps.poks_install
+
+platforms:
+  - name: nrf52
+    configs:
+      - id: poks
+        content:
+          buckets:
+            - name: tools
+              url: https://github.com/example/poks-bucket.git
+          apps:
+            - name: arm-gnu-toolchain
+              version: "13.2.1"
+              bucket: tools
+```
+
+You can also reference an external `poks.json` file or place one in the project root for global dependencies.
+
 ### `KConfigGen`
 
 **Module:** `yanga.steps.kconfig_gen`
