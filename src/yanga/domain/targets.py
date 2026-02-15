@@ -1,14 +1,11 @@
-import io
-import json
-import traceback
 from collections.abc import Sequence
 from dataclasses import dataclass, field
 from enum import auto
 from pathlib import Path
 
-from py_app_dev.core.exceptions import UserNotificationException
+from py_app_dev.core.config import BaseConfigJSONMixin
 
-from yanga.domain.config import BaseConfigJSONMixin, StringableEnum, stringable_enum_field_metadata
+from yanga.domain.config import StringableEnum, stringable_enum_field_metadata
 
 
 class TargetType(StringableEnum):
@@ -35,13 +32,3 @@ class Target(BaseConfigJSONMixin):
 @dataclass
 class TargetsData(BaseConfigJSONMixin):
     targets: Sequence[Target] = field(default_factory=list)
-
-    @classmethod
-    def from_json_file(cls, file_path: Path) -> "TargetsData":
-        try:
-            result = cls.from_dict(json.loads(file_path.read_text()))
-        except Exception as e:
-            output = io.StringIO()
-            traceback.print_exc(file=output)
-            raise UserNotificationException(output.getvalue()) from e
-        return result

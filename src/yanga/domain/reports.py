@@ -9,9 +9,10 @@ from functools import cached_property
 from pathlib import Path
 from typing import Any
 
+from py_app_dev.core.config import BaseConfigJSONMixin
 from py_app_dev.core.exceptions import UserNotificationException
 
-from .config import BaseConfigJSONMixin, StringableEnum, stringable_enum_field_metadata
+from .config import StringableEnum, stringable_enum_field_metadata
 from .execution_context import UserRequest
 
 
@@ -151,16 +152,6 @@ class ReportData(BaseConfigJSONMixin):
     @property
     def has_component_scope(self) -> bool:
         return self.component_name is not None
-
-    @classmethod
-    def from_json_file(cls, file_path: Path) -> ReportData:
-        try:
-            result = cls.from_dict(json.loads(file_path.read_text()))
-        except Exception as e:
-            output = io.StringIO()
-            traceback.print_exc(file=output)
-            raise UserNotificationException(output.getvalue()) from e
-        return result
 
     def collect_all_files(self) -> list[Path]:
         result = []

@@ -1,58 +1,15 @@
-import json
 from dataclasses import dataclass, field
 from enum import Enum, auto
 from pathlib import Path
 from typing import Any, Callable, Optional
 
 import yaml
-from mashumaro.config import BaseConfig
-from mashumaro.mixins.json import DataClassJSONMixin
 from py_app_dev.core.config import BaseConfigDictMixin
 from py_app_dev.core.exceptions import UserNotificationException
 from py_app_dev.core.pipeline import PipelineConfig as GenericPipelineConfig
-from py_app_dev.core.scoop_wrapper import ScoopFileElement
 from pypeline.domain.pipeline import PipelineConfig
 from yaml.parser import ParserError
 from yaml.scanner import ScannerError
-
-
-class BaseConfigJSONMixin(DataClassJSONMixin):
-    class Config(BaseConfig):
-        omit_none = True
-        serialize_by_alias = True
-
-    def to_json_string(self) -> str:
-        return json.dumps(self.to_dict(), indent=2)
-
-    def to_json_file(self, file_path: Path) -> None:
-        file_path.write_text(self.to_json_string())
-
-
-@dataclass
-class ScoopManifest(BaseConfigJSONMixin):
-    #: Scoop buckets
-    buckets: list[ScoopFileElement] = field(default_factory=list)
-    #: Scoop applications
-    apps: list[ScoopFileElement] = field(default_factory=list)
-    # This field is intended to keep track of where configuration was loaded from and
-    # it is automatically added when configuration is loaded from file
-    file: Optional[Path] = None
-
-    @classmethod
-    def from_file(cls, config_file: Path) -> "ScoopManifest":
-        config_dict = cls.parse_to_dict(config_file)
-        return cls.from_dict(config_dict)
-
-    @staticmethod
-    def parse_to_dict(config_file: Path) -> dict[str, Any]:
-        try:
-            with open(config_file) as fs:
-                config_dict = json.loads(fs.read())
-                # Add file name to config to keep track of where configuration was loaded from
-                config_dict["file"] = config_file
-            return config_dict
-        except json.JSONDecodeError as e:
-            raise UserNotificationException(f"Failed parsing scoop manifest file '{config_file}'. \nError: {e}") from e
 
 
 @dataclass

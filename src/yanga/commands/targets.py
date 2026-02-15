@@ -6,10 +6,10 @@ from pathlib import Path
 
 from clanguru.doc_generator import DocStructure, MarkdownFormatter, Section, TextContent
 from py_app_dev.core.cmd_line import Command, register_arguments_for_config_dataclass
+from py_app_dev.core.config import BaseConfigJSONMixin
 from py_app_dev.core.logging import logger, time_it
 
 from yanga.cmake.generator import GeneratedFile
-from yanga.domain.config import BaseConfigJSONMixin
 from yanga.domain.targets import Target, TargetsData, TargetType
 
 from .base import create_config

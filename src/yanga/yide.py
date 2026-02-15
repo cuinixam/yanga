@@ -4,10 +4,10 @@ from dataclasses import dataclass, field
 from pathlib import Path
 
 from mashumaro import DataClassDictMixin
+from py_app_dev.core.config import BaseConfigJSONMixin
 from py_app_dev.core.logging import logger
 
 from yanga.cmake.generator import GeneratedFileIf
-from yanga.domain.config import BaseConfigJSONMixin
 from yanga.domain.project_slurper import YangaProjectSlurper
 
 

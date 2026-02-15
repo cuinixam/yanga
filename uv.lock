@@ -2022,15 +2022,15 @@ wheels = [
 
 [[package]]
 name = "py-app-dev"
-version = "2.19.0"
+version = "2.20.2"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "loguru" },
     { name = "mashumaro" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/84/5c/6b6ebb9cb373d76a4f5bbbed1575e31a5855916c88628e8592d4173dd4e7/py_app_dev-2.19.0.tar.gz", hash = "sha256:872846f2bc1f408a0320599afc0aeda17189a7e99a1ccb12d744c8105cf24f06", size = 20144, upload-time = "2026-02-05T19:03:36.835Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/9e/ec/23f1d55e53ac345bdd066c26e27a72afad5ed070a69dee1c0291a62b97d4/py_app_dev-2.20.2.tar.gz", hash = "sha256:4aa8979a7a584d6b23c5d4fa6f87b63e69ae07f3033569dd73c9e88dec79a40c", size = 20230, upload-time = "2026-02-15T18:53:55.595Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/07/d5/8e5e4057968d07cc2cb7947b85cb2c717f20c84716b9dd1fae9adbd14416/py_app_dev-2.19.0-py3-none-any.whl", hash = "sha256:f14f181731bc0762c201226baa40a60a1692b84f1f94e5d43517c7f58d4be9b1", size = 23837, upload-time = "2026-02-05T19:03:35.433Z" },
+    { url = "https://files.pythonhosted.org/packages/96/34/a6cd1da10e1136846de9d637b0954b240c819ba79cdf8cc2d27766d4f788/py_app_dev-2.20.2-py3-none-any.whl", hash = "sha256:7e7a009892707161334d61dc5db8c32f9896cfcc541a0d1846a804128639b30c", size = 24203, upload-time = "2026-02-15T18:53:53.932Z" },
 ]
 
 [[package]]
@@ -2255,17 +2255,18 @@ wheels = [
 
 [[package]]
 name = "pypeline-runner"
-version = "1.27.0"
+version = "1.28.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
+    { name = "poks" },
     { name = "py-app-dev" },
     { name = "pyyaml" },
     { name = "typer" },
     { name = "west" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/28/44/69d2a026e4c8882886be3fc3a725c88ed67124edbe1cee1b2470f3de53a0/pypeline_runner-1.27.0.tar.gz", hash = "sha256:f29a0076f614c4b66b8f669ccf8d0d72d8583e359c28e79d7eb62756072e5ee7", size = 33878, upload-time = "2026-02-05T19:44:35.695Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/92/2a/4d4c74c83f2c825c03d8d0e4a05ceb239b04749365a2b0d04a342df0c015/pypeline_runner-1.28.0.tar.gz", hash = "sha256:cdce698185609d23dd20b5fbe258ca7ce166fcf9c46a2156fdb66b768b43f21b", size = 34996, upload-time = "2026-02-15T21:13:56.877Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/45/53/39a340bae1bd4779d3aa67fe61f3ae8f80a82ec3ec80b89a634adb31174b/pypeline_runner-1.27.0-py3-none-any.whl", hash = "sha256:94239bd7a48b198210ea31519bcdd0a8e0f1e59c385e2d705fe45fd6836ea3a3", size = 40723, upload-time = "2026-02-05T19:44:34.68Z" },
+    { url = "https://files.pythonhosted.org/packages/ac/a6/d57af615a9906ef7663956d7ede2cb90bcaba429b75a9b2705dce51fee76/pypeline_runner-1.28.0-py3-none-any.whl", hash = "sha256:94a78d4d15c8b9a7ddc67b74928e0b85686cfcd515f8749a17abefff72ff6cc6", size = 42781, upload-time = "2026-02-15T21:13:55.209Z" },
 ]
 
 [[package]]
@@ -3053,20 +3054,20 @@ dev = [
 
 [package.metadata]
 requires-dist = [
-    { name = "clanguru", specifier = ">=0.12,<1" },
+    { name = "clanguru", specifier = ">=0,<1" },
     { name = "cookiecutter", specifier = ">=2.1,<3" },
     { name = "customtkinter", specifier = ">=5.2,<6" },
     { name = "gcovr", specifier = ">=8.3,<9" },
     { name = "kspl", specifier = ">=1,<2" },
-    { name = "loguru", specifier = ">=0.7,<1" },
+    { name = "loguru", specifier = ">=0,<1" },
     { name = "mashumaro", specifier = ">=3.5,<4" },
     { name = "myst-parser", specifier = ">=4,<5" },
     { name = "pick", specifier = ">=2.2,<3" },
     { name = "pillow", specifier = ">=10.1,<11" },
-    { name = "poks", specifier = ">=0.5.0,<1" },
-    { name = "py-app-dev", specifier = ">=2.14,<3" },
-    { name = "pypeline-runner", specifier = ">=1.27,<2" },
-    { name = "typer", specifier = ">=0.12,<1" },
+    { name = "poks", specifier = ">=0,<1" },
+    { name = "py-app-dev", specifier = ">=2.20,<3" },
+    { name = "pypeline-runner", specifier = ">=1.28,<2" },
+    { name = "typer", specifier = ">=0,<1" },
 ]
 
 [package.metadata.requires-dev]
