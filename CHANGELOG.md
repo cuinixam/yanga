@@ -1,5 +1,21 @@
 # Changelog
 
+## v2.28.0 (2026-02-17)
+
+### Bug fixes
+
+- Parsing west manifest expects wrong content ([`5e8f741`](https://github.com/cuinixam/yanga/commit/5e8f741102f593f74cc0e58f8b9a7b4bf3d9bcf2))
+- Cmake strings not quoted properly ([`1738334`](https://github.com/cuinixam/yanga/commit/173833487b7f73cf8cfa767a9681321c10823345))
+- Wrong west configuration in kickstart ([`d24e60b`](https://github.com/cuinixam/yanga/commit/d24e60b7bb70b0e84a0a046ac4de3d85dd5262a0))
+
+### Features
+
+- Add poks install step ([`bbd9682`](https://github.com/cuinixam/yanga/commit/bbd968271822f97b8c66adeff713af6b5da2d06b))
+
+### Documentation
+
+- Restructure based on diataxis framework ([`11f07f0`](https://github.com/cuinixam/yanga/commit/11f07f065fe88fbb66f3178724bcd433c8caf1ac))
+
 ## v2.27.4 (2026-02-08)
 
 ### Bug fixes
