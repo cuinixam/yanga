@@ -10,7 +10,7 @@ from yanga.steps.west_install import WestInstall
 
 def _west_config(manifest: WestManifest) -> ConfigFile:
     """Helper to create a west ConfigFile from a WestManifest."""
-    return ConfigFile(id="west", content=manifest.to_dict())
+    return ConfigFile(id="west", content={"manifest": manifest.to_dict()})
 
 
 def test_west_install_with_platform_dependencies(tmp_path: Path) -> None:

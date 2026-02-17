@@ -16,7 +16,12 @@ def test_run(mini_project: Path) -> None:
     build_script_path = mini_project / "build.ps1"
     assert build_script_path.exists()
     # Bootstrap the project
-    SubprocessExecutor(["powershell", "-File", build_script_path.as_posix(), "-install"]).execute()
+    env = os.environ.copy()
+    env.pop("VIRTUAL_ENV", None)
+    completed_process = SubprocessExecutor(["powershell", "-File", build_script_path.as_posix(), "-install"], env=env).execute(handle_errors=False)
+
+    assert completed_process is not None
+    assert completed_process.returncode == 0, "Bootstrapping the project failed."
     # "Refresh" the PATH to make sure the Scoop shims are available
     os.environ["PATH"] += os.pathsep + str(Path.home() / "scoop" / "shims")
     # Build the project

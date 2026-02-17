@@ -41,12 +41,4 @@ platforms:
     toolchain_file: gcc.cmake
     configs:
       - id: west
-        content:
-          remotes:
-            - name: gtest
-              url-base: https://github.com/google
-          projects:
-            - name: googletest
-              remote: gtest
-              revision: v1.16.0
-              path: gtest
+        file: platforms/host_exe/gtest.west.yaml

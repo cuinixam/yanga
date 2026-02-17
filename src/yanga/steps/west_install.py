@@ -4,6 +4,7 @@ from typing import Any, Optional
 from pypeline.steps.west_install import WestInstall as PypelineWestInstallStep
 from pypeline.steps.west_install import WestManifestFile, WestWorkspaceDir
 
+from yanga.domain.config_utils import collect_configs_by_id, parse_config
 from yanga.domain.execution_context import ExecutionContext
 
 
@@ -16,14 +17,12 @@ class WestInstall(PypelineWestInstallStep[ExecutionContext]):
         manifests: list[WestManifestFile] = super()._collect_manifests()
 
         # Collect configs with id="west" from variant, platform, variant-platform
-        from pypeline.steps.west_install import WestManifest
-
-        from yanga.domain.config_utils import collect_configs_by_id, parse_config
-
         configs = collect_configs_by_id(self.execution_context, "west")
         for cfg in configs:
-            manifest = parse_config(cfg, WestManifest, self.project_root_dir)
-            manifests.append(WestManifestFile(manifest, cfg.file))
+            manifest = parse_config(cfg, WestManifestFile, self.project_root_dir)
+            if not manifest.file and cfg.file:
+                manifest.file = self.project_root_dir / cfg.file
+            manifests.append(manifest)
 
         return manifests
 

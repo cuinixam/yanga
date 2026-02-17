@@ -3,7 +3,7 @@ pipeline:
     - step: CreateVEnv
       module: pypeline.steps.create_venv
       config:
-        python_version: 3.13
+        python_version: 3.11
         bootstrap_script: .bootstrap/bootstrap.py
     - step: ScoopInstall
       module: yanga.steps.scoop_install
