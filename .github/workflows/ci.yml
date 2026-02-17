@@ -17,7 +17,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
-          python-version: 3.13
+          python-version: 3.11
       - name: Install pypeline runner
         run: pip install pypeline-runner>=1.23
         shell: bash
