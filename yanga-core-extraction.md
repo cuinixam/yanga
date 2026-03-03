@@ -140,7 +140,7 @@ The exact data type and structure published to `data_registry` requires a separa
 The `commands/` package mixes generic orchestration (`run.py`, `base.py`) with cmake-specific tooling commands. The cmake-specific ones must live in the cmake layer or the yanga (cmake) repository so that yanga-core's CLI does not depend on cmake tooling.
 
 | File | Target location |
-|---|---|
+| --- | --- |
 | `run.py` | yanga-core |
 | `base.py` | yanga-core |
 | `fix_html_links.py` | yanga-core |
@@ -228,8 +228,113 @@ After extraction, the yanga repository retains only cmake-specific code. It beco
 ## Open Design Questions
 
 | ID | Question | Blocking |
-|---|---|---|
-| DQ-001 | What is the data type(s) published to `data_registry` for include directory contributions? Global vs component-scoped? Multiple providers per component? | T-003 |
+| --- | --- | --- |
+| DQ-001 | ~~What is the data type(s) published to `data_registry` for include directory contributions? Global vs component-scoped? Multiple providers per component?~~ Resolved — see ADD-001. | T-003 |
 | DQ-002 | Should `yanga-steps` be a single package or individual packages per step (e.g., `yanga-step-kconfig`, `yanga-step-west`)? | T-010 |
 | DQ-003 | `report_config.py` command — does it depend on cmake artifacts or is it generic? | T-007 |
 | DQ-004 | Should yanga-core ship a default empty CLI or no CLI at all (pure library)? | T-009 |
+
+---
+
+## Architectural Design Decisions
+
+### ADD-001 — `Artifact`: generic domain type for step-published outputs
+
+**Resolves:** DQ-001
+**Affects:** T-003, `ComponentConfig`, `data_registry` consumers
+
+#### Context
+
+A component assembles its include path from three distinct sources:
+
+1. **Required component headers (static, graph-traversal)** — when component A declares `required_components: [HAL]`, it inherits HAL's PUBLIC `include_directories`. Resolved at configuration time from the component dependency graph. No `data_registry` involvement.
+
+2. **Global generated headers (dynamic, global)** — steps such as `KConfigGen` produce headers (e.g., `autoconf.h`) that every component needs. The step publishes one artifact with no consumer restriction.
+
+3. **Component-specific generated headers (dynamic, per-consumer)** — a code generator (e.g., Autosar, Matlab/Simulink) runs per-component and produces output specific to that component. The component opts in by declaring a typed `ConfigFile`; the step discovers matching components and publishes a consumer-tagged artifact.
+
+#### Decision
+
+Introduce an `Artifact` dataclass as the canonical domain type published to `data_registry` by any step that produces outputs other steps or the build system need to discover:
+
+```python
+@dataclass
+class Artifact:
+    path: Path                           # file or directory
+    provider: str                        # step or component that produced this
+    consumers: list[str] | None = None   # None = global; named list = restricted
+    labels: list[str] | None = None      # see well-known labels below
+```
+
+`path` may point to a file or a directory. Consumers that need a directory (e.g., for include paths) derive it as `path if path.is_dir() else path.parent`.
+
+#### Labels
+
+Labels are free-form strings. A small set of well-known labels carries structural meaning understood by framework consumers such as the cmake generator. Domain-specific labels are additive on top of these.
+
+**Well-known labels:**
+
+| Label | Meaning |
+| --- | --- |
+| `include` | path (or its parent) is an include directory; add to `target_include_directories` |
+| `public` | re-export to components that `require` the publishing component |
+| `private` | visible only to the declared `consumers` |
+| `source` | path contains generated source files to compile |
+
+**Example** — KConfigGen publishes its output header globally:
+
+```python
+Artifact(
+    path=build_dir / "kconfig" / "autoconf.h",
+    provider="KConfigGen",
+    consumers=None,                        # all components
+    labels=["include", "public"],
+)
+```
+
+**Example** — AutosarCodeGen publishes generated code for a specific component:
+
+```python
+Artifact(
+    path=build_dir / "autosar" / component.name,
+    provider="AutosarCodeGen",
+    consumers=[component.name],
+    labels=["include", "source", "private", "autosar"],
+)
+```
+
+The cmake generator assembles the include path for component X by querying all `Artifact` entries where `"include" in labels` and `consumers is None or component.name in consumers`, then appending the component's own statically declared `include_directories`.
+
+#### Typed config file as a code-generation contract
+
+For case 3, the coupling between a component and its code generator is expressed solely through a well-known `id` string on `ConfigFile` — the same mechanism already used at the variant/platform level for `kconfig`, `west`, and `toolchain`.
+
+A component opts into Autosar code generation by declaring:
+
+```yaml
+components:
+  - name: MotorController
+    configs:
+      - id: autosar
+        file: motor_controller.arxml
+```
+
+The corresponding step (`AutosarCodeGen`) knows it handles `id: "autosar"`. It:
+
+1. Scans all components in `ExecutionContext` for config files with that id.
+2. Generates code for each matched component.
+3. Publishes the artifact shown above to `data_registry`.
+
+The component's YAML carries no reference to the step class path — only the `id` type identifier. Steps and components are decoupled.
+
+#### Impact on `ComponentConfig`
+
+`ComponentConfig` currently has no `configs: list[ConfigFile]` field. This field must be added (consistent with `VariantConfig`, `PlatformConfig`, and `YangaUserConfig` which already carry it).
+
+#### Summary table
+
+| Source | `consumers` | Labels |
+| --- | --- | --- |
+| KConfig / global feature headers | `None` (all) | `include`, `public` |
+| Autosar / Matlab component generator | `[component.name]` | `include`, `private` (+ tool label) |
+| Component's own declared includes | — (stays in `ComponentConfig.include_directories`) | — |
