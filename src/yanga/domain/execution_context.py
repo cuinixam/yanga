@@ -8,7 +8,7 @@ from pypeline.domain.execution_context import ExecutionContext as _ExecutionCont
 
 from .artifacts import ProjectArtifactsLocator
 from .components import Component
-from .config import PlatformConfig, VariantConfig
+from .config import ConfigFile, PlatformConfig, VariantConfig
 
 
 class UserRequestTarget(Enum):
@@ -78,6 +78,7 @@ class ExecutionContext(_ExecutionContext):
         features_selection_file: Optional[Path] = None,
         platform: Optional[PlatformConfig] = None,
         variant: Optional[VariantConfig] = None,
+        project_configs: Optional[list[ConfigFile]] = None,
         create_yanga_build_dir: bool = True,
     ) -> None:
         super().__init__(project_root_dir)
@@ -88,6 +89,7 @@ class ExecutionContext(_ExecutionContext):
         self.features_selection_file = features_selection_file
         self.platform = platform
         self.variant = variant
+        self.project_configs: list[ConfigFile] = project_configs if project_configs else []
         self.create_yanga_build_dir = create_yanga_build_dir
         self.include_dirs_providers: list[IncludeDirectoriesProvider] = []
 

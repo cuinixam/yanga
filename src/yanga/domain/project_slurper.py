@@ -9,7 +9,7 @@ from pypeline.domain.pipeline import PipelineConfig, PipelineConfigIterator
 from yanga.domain.artifacts import ProjectArtifactsLocator
 
 from .components import Component
-from .config import ComponentConfig, DocsConfiguration, PlatformConfig, TestingConfiguration, VariantConfig, YangaUserConfig
+from .config import ComponentConfig, ConfigFile, DocsConfiguration, PlatformConfig, TestingConfiguration, VariantConfig, YangaUserConfig
 from .config_slurper import YangaConfigSlurper
 
 
@@ -184,6 +184,16 @@ class YangaProjectSlurper:
     @property
     def user_config_files(self) -> list[Path]:
         return [user_config.file for user_config in self.user_configs if user_config.file]
+
+    @property
+    def project_configs(self) -> list[ConfigFile]:
+        """Collect all top level configuration files from the user configurations."""
+        configs: list[ConfigFile] = []
+        for user_config in self.user_configs:
+            for cfg in user_config.configs:
+                cfg.source_file = user_config.file
+                configs.append(cfg)
+        return configs
 
     def get_variant_config(self, variant_name: str) -> VariantConfig:
         variant = next((v for v in self.variants if v.name == variant_name), None)

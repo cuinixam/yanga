@@ -14,16 +14,9 @@ class WestInstall(PypelineWestInstallStep[ExecutionContext]):
         self.artifacts_locator = execution_context.create_artifacts_locator()
 
     def _collect_manifests(self) -> list[WestManifestFile]:
-        manifests: list[WestManifestFile] = super()._collect_manifests()
-
-        # Collect configs with id="west" from variant, platform, variant-platform
-        configs = collect_configs_by_id(self.execution_context, "west")
-        for cfg in configs:
-            manifest = parse_config(cfg, WestManifestFile, self.project_root_dir)
-            if not manifest.file and cfg.file:
-                manifest.file = self.project_root_dir / cfg.file
-            manifests.append(manifest)
-
+        manifests: list[WestManifestFile] = list(self.execution_context.data_registry.find_data(WestManifestFile))
+        for cfg in collect_configs_by_id(self.execution_context, "west"):
+            manifests.append(parse_config(cfg, WestManifestFile, self.project_root_dir))
         return manifests
 
     def _resolve_workspace_dir(self) -> Path:

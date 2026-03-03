@@ -370,33 +370,22 @@ manifest:
     assert catch2_project.path == "external/catch2"
 
 
-def test_west_install_with_global_west_yaml_using_manifest_file(tmp_path: Path) -> None:
-    project_dir = tmp_path
-
-    global_west_content = """
-manifest:
-    remotes:
-        - name: global_remote
-          url-base: https://github.com/global
-
-    projects:
-        - name: global_project
-          remote: global_remote
-          revision: main
-          path: external/global_dep
-"""
-
-    global_west_file = project_dir / "west.yaml"
-    global_west_file.write_text(global_west_content.strip())
-
-    exec_context = ExecutionContext(
-        project_root_dir=project_dir,
-        variant_name="test_variant",
-        user_request=UserVariantRequest("test_variant"),
+def test_west_install_with_root_config(tmp_path: Path) -> None:
+    root_cfg = _west_config(
+        WestManifest(
+            remotes=[WestRemote(name="global_remote", url_base="https://github.com/global")],
+            projects=[WestDependency(name="global_project", remote="global_remote", revision="main", path="external/global_dep")],
+        )
     )
 
-    west_install = WestInstall(exec_context, "install")
-    merged_manifest = west_install._merge_manifests()
+    exec_context = ExecutionContext(
+        project_root_dir=tmp_path,
+        variant_name="test_variant",
+        user_request=UserVariantRequest("test_variant"),
+        project_configs=[root_cfg],
+    )
+
+    merged_manifest = WestInstall(exec_context, "install")._merge_manifests()
 
     remote = assert_element_of_type(merged_manifest.remotes, WestRemote)
     assert remote.name == "global_remote"

@@ -19,6 +19,8 @@ class ConfigFile(BaseConfigDictMixin):
     id: str
     file: Optional[Path] = None
     content: Optional[dict[str, Any]] = None
+    # Populated at runtime by collect_configs_by_id; not part of the yaml schema
+    source_file: Optional[Path] = None
 
     def __post_init__(self) -> None:
         if self.file is None and self.content is None:

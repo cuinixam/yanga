@@ -146,6 +146,7 @@ class RunCommand(Command):
             features_selection_file=(project_slurper.get_variant_config_file(variant_name) if variant_name else None),
             platform=project_slurper.get_platform(platform_name),
             variant=(project_slurper.get_variant_config(variant_name) if variant_name else None),
+            project_configs=project_slurper.project_configs,
             create_yanga_build_dir=project_slurper.create_yanga_build_dir,
         )
         PipelineStepsExecutor[ExecutionContext](

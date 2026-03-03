@@ -119,31 +119,31 @@ def test_poks_install_merges_platform_and_variant_dependencies(tmp_path: Path) -
     assert {a.name for a in collected.apps} == {"cmake", "ninja"}
 
 
-def test_poks_install_with_global_and_platform_configs(tmp_path: Path) -> None:
-    global_content = {
-        "buckets": [{"name": "global_bucket", "url": "https://github.com/global/bucket"}],
-        "apps": [{"name": "global_app", "version": "1.0.0", "bucket": "global_bucket"}],
-    }
-    global_file = tmp_path / "poks.json"
-    global_file.write_text(json.dumps(global_content))
-
-    platform_content = {
-        "buckets": [{"name": "global_bucket", "url": "https://github.com/global/bucket"}],
-        "apps": [{"name": "platform_app", "version": "0.0.1", "bucket": "global_bucket"}],
-    }
+def test_poks_install_with_root_and_platform_configs(tmp_path: Path) -> None:
+    root_cfg = ConfigFile(
+        id="poks",
+        content={
+            "buckets": [{"name": "global_bucket", "url": "https://github.com/global/bucket"}],
+            "apps": [{"name": "global_app", "version": "1.0.0", "bucket": "global_bucket"}],
+        },
+    )
+    platform_cfg = ConfigFile(
+        id="poks",
+        content={
+            "buckets": [{"name": "global_bucket", "url": "https://github.com/global/bucket"}],
+            "apps": [{"name": "platform_app", "version": "0.0.1", "bucket": "global_bucket"}],
+        },
+    )
 
     exec_context = ExecutionContext(
         project_root_dir=tmp_path,
         variant_name="test_variant",
         user_request=UserVariantRequest("test_variant"),
-        platform=PlatformConfig(
-            name="test_platform",
-            configs=[ConfigFile(id="poks", content=platform_content)],
-        ),
+        project_configs=[root_cfg],
+        platform=PlatformConfig(name="test_platform", configs=[platform_cfg]),
     )
 
-    poks_install = PoksInstall(exec_context, "install")
-    collected = poks_install._collect_dependencies()
+    collected = PoksInstall(exec_context, "install")._collect_dependencies()
 
     assert {b.name for b in collected.buckets} == {"global_bucket"}
     assert {a.name for a in collected.apps} == {"global_app", "platform_app"}

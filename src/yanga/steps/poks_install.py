@@ -14,15 +14,11 @@ class PoksInstall(BasePoksInstall[ExecutionContext]):
         self.artifacts_locator = execution_context.create_artifacts_locator()
 
     def _collect_dependencies(self) -> PoksConfig:
-        collected = super()._collect_dependencies()
-
-        # Collect configs with id="poks" from variant, platform, variant-platform
-        configs = collect_configs_by_id(self.execution_context, "poks")
-        for cfg in configs:
+        collected = PoksConfig()
+        for cfg in collect_configs_by_id(self.execution_context, "poks"):
             manifest = parse_config(cfg, PoksConfig, self.project_root_dir)
             self._merge_buckets(collected, manifest.buckets)
             self._merge_apps(collected, manifest.apps)
-
         return collected
 
     @property

@@ -64,9 +64,7 @@ class ExecuteBuild(PipelineStep[ExecutionContext]):
         if platform:
             raw = get_toolchain_config_file(platform)
             if raw:
-                toolchain_file = CMakePath(
-                    self.execution_context.create_artifacts_locator().locate_artifact(raw, [platform.file])
-                ).to_string()
+                toolchain_file = CMakePath(self.execution_context.create_artifacts_locator().locate_artifact(raw, [platform.file])).to_string()
         self._run(cmake_runner.get_configure_command(toolchain_file, self.execution_context.variant_name, platform_name, self.execution_context.user_request.build_type))
         self._run(cmake_runner.get_build_command(self.execution_context.user_request.target_name))
         return 0

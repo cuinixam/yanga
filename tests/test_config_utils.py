@@ -121,3 +121,108 @@ def test_parse_config_prefers_content_over_file(tmp_path: Path) -> None:
     config = ConfigFile(id="test", file=config_file, content={"loaded": "from_content"})
     result = parse_config(config, MockConfig)
     assert result.data == {"loaded": "from_content"}
+
+
+# --- project config tests ---
+
+
+def test_collect_configs_from_project(tmp_path: Path) -> None:
+    yaml_file = tmp_path / "yanga.yaml"
+    root_cfg = ConfigFile(id="west", content={"key": "root"}, source_file=yaml_file)
+    context = ExecutionContext(project_root_dir=tmp_path, variant_name="test", user_request=UserVariantRequest("test"), project_configs=[root_cfg])
+    configs = collect_configs_by_id(context, "west")
+    assert len(configs) == 1
+    assert configs[0].content == {"key": "root"}
+    assert configs[0].source_file == yaml_file
+
+
+def test_collect_configs_order_project_first(tmp_path: Path) -> None:
+    root_cfg = ConfigFile(id="west", content={"key": "root"})
+    variant = VariantConfig(name="test", configs=[ConfigFile(id="west", content={"key": "variant"})])
+    platform = PlatformConfig(name="linux", configs=[ConfigFile(id="west", content={"key": "platform"})])
+    context = ExecutionContext(
+        project_root_dir=tmp_path,
+        variant_name="test",
+        user_request=UserVariantRequest("test"),
+        project_configs=[root_cfg],
+        variant=variant,
+        platform=platform,
+    )
+    configs = collect_configs_by_id(context, "west")
+    assert len(configs) == 3
+    assert configs[0].content == {"key": "root"}
+    assert configs[1].content == {"key": "variant"}
+    assert configs[2].content == {"key": "platform"}
+
+
+# --- source_file stamping tests ---
+
+
+def test_collect_configs_stamps_source_file_from_variant(tmp_path: Path) -> None:
+    yaml_file = tmp_path / "yanga.yaml"
+    variant = VariantConfig(name="test", configs=[ConfigFile(id="west", content={"k": "v"})], file=yaml_file)
+    context = ExecutionContext(project_root_dir=tmp_path, variant_name="test", user_request=UserVariantRequest("test"), variant=variant)
+    configs = collect_configs_by_id(context, "west")
+    assert configs[0].source_file == yaml_file
+
+
+def test_collect_configs_stamps_source_file_from_platform(tmp_path: Path) -> None:
+    yaml_file = tmp_path / "platforms" / "yanga.yaml"
+    platform = PlatformConfig(name="linux", configs=[ConfigFile(id="poks", content={"k": "v"})], file=yaml_file)
+    context = ExecutionContext(project_root_dir=tmp_path, variant_name="test", user_request=UserVariantRequest("test"), platform=platform)
+    configs = collect_configs_by_id(context, "poks")
+    assert configs[0].source_file == yaml_file
+
+
+def test_collect_configs_stamps_source_file_from_variant_platform(tmp_path: Path) -> None:
+    yaml_file = tmp_path / "yanga.yaml"
+    platform = PlatformConfig(name="linux")
+    variant = VariantConfig(
+        name="test",
+        platforms={"linux": VariantPlatformsConfig(configs=[ConfigFile(id="west", content={"k": "v"})])},
+        file=yaml_file,
+    )
+    context = ExecutionContext(
+        project_root_dir=tmp_path,
+        variant_name="test",
+        user_request=UserVariantRequest("test"),
+        variant=variant,
+        platform=platform,
+    )
+    configs = collect_configs_by_id(context, "west")
+    assert configs[0].source_file == yaml_file
+
+
+# --- parse_config resolution priority tests ---
+
+
+def test_parse_config_resolves_relative_to_source_file_first(tmp_path: Path) -> None:
+    subdir = tmp_path / "platforms" / "nrf52"
+    subdir.mkdir(parents=True)
+    config_file = subdir / "poks.json"
+    config_file.write_text('{"loaded": "from_source_dir"}')
+    yaml_file = subdir / "yanga.yaml"
+
+    config = ConfigFile(id="poks", file=Path("poks.json"), source_file=yaml_file)
+    result = parse_config(config, MockConfig, base_path=tmp_path)
+    assert result.data == {"loaded": "from_source_dir"}
+
+
+def test_parse_config_falls_back_to_base_path_when_not_in_source_dir(tmp_path: Path) -> None:
+    config_file = tmp_path / "poks.json"
+    config_file.write_text('{"loaded": "from_root"}')
+    yaml_file = tmp_path / "platforms" / "nrf52" / "yanga.yaml"
+
+    config = ConfigFile(id="poks", file=Path("poks.json"), source_file=yaml_file)
+    result = parse_config(config, MockConfig, base_path=tmp_path)
+    assert result.data == {"loaded": "from_root"}
+
+
+def test_parse_config_absolute_file_unaffected_by_source_file(tmp_path: Path) -> None:
+    config_file = tmp_path / "config.json"
+    config_file.write_text('{"loaded": "absolute"}')
+    yaml_file = tmp_path / "other" / "yanga.yaml"
+
+    config = ConfigFile(id="test", file=config_file, source_file=yaml_file)
+    result = parse_config(config, MockConfig)
+    assert result.data == {"loaded": "absolute"}
