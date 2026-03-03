@@ -5,13 +5,13 @@ from sys import argv
 from py_app_dev.core.cmd_line import CommandLineHandlerBuilder
 from py_app_dev.core.exceptions import UserNotificationException
 from py_app_dev.core.logging import logger, setup_logger
+from yanga_core.commands.cppcheck_report import CppCheckReportCommand
+from yanga_core.commands.filter_compile_commands import FilterCompileCommandsCommand
+from yanga_core.commands.fix_html_links import FixHtmlLinksCommand
+from yanga_core.commands.report_config import ReportConfigCommand
 
 from yanga import __version__
-from yanga.commands.cppcheck_report import CppCheckReportCommand
-from yanga.commands.filter_compile_commands import FilterCompileCommandsCommand
-from yanga.commands.fix_html_links import FixHtmlLinksCommand
 from yanga.commands.gcovr import CreateComponentGcovrConfigCommand, CreateVariantGcovrConfigCommand
-from yanga.commands.report_config import ReportConfigCommand
 from yanga.commands.targets import TargetsDocCommand
 
 

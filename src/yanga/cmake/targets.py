@@ -4,8 +4,7 @@ from enum import auto
 from pathlib import Path
 
 from py_app_dev.core.config import BaseConfigJSONMixin
-
-from yanga.domain.config import StringableEnum, stringable_enum_field_metadata
+from yanga_core.domain.config import StringableEnum, stringable_enum_field_metadata
 
 
 class TargetType(StringableEnum):

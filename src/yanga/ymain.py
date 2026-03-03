@@ -5,10 +5,10 @@ from typing import Optional
 import typer
 from py_app_dev.core.exceptions import UserNotificationException
 from py_app_dev.core.logging import logger, setup_logger, time_it
+from yanga_core.commands.run import RunCommand, RunCommandConfig
 
 from yanga import __version__
 
-from .commands.run import RunCommand, RunCommandConfig
 from .kickstart.create import KickstartProject
 from .yide import IDEProjectGenerator
 

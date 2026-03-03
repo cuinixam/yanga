@@ -8,11 +8,10 @@ from clanguru.doc_generator import DocStructure, MarkdownFormatter, Section, Tex
 from py_app_dev.core.cmd_line import Command, register_arguments_for_config_dataclass
 from py_app_dev.core.config import BaseConfigJSONMixin
 from py_app_dev.core.logging import logger, time_it
+from yanga_core.commands.base import create_config
 
 from yanga.cmake.generator import GeneratedFile
-from yanga.domain.targets import Target, TargetsData, TargetType
-
-from .base import create_config
+from yanga.cmake.targets import Target, TargetsData, TargetType
 
 DEPENDENCY_TREE_CSS = """
 <style>

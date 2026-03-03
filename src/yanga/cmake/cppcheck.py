@@ -1,12 +1,13 @@
 from pathlib import Path
 from typing import Any, Optional
 
+from yanga_core.domain.component_analyzer import ComponentAnalyzer
+from yanga_core.domain.execution_context import ExecutionContext, UserRequest, UserRequestScope, UserRequestTarget
+from yanga_core.domain.reports import ReportRelevantFiles, ReportRelevantFileType
+
 from yanga.cmake.artifacts_locator import BuildArtifact, CMakeArtifactsLocator
 from yanga.cmake.cmake_backend import CMakeCommand, CMakeComment, CMakeCustomCommand, CMakeCustomTarget, CMakeElement, CMakePath
 from yanga.cmake.generator import CMakeGenerator
-from yanga.domain.component_analyzer import ComponentAnalyzer
-from yanga.domain.execution_context import ExecutionContext, UserRequest, UserRequestScope, UserRequestTarget
-from yanga.domain.reports import ReportRelevantFiles, ReportRelevantFileType
 
 
 class CppCheckCMakeGenerator(CMakeGenerator):
@@ -17,7 +18,7 @@ class CppCheckCMakeGenerator(CMakeGenerator):
         config: Optional[dict[str, Any]] = None,
     ) -> None:
         super().__init__(execution_context, output_dir, config)
-        self.artifacts_locator = CMakeArtifactsLocator(output_dir, execution_context.create_artifacts_locator())
+        self.artifacts_locator = CMakeArtifactsLocator(output_dir, execution_context.spl_paths)
 
     def generate(self) -> list[CMakeElement]:
         elements: list[CMakeElement] = []
@@ -80,7 +81,7 @@ class CppCheckCMakeGenerator(CMakeGenerator):
     def create_components_cmake_elements(self) -> list[CMakeElement]:
         elements: list[CMakeElement] = []
         for component in self.execution_context.components:
-            component_analyzer = ComponentAnalyzer([component], self.execution_context.create_artifacts_locator())
+            component_analyzer = ComponentAnalyzer([component], self.execution_context.spl_paths)
             sources = component_analyzer.collect_sources()
             component_compile_commands_file = self.artifacts_locator.get_component_build_artifact(component.name, BuildArtifact.COMPILE_COMMANDS)
             xml_report_file = self.artifacts_locator.get_component_build_dir(component.name).joinpath("cppcheck_report.xml")

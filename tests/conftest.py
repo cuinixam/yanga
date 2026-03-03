@@ -5,12 +5,12 @@ from unittest.mock import Mock, patch
 
 import pytest
 from py_app_dev.core.data_registry import DataRegistry
+from yanga_core.domain.components import Component
+from yanga_core.domain.config import TestingConfiguration
+from yanga_core.domain.execution_context import ExecutionContext
+from yanga_core.domain.spl_paths import SPLPaths
 
 from tests.utils import this_repository_root_dir
-from yanga.domain.artifacts import ProjectArtifactsLocator
-from yanga.domain.components import Component
-from yanga.domain.config import TestingConfiguration
-from yanga.domain.execution_context import ExecutionContext
 from yanga.kickstart.create import KickstartProject
 
 
@@ -18,7 +18,7 @@ from yanga.kickstart.create import KickstartProject
 def locate_artifact():
     """Fixture to mock the locate_artifact method."""
     with patch(
-        ProjectArtifactsLocator.__module__ + "." + ProjectArtifactsLocator.__name__ + ".locate_artifact",
+        SPLPaths.__module__ + "." + SPLPaths.__name__ + ".locate_artifact",
         side_effect=lambda file, _: Path(file),
     ) as my_locate_artifact:
         yield my_locate_artifact
@@ -44,8 +44,7 @@ def execution_context(locate_artifact: Mock, tmp_path: Path) -> ExecutionContext
             testing=TestingConfiguration(sources=[]),
         ),
     ]
-    env.include_directories = [Path("/mock/include/dir")]
-    env.create_artifacts_locator.return_value = ProjectArtifactsLocator(tmp_path, "mock_variant", "mock_platform", "mock_build_type")
+    env.spl_paths = SPLPaths(tmp_path, "mock_variant", "mock_platform", "mock_build_type")
     env.data_registry = DataRegistry()
     return env
 

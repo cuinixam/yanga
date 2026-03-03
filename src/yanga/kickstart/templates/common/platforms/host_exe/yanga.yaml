@@ -9,14 +9,16 @@ platforms:
       - build
       - compile
       - report
-    cmake_generators:
+    generators:
       - step: CreateExecutableCMakeGenerator
         module: yanga.cmake.create_executable
       - step: CppCheckCMakeGenerator
         module: yanga.cmake.cppcheck
       - step: ReportCMakeGenerator
         module: yanga.cmake.reports
-    toolchain_file: clang.cmake
+    configs:
+      - id: toolchain
+        file: clang.cmake
     is_default: true
   - name: gtest
     description: Build and run components GTest tests
@@ -25,7 +27,7 @@ platforms:
       - report
       - coverage
       - lint
-    cmake_generators:
+    generators:
       - step: GTestCMakeGenerator
         module: yanga.cmake.gtest
         config:
@@ -38,7 +40,8 @@ platforms:
         module: yanga.cmake.cppcheck
       - step: ReportCMakeGenerator
         module: yanga.cmake.reports
-    toolchain_file: gcc.cmake
     configs:
+      - id: toolchain
+        file: gcc.cmake
       - id: west
         file: platforms/host_exe/gtest.west.yaml

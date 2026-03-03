@@ -38,90 +38,7 @@ You run the pipeline using the `yanga run` command. Yanga's smart scheduler dete
 
 ## Built-in Pipeline Steps
 
-Yanga includes several pre-built steps to handle common build tasks.
-
-### `WestInstall`
-
-**Module:** `yanga.steps.west_install`
-
-**Purpose:** Manages external Git repository dependencies using `west`.
-
-This step automatically clones and updates repositories defined in `configs` with `id: west` sections within your platform and variant configurations. It's a powerful way to manage third-party libraries and components.
-
-**Configuration:** Add the step to your pipeline. The dependency details are configured in platforms and variants, as described in the [Software Product Line](#product-dependency-management) documentation.
-
-```yaml
-pipeline:
-  - install:
-    - step: WestInstall
-      module: yanga.steps.west_install
-```
-
-### `ScoopInstall`
-
-**Module:** `yanga.steps.scoop_install`
-
-**Purpose:** Manages Windows-based tool dependencies using `scoop`.
-
-For projects that require specific tools on Windows (like compilers or build tools), this step reads `configs` with `id: scoop` sections from your configuration and ensures the required tools are installed.
-
-**Configuration:** Add the step to your pipeline. Tool dependencies are configured in platforms and variants.
-
-```yaml
-pipeline:
-  - install:
-    - step: ScoopInstall
-      module: yanga.steps.scoop_install
-```
-
-### `PoksInstall`
-
-**Module:** `yanga.steps.poks_install`
-
-**Purpose:** Manages cross-platform tool dependencies using `poks`.
-
-Unlike `ScoopInstall` which only works on Windows, `PoksInstall` works on Windows, Linux, and macOS. It reads `configs` with `id: poks` sections from your configuration and installs the specified tools into a user-space directory (`~/.poks/`). Installed tool paths and environment variables are automatically made available to subsequent pipeline steps.
-
-**Configuration:** Add the step to your pipeline. Tool dependencies are configured in platforms and variants using the `configs` mechanism (see [YEP-001](../explanation/enhancements/yep-001-generic-config-files.md)).
-
-```yaml
-pipeline:
-  - install:
-    - step: PoksInstall
-      module: yanga.steps.poks_install
-
-platforms:
-  - name: nrf52
-    configs:
-      - id: poks
-        content:
-          buckets:
-            - name: tools
-              url: https://github.com/example/poks-bucket.git
-          apps:
-            - name: arm-gnu-toolchain
-              version: "13.2.1"
-              bucket: tools
-```
-
-You can also reference an external `poks.json` file or place one in the project root for global dependencies.
-
-### `KConfigGen`
-
-**Module:** `yanga.steps.kconfig_gen`
-
-**Purpose:** Processes `KConfig` feature models to generate C header files.
-
-If your project uses a `KConfig` file for feature management, this step generates an `autoconf.h` file containing C macros for all selected features. This allows you to enable or disable code paths using `#ifdef`.
-
-**Configuration:** Add the step to your pipeline, typically in a `gen` stage. The `features_selection_file` is specified in the variant configuration.
-
-```yaml
-pipeline:
-  - gen:
-    - step: KConfigGen
-      module: yanga.steps.kconfig_gen
-```
+Yanga includes several pre-built steps to handle common build tasks. Dependency installation and feature model steps (`WestInstall`, `ScoopInstall`, `PoksInstall`, `KConfigGen`) are provided by the `yanga-core` package — refer to the yanga-core documentation for details.
 
 ### `GenerateBuildSystemFiles`
 
@@ -129,9 +46,9 @@ pipeline:
 
 **Purpose:** Generates the project's CMake files.
 
-This crucial step translates your `yanga.yaml` configuration into a functional CMake build system. It runs the `cmake_generators` specified in the current platform's configuration to create `CMakeLists.txt` and other necessary files.
+This crucial step translates your `yanga.yaml` configuration into a functional CMake build system. It runs the `generators` specified in the current platform's configuration to create `CMakeLists.txt` and other necessary files.
 
-**Configuration:** Add this step to your `build` stage, before `ExecuteBuild`. The behavior of this step is controlled by the [CMake Generators](#cmake-generators) defined in your platform configuration.
+**Configuration:** Add this step to your `build` stage, before `ExecuteBuild`. The behavior of this step is controlled by the [CMake Generators](cmake.md) defined in your platform configuration.
 
 ```yaml
 pipeline:

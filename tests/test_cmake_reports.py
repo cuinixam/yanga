@@ -1,16 +1,16 @@
 from pathlib import Path
 
 import pytest
+from yanga_core.domain.components import Component
+from yanga_core.domain.config import DocsConfiguration
+from yanga_core.domain.execution_context import ExecutionContext
+from yanga_core.domain.reports import ReportRelevantFiles, ReportRelevantFileType
 
 from tests.utils import assert_element_of_type, assert_elements_of_type, find_elements_of_type
 from yanga.cmake.cmake_backend import (
     CMakeCustomTarget,
 )
 from yanga.cmake.reports import ReportCMakeGenerator
-from yanga.domain.components import Component
-from yanga.domain.config import DocsConfiguration
-from yanga.domain.execution_context import ExecutionContext
-from yanga.domain.reports import ReportRelevantFiles, ReportRelevantFileType
 
 
 @pytest.fixture

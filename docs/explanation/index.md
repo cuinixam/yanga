@@ -8,5 +8,4 @@ Understanding-oriented content that explains the concepts, design decisions, and
 :maxdepth: 1
 
 concepts
-enhancements/index.md
 ```

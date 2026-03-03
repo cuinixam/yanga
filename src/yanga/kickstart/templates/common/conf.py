@@ -1,7 +1,7 @@
 import datetime
 from typing import Any
 
-from yanga.docs.sphinx import SphinxConfig
+from yanga_core.docs.sphinx import SphinxConfig
 
 day = datetime.date.today()
 

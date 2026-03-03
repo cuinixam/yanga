@@ -1,11 +1,12 @@
 from pathlib import Path
 
+from yanga_core.domain.config import ConfigFile, VariantConfig
+from yanga_core.domain.execution_context import ExecutionContext, UserVariantRequest
+
 from tests.utils import assert_element_of_type, assert_elements_of_type
 from yanga.cmake.builder import CMakeBuildSystemGenerator
 from yanga.cmake.cmake_backend import CMakeComment, CMakeVariable
 from yanga.cmake.generator import CMakeFile
-from yanga.domain.config import ConfigFile, VariantConfig
-from yanga.domain.execution_context import ExecutionContext, UserVariantRequest
 
 
 def test_cmake_build_system_generator_creates_config_file(tmp_path: Path) -> None:
@@ -36,7 +37,7 @@ def test_cmake_build_system_generator_creates_config_file(tmp_path: Path) -> Non
     generator = CMakeBuildSystemGenerator(execution_context, output_dir)
     files = generator.generate()
 
-    assert len(files) == 4
+    assert len(files) == 3
 
     # Find the config.cmake file
     config_file = assert_element_of_type(files, CMakeFile, lambda f: f.path.as_posix().endswith("config.cmake"))
@@ -68,7 +69,7 @@ def test_cmake_build_system_generator_creates_empty_config_file(tmp_path: Path) 
     generator = CMakeBuildSystemGenerator(execution_context, output_dir)
     files = generator.generate()
 
-    assert len(files) == 4
+    assert len(files) == 3
 
     config_file = assert_element_of_type(files, CMakeFile, lambda f: f.path.as_posix().endswith("config.cmake"))
 

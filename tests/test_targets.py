@@ -5,13 +5,13 @@ from tempfile import TemporaryDirectory
 from typing import Callable
 
 from clanguru.doc_generator import MarkdownFormatter
+from yanga_core.domain.execution_context import ExecutionContext, UserVariantRequest
 
 from yanga.cmake.builder import CMakeBuildSystemGenerator
 from yanga.cmake.cmake_backend import CMakeAddExecutable, CMakeAddLibrary, CMakeCustomTarget
 from yanga.cmake.generator import CMakeFile
+from yanga.cmake.targets import TargetsData
 from yanga.commands.targets import TargetDependencyTreeBuilder, TargetTreeNode, create_doc_structure
-from yanga.domain.execution_context import ExecutionContext, UserVariantRequest
-from yanga.domain.targets import TargetsData
 
 
 @dataclass

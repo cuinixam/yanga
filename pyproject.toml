@@ -34,13 +34,13 @@ dependencies = [
   "kspl>=1,<2",
   "loguru>=0,<1",
   "mashumaro>=3.5,<4",
-  "myst-parser>=4,<5",
   "pick>=2.2,<3",
   "pillow>=10.1,<11",
   "poks>=0,<1",
   "py-app-dev>=2.20,<3",
   "pypeline-runner>=1.28,<2",
   "typer>=0,<1",
+  "yanga-core>=0,<1",
 ]
 
 urls."Bug Tracker" = "https://github.com/cuinixam/yanga/issues"
@@ -55,12 +55,12 @@ scripts.yanga_cmd = "yanga.commands.__main__:main"
 dev = [
   "coverage>=7,<8",
   "mlx-traceability>=11,<12",
+  "myst-parser>=4,<5",
   "pre-commit>=4,<5",
   "pyinstaller>=6.11,<7",
   "pytest>=8.3,<9",
   "pytest-cov>=6,<7",
   "ruff>=0.9,<1",
-  # docs
   "sphinx-book-theme>=1.1,<2",
   "sphinx-copybutton>=0,<1",
   "sphinx-design>=0,<1",

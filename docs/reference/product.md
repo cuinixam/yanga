@@ -30,20 +30,6 @@ variants:
     features_selection_file: "config.txt"
 ```
 
-````{note}
-In case of KConfig, the `features_selection_file` is read by the `KConfigGen` step.
-
-One needs to configure the `KConfigGen` step in the pypeline:
-
-```yaml
-pypeline:
-  steps:
-    - step: KConfigGen
-      module: yanga.steps.kconfig_gen
-```
-
-````
-
 ### Generic Configuration
 
 You can pass custom key-value pairs to the build system using the `configs` section with `id: vars`. These values are exported as CMake variables in the `config.cmake` generated file.
@@ -194,7 +180,7 @@ The `mocking` feature configuration depends on the mocking generator. In case of
 platforms:
   - name: gtest
       description: Build and run components GTest tests
-      cmake_generators:
+      generators:
         - step: GTestCMakeGenerator
           module: yanga.cmake.gtest
           config:

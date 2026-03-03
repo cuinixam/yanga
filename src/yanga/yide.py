@@ -6,9 +6,10 @@ from pathlib import Path
 from mashumaro import DataClassDictMixin
 from py_app_dev.core.config import BaseConfigJSONMixin
 from py_app_dev.core.logging import logger
+from yanga_core.domain.generated_file import GeneratedFileIf
+from yanga_core.domain.project_slurper import YangaProjectSlurper
 
-from yanga.cmake.generator import GeneratedFileIf
-from yanga.domain.project_slurper import YangaProjectSlurper
+from yanga.cmake.builder import get_toolchain_config_file
 
 
 @dataclass
@@ -79,7 +80,7 @@ class IDEProjectGenerator:
         for platform in self.project_slurper.platforms:
             kit = VSCodeCMakeKit(
                 name=platform.name,
-                toolchainFile=platform.toolchain_file or "",
+                toolchainFile=get_toolchain_config_file(platform) or "",
             )
             kits.append(kit)
 

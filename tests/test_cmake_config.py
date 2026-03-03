@@ -1,10 +1,11 @@
 from pathlib import Path
 
+from yanga_core.domain.config import ConfigFile, PlatformConfig, VariantConfig, VariantPlatformsConfig
+from yanga_core.domain.execution_context import ExecutionContext, UserVariantRequest
+
 from tests.utils import assert_elements_of_type
 from yanga.cmake.cmake_backend import CMakeComment, CMakeVariable
 from yanga.cmake.variant_config import ConfigCMakeGenerator
-from yanga.domain.config import ConfigFile, PlatformConfig, VariantConfig, VariantPlatformsConfig
-from yanga.domain.execution_context import ExecutionContext, UserVariantRequest
 
 
 def test_config_cmake_generator_with_no_config(tmp_path: Path) -> None:

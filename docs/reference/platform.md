@@ -4,13 +4,15 @@ Yanga's platform configuration allows you to define target-specific build enviro
 
 ## Basic Platform
 
-A platform definition requires a `name`. You can also provide a `description` and specify a `toolchain_file` for cross-compilation or environment-specific compiler settings.
+A platform definition requires a `name`. You can also provide a `description` and specify a toolchain file for cross-compilation or environment-specific compiler settings using a `configs` entry with `id: toolchain`.
 
 ```yaml
 platforms:
   - name: native
     description: Build for the host system.
-    toolchain_file: "toolchains/native.cmake"
+    configs:
+      - id: toolchain
+        file: "toolchains/native.cmake"
 ```
 
 ## Build Types
@@ -20,7 +22,9 @@ You can restrict the build types (e.g., `Debug`, `Release`) that are valid for a
 ```yaml
 platforms:
   - name: embedded_target
-    toolchain_file: "toolchains/arm-gcc.cmake"
+    configs:
+      - id: toolchain
+        file: "toolchains/arm-gcc.cmake"
     build_types:
       - Debug
       - Release
@@ -28,13 +32,13 @@ platforms:
 
 ## CMake Generators
 
-Each platform can have a unique pipeline of `cmake_generators`. These are steps that generate different parts of the CMake build system, such as executables, libraries, or test harnesses.
+Each platform can have a unique pipeline of `generators`. These are steps that generate different parts of the CMake build system, such as executables, libraries, or test harnesses.
 
 ```yaml
 platforms:
   - name: windows_test
     description: Build and run tests on Windows
-    cmake_generators:
+    generators:
       - step: GTestCMakeGenerator
         module: yanga.cmake.gtest
 ```

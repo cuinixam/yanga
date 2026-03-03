@@ -5,11 +5,10 @@ from py_app_dev.core.exceptions import UserNotificationException
 from py_app_dev.core.find import find_elements_of_type
 from py_app_dev.core.logging import logger
 from py_app_dev.core.pipeline import PipelineLoader
+from yanga_core.domain.config import PlatformConfig
+from yanga_core.domain.execution_context import ExecutionContext
 
-from yanga.cmake.artifacts_locator import BuildArtifact, CMakeArtifactsLocator
-from yanga.domain.execution_context import ExecutionContext
-from yanga.domain.reports import ComponentReportData, FeaturesReportRelevantFile, ReportData, ReportRelevantFiles, VariantReportData
-from yanga.domain.targets import Target, TargetsData, TargetType
+from yanga.cmake.artifacts_locator import CMakeArtifactsLocator
 
 from .cmake_backend import (
     CMakeAddExecutable,
@@ -23,6 +22,15 @@ from .cmake_backend import (
     CMakeVariable,
 )
 from .generator import CMakeFile, CMakeGenerator, GeneratedFile, GeneratedFileIf
+from .targets import Target, TargetsData, TargetType
+
+
+def get_toolchain_config_file(platform: PlatformConfig) -> Optional[str]:
+    """Return the raw toolchain file path from platform configs (id='toolchain'), or None."""
+    toolchain_config = next((cfg for cfg in platform.configs if cfg.id == "toolchain"), None)
+    if toolchain_config and toolchain_config.file:
+        return str(toolchain_config.file)
+    return None
 
 
 class CMakeGeneratorReference:
@@ -46,7 +54,7 @@ class CMakeBuildSystemGenerator:
         self.output_dir = output_dir
         # The directory where the CMakeLists.txt file is located
         self.cmake_current_list_dir = CMakePath(self.output_dir, "CMAKE_CURRENT_LIST_DIR")
-        self.artifacts_locator = CMakeArtifactsLocator(output_dir, execution_context.create_artifacts_locator())
+        self.artifacts_locator = CMakeArtifactsLocator(output_dir, execution_context.spl_paths)
 
     @property
     def variant_cmake_file(self) -> CMakePath:
@@ -55,10 +63,6 @@ class CMakeBuildSystemGenerator:
     @property
     def config_cmake_file(self) -> CMakePath:
         return self.cmake_current_list_dir.joinpath("config.cmake")
-
-    @property
-    def report_config_file(self) -> CMakePath:
-        return self.artifacts_locator.get_build_artifact(BuildArtifact.REPORT_CONFIG)
 
     @property
     def variant_name(self) -> str:
@@ -70,7 +74,6 @@ class CMakeBuildSystemGenerator:
         cmake_files.append(self.create_config_cmake_file())
         cmake_files.append(self.create_variant_cmake_file())
         files.extend(cmake_files)
-        files.append(self.create_report_config_file())
         files.append(self.create_target_dependencies_file(cmake_files))
         return files
 
@@ -78,13 +81,15 @@ class CMakeBuildSystemGenerator:
         cmake_file = CMakeFile(self.output_dir.joinpath("CMakeLists.txt"))
         cmake_file.append(CMakeMinimumVersion("4.1"))
         platform = self.execution_context.platform
-        if platform and platform.toolchain_file:
-            cmake_file.append(
-                CMakeVariable(
-                    "CMAKE_TOOLCHAIN_FILE",
-                    CMakePath(self.execution_context.create_artifacts_locator().locate_artifact(platform.toolchain_file, [platform.file])).to_string(),
+        if platform:
+            toolchain_file = get_toolchain_config_file(platform)
+            if toolchain_file:
+                cmake_file.append(
+                    CMakeVariable(
+                        "CMAKE_TOOLCHAIN_FILE",
+                        CMakePath(self.execution_context.spl_paths.locate_artifact(toolchain_file, [platform.file])).to_string(),
+                    )
                 )
-            )
         cmake_file.append(CMakeProject(self.variant_name))
         return cmake_file
 
@@ -97,7 +102,7 @@ class CMakeBuildSystemGenerator:
         platform = self.execution_context.platform
         if platform:
             try:
-                steps_references = PipelineLoader[CMakeGenerator](platform.cmake_generators, self.execution_context.project_root_dir).load_steps()
+                steps_references = PipelineLoader[CMakeGenerator](platform.generators, self.execution_context.project_root_dir).load_steps()
                 for step_reference in steps_references:
                     step = step_reference._class(self.execution_context, self.output_dir, step_reference.config)
                     cmake_file.extend(step.generate())
@@ -116,46 +121,6 @@ class CMakeBuildSystemGenerator:
         cmake_file.append(CMakeComment("Enable generation of compile_commands.json for IDEs and code analysis tools"))
         cmake_file.append(CMakeVariable("CMAKE_EXPORT_COMPILE_COMMANDS", "ON", True, "BOOL", "", True))
         return cmake_file
-
-    def create_report_config_file(self) -> GeneratedFileIf:
-        # Collect all ReportRelevantFiles from the data registry
-        relevant_files_entries = self.execution_context.data_registry.find_data(ReportRelevantFiles)
-
-        # Group report relevant files by component name. Use a default list
-        components_data: dict[str, list[ReportRelevantFiles]] = {}
-        variant_data: list[ReportRelevantFiles] = []
-        for entry in relevant_files_entries:
-            # Only collect data relevant for components
-            if entry.target.component_name:
-                if components_data.get(entry.target.component_name):
-                    components_data[entry.target.component_name].append(entry)
-                else:
-                    components_data[entry.target.component_name] = [entry]
-            else:
-                variant_data.append(entry)
-        config = ReportData(
-            variant_name=self.execution_context.variant_name or "",
-            platform_name=self.execution_context.platform.name if self.execution_context.platform else "",
-            project_dir=self.execution_context.project_root_dir,
-            components=[
-                ComponentReportData(
-                    name=component_name,
-                    files=files,
-                    build_dir=self.artifacts_locator.get_component_build_dir(component_name).to_path(),
-                )
-                for component_name, files in components_data.items()
-            ],
-        )
-        if variant_data:
-            config.variant_data = VariantReportData(
-                files=variant_data,
-                build_dir=self.artifacts_locator.cmake_build_dir.to_path(),
-            )
-        features_config_file = self.execution_context.data_registry.find_data(FeaturesReportRelevantFile)
-        if features_config_file:
-            # TODO: Handle multiple feature config files?
-            config.features_json_config = features_config_file[0].json_config_file
-        return GeneratedFile(self.report_config_file.to_path(), config.to_json_string())
 
     def create_target_dependencies_file(self, cmake_files: list[CMakeFile]) -> GeneratedFileIf:
         """

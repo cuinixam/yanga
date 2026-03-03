@@ -15,6 +15,7 @@ classifiers = [
   "Programming Language :: Python :: 3.13",
 ]
 dependencies = [
+  "myst-parser>=4,<5",
   "py-app-dev>=2,<3",
   "sphinx-copybutton>=0,<1",
   "sphinx-design>=0,<1",

@@ -7,15 +7,18 @@ It supports Software Product Line (SPL) development with feature model, variants
 
 ## Core Architecture
 
-- **Domain Layer**: `src/yanga/domain/` - Core business logic and data models
-- **Backend Layer**: `src/yanga/cmake/` - CMake-specific build system generators
-- **Commands Layer**: `src/yanga/commands/` - CLI command implementations
+Yanga is a cmake-specific implementation layer built on top of **`yanga-core`** (a separate package providing the SPL framework: domain model, pipeline orchestration, project discovery).
+
+- **CMake Layer**: `src/yanga/cmake/` - CMake-specific build system generators, steps, and commands
+- **Commands Layer**: `src/yanga/commands/` - cmake-specific CLI command implementations (`targets`, `gcovr`)
 - **Kickstart**: `src/yanga/kickstart/` - Project template system
 
 ### Key Domain Concepts
 
+Domain types (`ExecutionContext`, `Component`, `VariantConfig`, `PlatformConfig`, `SPLPaths`) are defined in the `yanga-core` package, not in this repository. Import them from `yanga_core.domain.*`.
+
 - **ExecutionContext**: Central coordination object containing project state, components, and user requests
-- **Component**: Represents a buildable unit with sources, tests, and metadata (`src/yanga/domain/components.py`)
+- **Component**: Represents a buildable unit with sources, tests, and metadata
 - **VariantConfig**: SPL variant definitions with feature configurations
 - **PlatformConfig**: Platform-specific build settings and toolchain configurations
 
@@ -99,8 +102,8 @@ Project templates in `src/yanga/kickstart/templates/`:
 
 Build steps and CMake generators are loaded dynamically from:
 
-- `src/yanga/steps/` - Custom pipeline steps
-- `src/yanga/cmake/` - CMake generators
+- `src/yanga/cmake/` - CMake generators and cmake-specific steps (`GenerateBuildSystemFiles`, `ExecuteBuild`)
+- Core pipeline steps (e.g., `KConfigGen`, `WestInstall`, `PoksInstall`) are provided by `yanga-core`
 - User configuration can reference these modules by name
 
 ### Configuration Files
@@ -141,9 +144,9 @@ Skipping this step is unacceptable.
 
 ### Adding New Features
 
-1. Create domain models in `src/yanga/domain/`
-2. Implement CLI commands in `src/yanga/commands/`
-3. Add backend generators in `src/yanga/cmake/` if needed
+1. If the feature is cmake-specific: implement in `src/yanga/cmake/`
+2. If the feature is build-system-agnostic (domain model, generic pipeline step): it belongs in the `yanga-core` repository
+3. Add cmake-specific CLI commands in `src/yanga/commands/`
 4. Write tests following existing patterns
 5. Update documentation in `docs/`
 

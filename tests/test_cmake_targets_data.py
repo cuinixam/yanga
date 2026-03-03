@@ -1,13 +1,13 @@
 from pathlib import Path
 
 import pytest
+from yanga_core.domain.config import PlatformConfig
+from yanga_core.domain.execution_context import ExecutionContext
 
 from tests.utils import assert_element_of_type
 from yanga.cmake.artifacts_locator import BuildArtifact
 from yanga.cmake.cmake_backend import CMakeCustomCommand, CMakeCustomTarget, CMakePath
 from yanga.cmake.targets_data import TargetsDataCMakeGenerator
-from yanga.domain.config import PlatformConfig
-from yanga.domain.execution_context import ExecutionContext
 
 
 @pytest.fixture

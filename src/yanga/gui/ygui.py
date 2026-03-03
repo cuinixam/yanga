@@ -9,15 +9,14 @@ from py_app_dev.core.subprocess import SubprocessExecutor
 from py_app_dev.mvp.event_manager import EventID, EventManager
 from py_app_dev.mvp.presenter import Presenter
 from py_app_dev.mvp.view import View
-
-from yanga.commands.run import RunCommand
-from yanga.domain.execution_context import (
+from yanga_core.commands.run import RunCommand
+from yanga_core.domain.execution_context import (
     UserRequest,
     UserRequestScope,
     UserRequestTarget,
     UserVariantRequest,
 )
-from yanga.domain.project_slurper import YangaProjectSlurper
+from yanga_core.domain.project_slurper import YangaProjectSlurper
 
 from .icons import Icons
 

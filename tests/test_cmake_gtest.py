@@ -1,6 +1,9 @@
 from pathlib import Path
 
 import pytest
+from yanga_core.domain.components import Component
+from yanga_core.domain.config import MockingConfiguration, TestingConfiguration
+from yanga_core.domain.execution_context import ExecutionContext
 
 from tests.utils import assert_element_of_type, assert_elements_of_type, find_elements_of_type
 from yanga.cmake.cmake_backend import (
@@ -15,9 +18,6 @@ from yanga.cmake.cmake_backend import (
     IncludeScope,
 )
 from yanga.cmake.gtest import GTestCMakeGenerator, GTestCMakeGeneratorConfig, GTestComponentCMakeGenerator
-from yanga.domain.components import Component
-from yanga.domain.config import MockingConfiguration, TestingConfiguration
-from yanga.domain.execution_context import ExecutionContext
 
 
 @pytest.fixture
@@ -55,7 +55,7 @@ def test_cmake_build_components_file(
 
 
 def test_get_include_directories(gtest_cmake_generator: GTestCMakeGenerator) -> None:
-    assert len(gtest_cmake_generator.get_include_directories().paths) == 6
+    assert len(gtest_cmake_generator.get_include_directories().paths) == 5
 
 
 def test_gtest_cmake_generator_coverage(execution_context: ExecutionContext, output_dir: Path) -> None:

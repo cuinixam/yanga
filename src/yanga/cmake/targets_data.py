@@ -1,11 +1,12 @@
 from pathlib import Path
 from typing import Any, Optional
 
+from yanga_core.domain.execution_context import ExecutionContext, UserRequest, UserRequestScope
+from yanga_core.domain.reports import ReportRelevantFiles, ReportRelevantFileType
+
 from yanga.cmake.artifacts_locator import BuildArtifact, CMakeArtifactsLocator
 from yanga.cmake.cmake_backend import CMakeCommand, CMakeComment, CMakeCustomCommand, CMakeCustomTarget, CMakeElement
 from yanga.cmake.generator import CMakeGenerator
-from yanga.domain.execution_context import ExecutionContext, UserRequest, UserRequestScope
-from yanga.domain.reports import ReportRelevantFiles, ReportRelevantFileType
 
 
 class TargetsDataCMakeGenerator(CMakeGenerator):
@@ -16,7 +17,7 @@ class TargetsDataCMakeGenerator(CMakeGenerator):
         config: Optional[dict[str, Any]] = None,
     ) -> None:
         super().__init__(execution_context, output_dir, config)
-        self.artifacts_locator = CMakeArtifactsLocator(output_dir, execution_context.create_artifacts_locator())
+        self.artifacts_locator = CMakeArtifactsLocator(output_dir, execution_context.spl_paths)
 
     def generate(self) -> list[CMakeElement]:
         elements: list[CMakeElement] = []

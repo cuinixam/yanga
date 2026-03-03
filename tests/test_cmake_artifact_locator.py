@@ -1,7 +1,8 @@
 from pathlib import Path
 
+from yanga_core.domain.execution_context import ExecutionContext
+
 from yanga.cmake.artifacts_locator import BuildArtifact, CMakeArtifactsLocator
-from yanga.domain.execution_context import ExecutionContext
 
 
 def test_component_build_artifacts(tmp_path: Path, execution_context: ExecutionContext) -> None:

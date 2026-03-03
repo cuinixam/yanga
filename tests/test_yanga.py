@@ -4,8 +4,7 @@ from pathlib import Path
 
 import pytest
 from py_app_dev.core.subprocess import SubprocessExecutor
-
-from yanga.commands.run import RunCommand, RunCommandConfig
+from yanga_core.commands.run import RunCommand, RunCommandConfig
 
 
 @pytest.mark.skipif(sys.platform != "win32", reason="It requires scoop to be installed on windows")

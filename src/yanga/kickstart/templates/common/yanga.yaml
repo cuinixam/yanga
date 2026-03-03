@@ -6,18 +6,20 @@ pipeline:
         python_version: 3.11
         bootstrap_script: .bootstrap/bootstrap.py
     - step: ScoopInstall
-      module: yanga.steps.scoop_install
+      module: yanga_core.steps.scoop_install
       description: Install scoop dependencies
     - step: WestInstall
-      module: yanga.steps.west_install
+      module: yanga_core.steps.west_install
       description: Install west dependencies
     - step: GenerateEnvSetupScript
       module: pypeline.steps.env_setup_script
   gen:
     - step: KConfigGen
-      module: yanga.steps.kconfig_gen
+      module: yanga_core.steps.kconfig_gen
   build:
     - step: GenerateBuildSystemFiles
-      module: yanga.steps.execute_build
+      module: yanga.cmake.steps
+    - step: GenerateReportConfig
+      module: yanga_core.steps.generate_report_config
     - step: ExecuteBuild
-      module: yanga.steps.execute_build
+      module: yanga.cmake.steps

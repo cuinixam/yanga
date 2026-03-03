@@ -3,9 +3,9 @@
 from pathlib import Path
 from typing import Any, Optional
 
-from yanga.domain.config import VarsConfig
-from yanga.domain.config_utils import collect_configs_by_id, parse_config
-from yanga.domain.execution_context import ExecutionContext
+from yanga_core.domain.config import VarsConfig
+from yanga_core.domain.config_utils import collect_configs_by_id, parse_config
+from yanga_core.domain.execution_context import ExecutionContext
 
 from .cmake_backend import CMakeComment, CMakeElement, CMakeVariable
 from .generator import CMakeGenerator

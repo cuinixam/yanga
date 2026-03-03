@@ -6,8 +6,8 @@ from kspl.kconfig import EditableConfigElement, KConfig
 from py_app_dev.core.exceptions import UserNotificationException
 from py_app_dev.core.logging import logger
 from py_app_dev.mvp.event_manager import EventManager
+from yanga_core.domain.project_slurper import YangaProjectSlurper
 
-from yanga.domain.project_slurper import YangaProjectSlurper
 from yanga.gui.icons import Icons
 
 

@@ -13,10 +13,14 @@ def test_create_cmake_kits_file_with_platforms(tmp_path: Path) -> None:
 platforms:
   - name: host_exe
     description: Build Windows executable
-    toolchain_file: platforms/host_exe/clang.cmake
+    configs:
+      - id: toolchain
+        file: platforms/host_exe/clang.cmake
   - name: gtest
     description: Build GTest tests
-    toolchain_file: platforms/host_exe/gcc.cmake
+    configs:
+      - id: toolchain
+        file: platforms/host_exe/gcc.cmake
 """
     config_file = project_dir / "yanga.yaml"
     config_file.write_text(config_content.strip())
@@ -36,11 +40,11 @@ platforms:
 
     host_exe_kit = next((kit for kit in cmake_kits_file.kits if kit.name == "host_exe"), None)
     assert host_exe_kit is not None
-    assert host_exe_kit.toolchainFile == "platforms/host_exe/clang.cmake"
+    assert host_exe_kit.toolchainFile == str(Path("platforms/host_exe/clang.cmake"))
 
     gtest_kit = next((kit for kit in cmake_kits_file.kits if kit.name == "gtest"), None)
     assert gtest_kit is not None
-    assert gtest_kit.toolchainFile == "platforms/host_exe/gcc.cmake"
+    assert gtest_kit.toolchainFile == str(Path("platforms/host_exe/gcc.cmake"))
 
 
 def test_create_cmake_kits_file_no_platforms(tmp_path: Path) -> None:
@@ -99,7 +103,9 @@ def test_ide_project_generator_run(tmp_path: Path) -> None:
     config_content = """
 platforms:
   - name: host_exe
-    toolchain_file: platforms/host_exe/clang.cmake
+    configs:
+      - id: toolchain
+        file: platforms/host_exe/clang.cmake
 """
     config_file = project_dir / "yanga.yaml"
     config_file.write_text(config_content.strip())
@@ -117,7 +123,7 @@ platforms:
     expected_content = [
         {
             "name": "host_exe",
-            "toolchainFile": "platforms/host_exe/clang.cmake",
+            "toolchainFile": str(Path("platforms/host_exe/clang.cmake")),
         }
     ]
     assert content == expected_content
@@ -156,11 +162,15 @@ variants:
 platforms:
   - name: host_exe
     description: Build host executable
-    toolchain_file: platforms/host_exe/clang.cmake
+    configs:
+      - id: toolchain
+        file: platforms/host_exe/clang.cmake
     build_types: ["Debug", "Release", "RelWithDebInfo"]
   - name: linux_exe
     description: Build Linux executable
-    toolchain_file: platforms/linux/gcc.cmake
+    configs:
+      - id: toolchain
+        file: platforms/linux/gcc.cmake
     build_types: ["Debug", "Release", "MinSizeRel"]
 """
     config_file = project_dir / "yanga.yaml"

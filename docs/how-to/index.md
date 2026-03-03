@@ -8,6 +8,5 @@ Task-oriented guides that help you accomplish specific goals with Yanga.
 :maxdepth: 1
 
 create-variant
-configure-dependencies
 add-component-tests
 ```

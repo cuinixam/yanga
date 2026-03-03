@@ -1,8 +1,8 @@
 from dataclasses import dataclass
 from pathlib import Path
 
-from yanga.domain.artifacts import ProjectArtifactsLocator
-from yanga.domain.execution_context import UserRequest
+from yanga_core.domain.execution_context import UserRequest
+from yanga_core.domain.spl_paths import SPLPaths
 
 from .artifacts_locator import CMakeArtifactsLocator
 from .cmake_backend import CMakePath
@@ -17,12 +17,12 @@ class CoverageRelevantFile:
 
 
 class CoverageArtifactsLocator(CMakeArtifactsLocator):
-    def __init__(self, output_dir: Path, project_artifact_locator: ProjectArtifactsLocator) -> None:
-        super().__init__(output_dir, project_artifact_locator)
+    def __init__(self, output_dir: Path, spl_paths: SPLPaths) -> None:
+        super().__init__(output_dir, spl_paths)
 
     @classmethod
     def from_cmake_artifacts_locator(cls, cmake_artifacts_locator: CMakeArtifactsLocator) -> "CoverageArtifactsLocator":
-        return cls(cmake_artifacts_locator.cmake_build_dir.to_path(), cmake_artifacts_locator.artifacts_locator)
+        return cls(cmake_artifacts_locator.cmake_build_dir.to_path(), cmake_artifacts_locator.spl_paths)
 
     def _get_component_coverage_reports_relative_dir(self, component_name: str) -> str:
         # (!) We need to keep the component coverage reports relative path to the `reports` dir identical for both the component and variant reports

@@ -18,13 +18,12 @@ from typing import Union
 from py_app_dev.core.cmd_line import Command, register_arguments_for_config_dataclass
 from py_app_dev.core.config import BaseConfigJSONMixin
 from py_app_dev.core.logging import logger
+from yanga_core.commands.base import create_config
+from yanga_core.domain.config import StringableEnum
+from yanga_core.domain.reports import ReportData
 
 from yanga.cmake.artifacts_locator import BuildArtifact
 from yanga.cmake.generator import GeneratedFile
-from yanga.domain.config import StringableEnum
-from yanga.domain.reports import ReportData
-
-from .base import create_config
 
 
 class GcovReportScope(StringableEnum):

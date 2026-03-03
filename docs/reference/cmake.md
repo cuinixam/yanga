@@ -17,7 +17,7 @@ This generator is responsible for creating a single executable for a specific va
 ```yaml
 platforms:
   - name: my_executable_platform
-    cmake_generators:
+    generators:
       - step: CreateExecutableCMakeGenerator
         module: yanga.cmake.create_executable
         config:
@@ -37,7 +37,7 @@ This generator facilitates unit testing using the Google Test framework. For eac
 ```yaml
 platforms:
   - name: test_platform
-    cmake_generators:
+    generators:
       - step: GTestCMakeGenerator
         module: yanga.cmake.gtest
         config:
@@ -62,7 +62,7 @@ This generator is typically added as a step without specific configuration.
 ```yaml
 platforms:
   - name: analysis_platform
-    cmake_generators:
+    generators:
       - step: CppCheckCMakeGenerator
         module: yanga.cmake.cppcheck
 ```
@@ -85,7 +85,7 @@ This generator is typically added as a step without specific configuration.
 ```yaml
 platforms:
   - name: report_platform
-    cmake_generators:
+    generators:
       # It is recommended to run this generator after all other generators
       # that produce reports (e.g., GTest, CppCheck).
       - step: ReportCMakeGenerator
