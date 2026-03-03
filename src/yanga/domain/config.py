@@ -76,8 +76,8 @@ class PlatformConfig(BaseConfigDictMixin):
     description: Optional[str] = None
     #: Toolchain file
     toolchain_file: Optional[str] = None
-    #: Build system cmake generators
-    cmake_generators: GenericPipelineConfig = field(default_factory=list)
+    #: Build system generators
+    generators: GenericPipelineConfig = field(default_factory=list)
     #: Supported build types
     build_types: list[str] = field(default_factory=list)
     #: Supported targets

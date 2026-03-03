@@ -17,7 +17,7 @@ Add a platform with the `GTestCMakeGenerator`:
 platforms:
   - name: gtest
     description: Build and run component tests
-    cmake_generators:
+    generators:
       - step: GTestCMakeGenerator
         module: yanga.cmake.gtest
         config:

@@ -129,7 +129,7 @@ pipeline:
 
 **Purpose:** Generates the project's CMake files.
 
-This crucial step translates your `yanga.yaml` configuration into a functional CMake build system. It runs the `cmake_generators` specified in the current platform's configuration to create `CMakeLists.txt` and other necessary files.
+This crucial step translates your `yanga.yaml` configuration into a functional CMake build system. It runs the `generators` specified in the current platform's configuration to create `CMakeLists.txt` and other necessary files.
 
 **Configuration:** Add this step to your `build` stage, before `ExecuteBuild`. The behavior of this step is controlled by the [CMake Generators](#cmake-generators) defined in your platform configuration.
 

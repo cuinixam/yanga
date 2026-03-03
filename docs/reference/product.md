@@ -194,7 +194,7 @@ The `mocking` feature configuration depends on the mocking generator. In case of
 platforms:
   - name: gtest
       description: Build and run components GTest tests
-      cmake_generators:
+      generators:
         - step: GTestCMakeGenerator
           module: yanga.cmake.gtest
           config:

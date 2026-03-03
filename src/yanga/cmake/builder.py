@@ -97,7 +97,7 @@ class CMakeBuildSystemGenerator:
         platform = self.execution_context.platform
         if platform:
             try:
-                steps_references = PipelineLoader[CMakeGenerator](platform.cmake_generators, self.execution_context.project_root_dir).load_steps()
+                steps_references = PipelineLoader[CMakeGenerator](platform.generators, self.execution_context.project_root_dir).load_steps()
                 for step_reference in steps_references:
                     step = step_reference._class(self.execution_context, self.output_dir, step_reference.config)
                     cmake_file.extend(step.generate())

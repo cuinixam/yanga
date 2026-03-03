@@ -9,7 +9,7 @@ platforms:
       - build
       - compile
       - report
-    cmake_generators:
+    generators:
       - step: CreateExecutableCMakeGenerator
         module: yanga.cmake.create_executable
       - step: CppCheckCMakeGenerator
@@ -25,7 +25,7 @@ platforms:
       - report
       - coverage
       - lint
-    cmake_generators:
+    generators:
       - step: GTestCMakeGenerator
         module: yanga.cmake.gtest
         config:

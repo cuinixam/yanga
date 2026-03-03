@@ -70,7 +70,7 @@ class MyCMakeGenerator(CMakeGenerator):
     )
     env.platform = PlatformConfig(
         name="MockPlatfrom",
-        cmake_generators=[
+        generators=[
             PipelineStepConfig(
                 step="MyCMakeGenerator",
                 file="tools/my_cmake_generator.py",

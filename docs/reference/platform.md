@@ -28,13 +28,13 @@ platforms:
 
 ## CMake Generators
 
-Each platform can have a unique pipeline of `cmake_generators`. These are steps that generate different parts of the CMake build system, such as executables, libraries, or test harnesses.
+Each platform can have a unique pipeline of `generators`. These are steps that generate different parts of the CMake build system, such as executables, libraries, or test harnesses.
 
 ```yaml
 platforms:
   - name: windows_test
     description: Build and run tests on Windows
-    cmake_generators:
+    generators:
       - step: GTestCMakeGenerator
         module: yanga.cmake.gtest
 ```
