@@ -7,6 +7,7 @@ from py_app_dev.core.logging import logger
 from py_app_dev.core.pipeline import PipelineLoader
 
 from yanga.cmake.artifacts_locator import BuildArtifact, CMakeArtifactsLocator
+from yanga.domain.config import PlatformConfig
 from yanga.domain.execution_context import ExecutionContext
 from yanga.domain.reports import ComponentReportData, FeaturesReportRelevantFile, ReportData, ReportRelevantFiles, VariantReportData
 from yanga.domain.targets import Target, TargetsData, TargetType
@@ -23,6 +24,14 @@ from .cmake_backend import (
     CMakeVariable,
 )
 from .generator import CMakeFile, CMakeGenerator, GeneratedFile, GeneratedFileIf
+
+
+def get_toolchain_config_file(platform: PlatformConfig) -> Optional[str]:
+    """Return the raw toolchain file path from platform configs (id='toolchain'), or None."""
+    toolchain_config = next((cfg for cfg in platform.configs if cfg.id == "toolchain"), None)
+    if toolchain_config and toolchain_config.file:
+        return str(toolchain_config.file)
+    return None
 
 
 class CMakeGeneratorReference:
@@ -78,13 +87,15 @@ class CMakeBuildSystemGenerator:
         cmake_file = CMakeFile(self.output_dir.joinpath("CMakeLists.txt"))
         cmake_file.append(CMakeMinimumVersion("4.1"))
         platform = self.execution_context.platform
-        if platform and platform.toolchain_file:
-            cmake_file.append(
-                CMakeVariable(
-                    "CMAKE_TOOLCHAIN_FILE",
-                    CMakePath(self.execution_context.create_artifacts_locator().locate_artifact(platform.toolchain_file, [platform.file])).to_string(),
+        if platform:
+            toolchain_file = get_toolchain_config_file(platform)
+            if toolchain_file:
+                cmake_file.append(
+                    CMakeVariable(
+                        "CMAKE_TOOLCHAIN_FILE",
+                        CMakePath(self.execution_context.create_artifacts_locator().locate_artifact(toolchain_file, [platform.file])).to_string(),
+                    )
                 )
-            )
         cmake_file.append(CMakeProject(self.variant_name))
         return cmake_file
 

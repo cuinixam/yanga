@@ -274,8 +274,9 @@ pipeline:
 
 platforms:
   - name: nrf52
-    toolchain_file: cmake/arm-none-eabi.cmake
     configs:
+      - id: toolchain
+        file: cmake/arm-none-eabi.cmake
       - id: poks
         content:
           buckets:

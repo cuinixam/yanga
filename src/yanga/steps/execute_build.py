@@ -4,7 +4,7 @@ from typing import Any, Optional
 from py_app_dev.core.logging import logger
 from pypeline.domain.pipeline import PipelineStep
 
-from yanga.cmake.builder import CMakeBuildSystemGenerator
+from yanga.cmake.builder import CMakeBuildSystemGenerator, get_toolchain_config_file
 from yanga.cmake.cmake_backend import CMakePath
 from yanga.cmake.runner import CMakeRunner
 from yanga.domain.execution_context import ExecutionContext
@@ -59,11 +59,14 @@ class ExecuteBuild(PipelineStep[ExecutionContext]):
         self.logger.debug(f"Run {self.get_name()} stage. Output dir: {self.output_dir}")
         cmake_runner = CMakeRunner(self.execution_context.project_root_dir, self.output_dir)
         toolchain_file = None
-        platform_name = self.execution_context.platform.name if self.execution_context.platform else None
-        if self.execution_context.platform and self.execution_context.platform.toolchain_file:
-            toolchain_file = CMakePath(
-                self.execution_context.create_artifacts_locator().locate_artifact(self.execution_context.platform.toolchain_file, [self.execution_context.platform.file])
-            ).to_string()
+        platform = self.execution_context.platform
+        platform_name = platform.name if platform else None
+        if platform:
+            raw = get_toolchain_config_file(platform)
+            if raw:
+                toolchain_file = CMakePath(
+                    self.execution_context.create_artifacts_locator().locate_artifact(raw, [platform.file])
+                ).to_string()
         self._run(cmake_runner.get_configure_command(toolchain_file, self.execution_context.variant_name, platform_name, self.execution_context.user_request.build_type))
         self._run(cmake_runner.get_build_command(self.execution_context.user_request.target_name))
         return 0

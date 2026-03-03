@@ -13,10 +13,14 @@ def test_create_cmake_kits_file_with_platforms(tmp_path: Path) -> None:
 platforms:
   - name: host_exe
     description: Build Windows executable
-    toolchain_file: platforms/host_exe/clang.cmake
+    configs:
+      - id: toolchain
+        file: platforms/host_exe/clang.cmake
   - name: gtest
     description: Build GTest tests
-    toolchain_file: platforms/host_exe/gcc.cmake
+    configs:
+      - id: toolchain
+        file: platforms/host_exe/gcc.cmake
 """
     config_file = project_dir / "yanga.yaml"
     config_file.write_text(config_content.strip())
@@ -99,7 +103,9 @@ def test_ide_project_generator_run(tmp_path: Path) -> None:
     config_content = """
 platforms:
   - name: host_exe
-    toolchain_file: platforms/host_exe/clang.cmake
+    configs:
+      - id: toolchain
+        file: platforms/host_exe/clang.cmake
 """
     config_file = project_dir / "yanga.yaml"
     config_file.write_text(config_content.strip())
@@ -156,11 +162,15 @@ variants:
 platforms:
   - name: host_exe
     description: Build host executable
-    toolchain_file: platforms/host_exe/clang.cmake
+    configs:
+      - id: toolchain
+        file: platforms/host_exe/clang.cmake
     build_types: ["Debug", "Release", "RelWithDebInfo"]
   - name: linux_exe
     description: Build Linux executable
-    toolchain_file: platforms/linux/gcc.cmake
+    configs:
+      - id: toolchain
+        file: platforms/linux/gcc.cmake
     build_types: ["Debug", "Release", "MinSizeRel"]
 """
     config_file = project_dir / "yanga.yaml"

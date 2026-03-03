@@ -74,8 +74,6 @@ class PlatformConfig(BaseConfigDictMixin):
     name: str
     #: Description
     description: Optional[str] = None
-    #: Toolchain file
-    toolchain_file: Optional[str] = None
     #: Build system generators
     generators: GenericPipelineConfig = field(default_factory=list)
     #: Supported build types
