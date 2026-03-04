@@ -44,7 +44,6 @@ def execution_context(locate_artifact: Mock, tmp_path: Path) -> ExecutionContext
             testing=TestingConfiguration(sources=[]),
         ),
     ]
-    env.include_directories = [Path("/mock/include/dir")]
     env.create_artifacts_locator.return_value = ProjectArtifactsLocator(tmp_path, "mock_variant", "mock_platform", "mock_build_type")
     env.data_registry = DataRegistry()
     return env

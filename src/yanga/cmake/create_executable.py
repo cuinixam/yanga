@@ -5,6 +5,7 @@ from typing import Any, Optional
 
 from mashumaro import DataClassDictMixin
 
+from yanga.domain.artifact import Artifact, collect_directories, filter_artifacts, for_consumer, with_label
 from yanga.domain.component_analyzer import ComponentAnalyzer
 from yanga.domain.execution_context import (
     ExecutionContext,
@@ -95,12 +96,14 @@ class CreateExecutableCMakeGenerator(CMakeGenerator):
             self.execution_context.components,
             self.execution_context.create_artifacts_locator(),
         )
-        include_dirs = collector.collect_include_directories() + self.execution_context.include_directories
+        registry_dirs = collect_directories(filter_artifacts(self.execution_context.data_registry.find_data(Artifact), with_label("include"), for_consumer()))
+        include_dirs = collector.collect_include_directories() + registry_dirs
         return CMakeIncludeDirectories([CMakePath(path) for path in include_dirs])
 
-    def get_component_include_directories(self, component_analyzer: ComponentAnalyzer) -> list[CMakePath]:
+    def get_component_include_directories(self, component_analyzer: ComponentAnalyzer, component_name: str) -> list[CMakePath]:
         """Get include directories specific to this component."""
-        include_dirs = component_analyzer.collect_include_directories() + self.execution_context.include_directories
+        registry_dirs = collect_directories(filter_artifacts(self.execution_context.data_registry.find_data(Artifact), with_label("include"), for_consumer(component_name)))
+        include_dirs = component_analyzer.collect_include_directories() + registry_dirs
         return [CMakePath(path) for path in include_dirs]
 
     def create_components_cmake_elements(self) -> list[CMakeElement]:
@@ -113,7 +116,7 @@ class CreateExecutableCMakeGenerator(CMakeGenerator):
 
             # Add component-specific include directories when global includes are disabled
             if not self.config_obj.use_global_includes:
-                include_dirs: list[CMakePath] = self.get_component_include_directories(component_analyzer)
+                include_dirs: list[CMakePath] = self.get_component_include_directories(component_analyzer, component.name)
                 if include_dirs:
                     # Determine include scope: use PRIVATE for libraries with sources, INTERFACE for header-only
                     scope = IncludeScope.INTERFACE if not sources else IncludeScope.PRIVATE

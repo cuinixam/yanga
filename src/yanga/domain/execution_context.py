@@ -1,4 +1,3 @@
-from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from enum import Enum, auto
 from pathlib import Path
@@ -61,11 +60,6 @@ class UserVariantRequest(UserRequest):
         super().__init__(UserRequestScope.VARIANT, variant_name, None, target=target, build_type=build_type)
 
 
-class IncludeDirectoriesProvider(ABC):
-    @abstractmethod
-    def get_include_directories(self) -> list[Path]: ...
-
-
 @dataclass
 class ExecutionContext(_ExecutionContext):
     def __init__(
@@ -91,17 +85,6 @@ class ExecutionContext(_ExecutionContext):
         self.variant = variant
         self.project_configs: list[ConfigFile] = project_configs if project_configs else []
         self.create_yanga_build_dir = create_yanga_build_dir
-        self.include_dirs_providers: list[IncludeDirectoriesProvider] = []
-
-    @property
-    def include_directories(self) -> list[Path]:
-        include_dirs = []
-        for provider in self.include_dirs_providers:
-            include_dirs.extend(provider.get_include_directories())
-        return include_dirs
-
-    def add_include_dirs_provider(self, provider: IncludeDirectoriesProvider) -> None:
-        self.include_dirs_providers.append(provider)
 
     def create_artifacts_locator(self) -> ProjectArtifactsLocator:
         return ProjectArtifactsLocator(

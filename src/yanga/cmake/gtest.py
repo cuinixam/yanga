@@ -8,6 +8,7 @@ from py_app_dev.core.config import merge_configs
 
 from yanga.cmake.artifacts_locator import BuildArtifact, CMakeArtifactsLocator
 from yanga.cmake.coverage import CoverageArtifactsLocator, CoverageRelevantFile
+from yanga.domain.artifact import Artifact, collect_directories, filter_artifacts, for_consumer, with_label
 from yanga.domain.artifacts import ProjectArtifactsLocator
 from yanga.domain.component_analyzer import ComponentAnalyzer
 from yanga.domain.components import Component
@@ -89,7 +90,8 @@ class GTestCMakeComponent:
             self.execution_context.components,
             self.execution_context.create_artifacts_locator(),
         )
-        include_dirs = collector.collect_include_directories() + self.execution_context.include_directories
+        registry_dirs = collect_directories(filter_artifacts(self.execution_context.data_registry.find_data(Artifact), with_label("include"), for_consumer(self.component.name)))
+        include_dirs = collector.collect_include_directories() + registry_dirs
         return [CMakePath(path) for path in include_dirs]
 
 
@@ -501,7 +503,8 @@ class GTestCMakeGenerator(CMakeGenerator):
             self.execution_context.components,
             self.execution_context.create_artifacts_locator(),
         )
-        include_dirs = collector.collect_include_directories() + self.execution_context.include_directories
+        registry_dirs = collect_directories(filter_artifacts(self.execution_context.data_registry.find_data(Artifact), with_label("include"), for_consumer()))
+        include_dirs = collector.collect_include_directories() + registry_dirs
         # Add the GTest and GMock include directory
         for name in ["googletest", "googlemock"]:
             include_dirs.append(self.artifacts_locator.cmake_gtest_dir.joinpath(f"{name}/include").to_path())

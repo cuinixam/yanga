@@ -55,7 +55,7 @@ def test_cmake_build_components_file(
 
 
 def test_get_include_directories(gtest_cmake_generator: GTestCMakeGenerator) -> None:
-    assert len(gtest_cmake_generator.get_include_directories().paths) == 6
+    assert len(gtest_cmake_generator.get_include_directories().paths) == 5
 
 
 def test_gtest_cmake_generator_coverage(execution_context: ExecutionContext, output_dir: Path) -> None:

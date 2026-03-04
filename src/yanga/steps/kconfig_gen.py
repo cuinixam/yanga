@@ -7,7 +7,8 @@ from kspl.kconfig import ConfigElementType, ConfigurationData, KConfig, TriState
 from py_app_dev.core.logging import logger
 from pypeline.domain.pipeline import PipelineStep
 
-from yanga.domain.execution_context import ExecutionContext, IncludeDirectoriesProvider, UserRequest, UserRequestScope, UserRequestTarget
+from yanga.domain.artifact import Artifact
+from yanga.domain.execution_context import ExecutionContext, UserRequest, UserRequestScope, UserRequestTarget
 from yanga.domain.reports import FeaturesReportRelevantFile, ReportRelevantFiles, ReportRelevantFileType
 
 
@@ -89,14 +90,6 @@ class FeaturesDocumentationWriter(FileWriter):
         return MarkdownFormatter().format(doc)
 
 
-class KConfigIncludeDirectoriesProvider(IncludeDirectoriesProvider):
-    def __init__(self, output_dir: Path) -> None:
-        self.output_dir = output_dir
-
-    def get_include_directories(self) -> list[Path]:
-        return [self.output_dir]
-
-
 class KConfigGen(PipelineStep[ExecutionContext]):
     def __init__(self, execution_context: ExecutionContext, group_name: Optional[str] = None, config: Optional[dict[str, Any]] = None) -> None:
         super().__init__(execution_context, group_name, config)
@@ -166,5 +159,12 @@ class KConfigGen(PipelineStep[ExecutionContext]):
         return [self.header_file, self.features_doc_file, self.json_config_file]
 
     def update_execution_context(self) -> None:
-        # Update the include directories for the subsequent steps
-        self.execution_context.add_include_dirs_provider(KConfigIncludeDirectoriesProvider(self.output_dir))
+        self.execution_context.data_registry.insert(
+            Artifact(
+                path=self.output_dir,
+                provider=self.get_name(),
+                consumers=None,
+                labels=["include", "public"],
+            ),
+            self.get_name(),
+        )

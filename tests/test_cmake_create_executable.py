@@ -9,6 +9,7 @@ from yanga.cmake.cmake_backend import (
     CMakeCustomTarget,
 )
 from yanga.cmake.create_executable import CreateExecutableCMakeGenerator
+from yanga.domain.artifact import Artifact
 from yanga.domain.execution_context import ExecutionContext
 
 
@@ -48,9 +49,11 @@ def test_create_variant_cmake_elements(
 def test_get_include_directories(
     create_executable_generator: CreateExecutableCMakeGenerator,
 ) -> None:
-    # Add an additional global include directory
-    create_executable_generator.execution_context.include_directories.append(Path("/another/include/dir"))
-    assert len(create_executable_generator.get_include_directories().paths) == 3  # Two from components, one global
+    create_executable_generator.execution_context.data_registry.insert(
+        Artifact(path=Path("/another/include/dir"), provider="test", labels=["include", "public"]),
+        "test",
+    )
+    assert len(create_executable_generator.get_include_directories().paths) == 2  # one from component sources, one from registry
 
 
 def test_create_components_cmake_elements(
