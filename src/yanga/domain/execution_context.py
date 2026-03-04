@@ -5,9 +5,9 @@ from typing import Optional, Union
 
 from pypeline.domain.execution_context import ExecutionContext as _ExecutionContext
 
-from .artifacts import ProjectArtifactsLocator
 from .components import Component
 from .config import ConfigFile, PlatformConfig, VariantConfig
+from .spl_paths import SPLPaths
 
 
 class UserRequestTarget(Enum):
@@ -86,8 +86,9 @@ class ExecutionContext(_ExecutionContext):
         self.project_configs: list[ConfigFile] = project_configs if project_configs else []
         self.create_yanga_build_dir = create_yanga_build_dir
 
-    def create_artifacts_locator(self) -> ProjectArtifactsLocator:
-        return ProjectArtifactsLocator(
+    @property
+    def spl_paths(self) -> SPLPaths:
+        return SPLPaths(
             self.project_root_dir,
             self.variant_name,
             self.platform.name if self.platform else None,

@@ -1,8 +1,8 @@
 from pathlib import Path
 from typing import Any
 
-from .artifacts import ProjectArtifactsLocator
 from .components import Component
+from .spl_paths import SPLPaths
 
 
 def make_list_unique(seq: list[Any]) -> list[Any]:
@@ -11,7 +11,7 @@ def make_list_unique(seq: list[Any]) -> list[Any]:
 
 
 class ComponentAnalyzer:
-    def __init__(self, components: list[Component], artifacts_locator: ProjectArtifactsLocator) -> None:
+    def __init__(self, components: list[Component], artifacts_locator: SPLPaths) -> None:
         self.components = components
         self.artifacts_locator = artifacts_locator
 

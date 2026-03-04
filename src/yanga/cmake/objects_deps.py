@@ -16,7 +16,7 @@ class ObjectsDepsCMakeGenerator(CMakeGenerator):
         config: Optional[dict[str, Any]] = None,
     ) -> None:
         super().__init__(execution_context, output_dir, config)
-        self.artifacts_locator = CMakeArtifactsLocator(output_dir, execution_context.create_artifacts_locator())
+        self.artifacts_locator = CMakeArtifactsLocator(output_dir, execution_context.spl_paths)
 
     def generate(self) -> list[CMakeElement]:
         elements: list[CMakeElement] = []

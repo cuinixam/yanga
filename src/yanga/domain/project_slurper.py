@@ -6,7 +6,7 @@ from py_app_dev.core.exceptions import UserNotificationException
 from py_app_dev.core.logging import logger
 from pypeline.domain.pipeline import PipelineConfig, PipelineConfigIterator
 
-from yanga.domain.artifacts import ProjectArtifactsLocator
+from yanga.domain.spl_paths import SPLPaths
 
 from .components import Component
 from .config import ComponentConfig, ConfigFile, DocsConfiguration, PlatformConfig, TestingConfiguration, VariantConfig, YangaUserConfig
@@ -204,8 +204,8 @@ class YangaProjectSlurper:
 
     def get_variant_config_file(self, variant_name: str) -> Optional[Path]:
         variant = self.get_variant_config(variant_name)
-        artifacts_locator = ProjectArtifactsLocator(self.project_dir, variant_name, None, None)
-        return artifacts_locator.locate_artifact(variant.features_selection_file, [variant.file]) if variant.features_selection_file else None
+        spl_paths = SPLPaths(self.project_dir, variant_name, None, None)
+        return spl_paths.locate_artifact(variant.features_selection_file, [variant.file]) if variant.features_selection_file else None
 
     def get_variant_components(self, variant_name: str, platform_name: Optional[str] = None) -> list[Component]:
         return self._collect_variant_components(self.get_variant_config(variant_name), platform_name)

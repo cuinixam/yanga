@@ -11,7 +11,7 @@ from yanga.domain.execution_context import ExecutionContext
 class WestInstall(PypelineWestInstallStep[ExecutionContext]):
     def __init__(self, execution_context: ExecutionContext, group_name: str, config: Optional[dict[str, Any]] = None) -> None:
         super().__init__(execution_context, group_name, config)
-        self.artifacts_locator = execution_context.create_artifacts_locator()
+        self.artifacts_locator = execution_context.spl_paths
 
     def _collect_manifests(self) -> list[WestManifestFile]:
         manifests: list[WestManifestFile] = list(self.execution_context.data_registry.find_data(WestManifestFile))
@@ -31,7 +31,7 @@ class WestInstall(PypelineWestInstallStep[ExecutionContext]):
             return self.project_root_dir / self.user_config.workspace_dir
 
         # Fallback to build dir
-        return self.execution_context.create_artifacts_locator().external_dependencies_dir
+        return self.execution_context.spl_paths.external_dependencies_dir
 
     @property
     def output_dir(self) -> Path:

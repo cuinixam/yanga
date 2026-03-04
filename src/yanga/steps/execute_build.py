@@ -18,7 +18,7 @@ class GenerateBuildSystemFiles(PipelineStep[ExecutionContext]):
 
     @property
     def output_dir(self) -> Path:
-        return self.execution_context.create_artifacts_locator().variant_build_dir
+        return self.execution_context.spl_paths.variant_build_dir
 
     def get_name(self) -> str:
         return self.__class__.__name__
@@ -50,7 +50,7 @@ class ExecuteBuild(PipelineStep[ExecutionContext]):
 
     @property
     def output_dir(self) -> Path:
-        return self.execution_context.create_artifacts_locator().variant_build_dir
+        return self.execution_context.spl_paths.variant_build_dir
 
     def get_name(self) -> str:
         return self.__class__.__name__
@@ -64,7 +64,7 @@ class ExecuteBuild(PipelineStep[ExecutionContext]):
         if platform:
             raw = get_toolchain_config_file(platform)
             if raw:
-                toolchain_file = CMakePath(self.execution_context.create_artifacts_locator().locate_artifact(raw, [platform.file])).to_string()
+                toolchain_file = CMakePath(self.execution_context.spl_paths.locate_artifact(raw, [platform.file])).to_string()
         self._run(cmake_runner.get_configure_command(toolchain_file, self.execution_context.variant_name, platform_name, self.execution_context.user_request.build_type))
         self._run(cmake_runner.get_build_command(self.execution_context.user_request.target_name))
         return 0

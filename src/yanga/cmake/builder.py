@@ -55,7 +55,7 @@ class CMakeBuildSystemGenerator:
         self.output_dir = output_dir
         # The directory where the CMakeLists.txt file is located
         self.cmake_current_list_dir = CMakePath(self.output_dir, "CMAKE_CURRENT_LIST_DIR")
-        self.artifacts_locator = CMakeArtifactsLocator(output_dir, execution_context.create_artifacts_locator())
+        self.artifacts_locator = CMakeArtifactsLocator(output_dir, execution_context.spl_paths)
 
     @property
     def variant_cmake_file(self) -> CMakePath:
@@ -93,7 +93,7 @@ class CMakeBuildSystemGenerator:
                 cmake_file.append(
                     CMakeVariable(
                         "CMAKE_TOOLCHAIN_FILE",
-                        CMakePath(self.execution_context.create_artifacts_locator().locate_artifact(toolchain_file, [platform.file])).to_string(),
+                        CMakePath(self.execution_context.spl_paths.locate_artifact(toolchain_file, [platform.file])).to_string(),
                     )
                 )
         cmake_file.append(CMakeProject(self.variant_name))

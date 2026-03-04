@@ -9,12 +9,12 @@ from py_app_dev.core.config import merge_configs
 from yanga.cmake.artifacts_locator import BuildArtifact, CMakeArtifactsLocator
 from yanga.cmake.coverage import CoverageArtifactsLocator, CoverageRelevantFile
 from yanga.domain.artifact import Artifact, collect_directories, filter_artifacts, for_consumer, with_label
-from yanga.domain.artifacts import ProjectArtifactsLocator
 from yanga.domain.component_analyzer import ComponentAnalyzer
 from yanga.domain.components import Component
 from yanga.domain.config import MockingConfiguration
 from yanga.domain.execution_context import ExecutionContext, UserRequest, UserRequestScope, UserRequestTarget
 from yanga.domain.reports import ReportRelevantFiles, ReportRelevantFileType, ReportRelevantHtmlContent
+from yanga.domain.spl_paths import SPLPaths
 
 from .cmake_backend import (
     CMakeAddExecutable,
@@ -39,9 +39,9 @@ from .generator import CMakeGenerator
 class GTestCMakeArtifactsLocator(CMakeArtifactsLocator):
     """Defines the paths to the CMake artifacts for GTest."""
 
-    def __init__(self, output_dir: Path, project_artifact_locator: ProjectArtifactsLocator) -> None:
-        super().__init__(output_dir, project_artifact_locator)
-        self.cmake_gtest_dir = CMakePath(self.artifacts_locator.locate_artifact("gtest", [self.artifacts_locator.external_dependencies_dir]))
+    def __init__(self, output_dir: Path, spl_paths: SPLPaths) -> None:
+        super().__init__(output_dir, spl_paths)
+        self.cmake_gtest_dir = CMakePath(self.spl_paths.locate_artifact("gtest", [self.spl_paths.external_dependencies_dir]))
 
 
 @dataclass
@@ -62,7 +62,7 @@ class GTestCMakeComponent:
     def __init__(self, component: Component, execution_context: ExecutionContext) -> None:
         self.component = component
         self.execution_context = execution_context
-        self.component_analyzer = ComponentAnalyzer([self.component], self.execution_context.create_artifacts_locator())
+        self.component_analyzer = ComponentAnalyzer([self.component], self.execution_context.spl_paths)
 
     @property
     def name(self) -> str:
@@ -88,7 +88,7 @@ class GTestCMakeComponent:
     def get_include_directories(self) -> list[CMakePath]:
         collector = ComponentAnalyzer(
             self.execution_context.components,
-            self.execution_context.create_artifacts_locator(),
+            self.execution_context.spl_paths,
         )
         registry_dirs = collect_directories(filter_artifacts(self.execution_context.data_registry.find_data(Artifact), with_label("include"), for_consumer(self.component.name)))
         include_dirs = collector.collect_include_directories() + registry_dirs
@@ -196,7 +196,7 @@ class CMakeMockupCreator:
 class GTestComponentCMakeGenerator:
     def __init__(self, execution_context: ExecutionContext, output_dir: Path, config: GTestCMakeGeneratorConfig) -> None:
         self.execution_context = execution_context
-        self.artifacts_locator = GTestCMakeArtifactsLocator(output_dir, execution_context.create_artifacts_locator())
+        self.artifacts_locator = GTestCMakeArtifactsLocator(output_dir, execution_context.spl_paths)
         self.config = config
 
     def generate(self, component: Component) -> list[CMakeElement]:
@@ -461,7 +461,7 @@ class GTestCMakeGenerator(CMakeGenerator):
 
     def __init__(self, execution_context: ExecutionContext, output_dir: Path, config: Optional[dict[str, Any]] = None) -> None:
         super().__init__(execution_context, output_dir, config)
-        self.artifacts_locator = GTestCMakeArtifactsLocator(output_dir, execution_context.create_artifacts_locator())
+        self.artifacts_locator = GTestCMakeArtifactsLocator(output_dir, execution_context.spl_paths)
 
     @property
     def variant_name(self) -> Optional[str]:
@@ -501,7 +501,7 @@ class GTestCMakeGenerator(CMakeGenerator):
     def get_include_directories(self) -> CMakeIncludeDirectories:
         collector = ComponentAnalyzer(
             self.execution_context.components,
-            self.execution_context.create_artifacts_locator(),
+            self.execution_context.spl_paths,
         )
         registry_dirs = collect_directories(filter_artifacts(self.execution_context.data_registry.find_data(Artifact), with_label("include"), for_consumer()))
         include_dirs = collector.collect_include_directories() + registry_dirs

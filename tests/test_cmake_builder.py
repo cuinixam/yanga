@@ -20,7 +20,7 @@ def env(tmp_path: Path) -> ExecutionContext:
     env = Mock(spec=ExecutionContext)
     env.project_root_dir = tmp_path
     env.variant_name = "mock_variant"
-    env.create_artifacts_locator = Mock()
+    env.spl_paths = Mock()
     env.data_registry = DataRegistry()
     env.platform = None
     return env
@@ -31,7 +31,7 @@ def env_with_platform(tmp_path: Path) -> ExecutionContext:
     env = Mock(spec=ExecutionContext)
     env.project_root_dir = tmp_path
     env.variant_name = "mock_variant"
-    env.create_artifacts_locator = Mock()
+    env.spl_paths = Mock()
     env.data_registry = DataRegistry()
     env.platform = Mock()
     env.platform.name = "test_platform"

@@ -94,7 +94,7 @@ class CreateExecutableCMakeGenerator(CMakeGenerator):
     def get_include_directories(self) -> CMakeIncludeDirectories:
         collector = ComponentAnalyzer(
             self.execution_context.components,
-            self.execution_context.create_artifacts_locator(),
+            self.execution_context.spl_paths,
         )
         registry_dirs = collect_directories(filter_artifacts(self.execution_context.data_registry.find_data(Artifact), with_label("include"), for_consumer()))
         include_dirs = collector.collect_include_directories() + registry_dirs
@@ -109,7 +109,7 @@ class CreateExecutableCMakeGenerator(CMakeGenerator):
     def create_components_cmake_elements(self) -> list[CMakeElement]:
         elements: list[CMakeElement] = []
         for component in self.execution_context.components:
-            component_analyzer = ComponentAnalyzer([component], self.execution_context.create_artifacts_locator())
+            component_analyzer = ComponentAnalyzer([component], self.execution_context.spl_paths)
             sources = component_analyzer.collect_sources()
             component_library = CMakeAddLibrary(component.name, sources)
             elements.append(component_library)

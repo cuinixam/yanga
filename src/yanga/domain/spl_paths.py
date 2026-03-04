@@ -5,8 +5,8 @@ from typing import Optional
 from py_app_dev.core.exceptions import UserNotificationException
 
 
-class ProjectArtifactsLocator:
-    """Provides paths to project artifacts."""
+class SPLPaths:
+    """Provides resolved paths for an SPL project build context."""
 
     def __init__(
         self,

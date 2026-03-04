@@ -2,7 +2,7 @@ from enum import Enum
 from pathlib import Path
 
 from yanga.cmake.cmake_backend import CMakePath
-from yanga.domain.artifacts import ProjectArtifactsLocator
+from yanga.domain.spl_paths import SPLPaths
 
 
 class BuildArtifact(Enum):
@@ -18,16 +18,16 @@ class BuildArtifact(Enum):
 class CMakeArtifactsLocator:
     """Defines the paths to the CMake artifacts."""
 
-    def __init__(self, output_dir: Path, project_artifact_locator: ProjectArtifactsLocator) -> None:
+    def __init__(self, output_dir: Path, spl_paths: SPLPaths) -> None:
         # The directory where the build files will be generated
-        self.artifacts_locator = project_artifact_locator
+        self.spl_paths = spl_paths
         self.cmake_build_dir = CMakePath(output_dir, "CMAKE_BUILD_DIR")
-        self.cmake_project_dir = CMakePath(self.artifacts_locator.project_root_dir)
+        self.cmake_project_dir = CMakePath(self.spl_paths.project_root_dir)
         self.cmake_variant_reports_dir = self.cmake_build_dir.joinpath("reports")
 
     @property
     def project_root_dir(self) -> Path:
-        return self.artifacts_locator.project_root_dir
+        return self.spl_paths.project_root_dir
 
     def get_component_build_dir(self, component_name: str) -> CMakePath:
         return self.cmake_build_dir.joinpath(component_name)

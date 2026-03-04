@@ -98,7 +98,7 @@ class KConfigGen(PipelineStep[ExecutionContext]):
 
     @property
     def output_dir(self) -> Path:
-        return self.execution_context.create_artifacts_locator().variant_build_dir / "kconfig"
+        return self.execution_context.spl_paths.variant_build_dir / "kconfig"
 
     def get_name(self) -> str:
         return self.__class__.__name__

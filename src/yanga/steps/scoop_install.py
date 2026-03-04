@@ -10,7 +10,7 @@ from yanga.steps.scoop_install_base import ScoopManifest
 class ScoopInstall(BaseScoopInstall[ExecutionContext]):
     def __init__(self, execution_context: ExecutionContext, group_name: str, config: Optional[dict[str, Any]] = None) -> None:
         super().__init__(execution_context, group_name, config)
-        self.artifacts_locator = execution_context.create_artifacts_locator()
+        self.artifacts_locator = execution_context.spl_paths
 
     def _collect_dependencies(self) -> ScoopManifest:
         collected_manifest = super()._collect_dependencies()
