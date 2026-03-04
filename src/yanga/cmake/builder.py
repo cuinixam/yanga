@@ -10,7 +10,6 @@ from yanga.cmake.artifacts_locator import BuildArtifact, CMakeArtifactsLocator
 from yanga.domain.config import PlatformConfig
 from yanga.domain.execution_context import ExecutionContext
 from yanga.domain.reports import ComponentReportData, FeaturesReportRelevantFile, ReportData, ReportRelevantFiles, VariantReportData
-from yanga.domain.targets import Target, TargetsData, TargetType
 
 from .cmake_backend import (
     CMakeAddExecutable,
@@ -24,6 +23,7 @@ from .cmake_backend import (
     CMakeVariable,
 )
 from .generator import CMakeFile, CMakeGenerator, GeneratedFile, GeneratedFileIf
+from .targets import Target, TargetsData, TargetType
 
 
 def get_toolchain_config_file(platform: PlatformConfig) -> Optional[str]:
