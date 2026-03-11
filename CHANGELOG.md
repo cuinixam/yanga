@@ -1,5 +1,11 @@
 # Changelog
 
+## v2.29.0 (2026-03-11)
+
+### Features
+
+- Move yanga core to a separate package ([`2714015`](https://github.com/cuinixam/yanga/commit/271401517ea7115b353630b7bd6028942a961f03))
+
 ## v2.28.0 (2026-02-17)
 
 ### Bug fixes
