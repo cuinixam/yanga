@@ -407,6 +407,7 @@ class GTestComponentCMakeGenerator:
             description=f"Generate coverage report for component {component_name}",
             outputs=[gcovr_config_file, gcovr_json_file, gcovr_html_file],
             depends=execute_tests_command.outputs,
+            command_expand_lists=True,
             commands=[
                 CMakeCommand(
                     "yanga_cmd",

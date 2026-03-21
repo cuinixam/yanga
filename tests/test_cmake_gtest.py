@@ -96,6 +96,17 @@ def test_gtest_cmake_generator_coverage(execution_context: ExecutionContext, out
     assert any("gcovr" in tool for tool in command_tools), "Should use gcovr for reports"
 
 
+def test_coverage_command_has_expand_lists_enabled(execution_context: ExecutionContext, output_dir: Path) -> None:
+    elements = GTestCMakeGenerator(execution_context, output_dir).generate()
+
+    coverage_commands = find_elements_of_type(elements, CMakeCustomCommand)
+    component_coverage_cmds = [cmd for cmd in coverage_commands if "coverage report for component" in cmd.description]
+    assert len(component_coverage_cmds) == 1
+
+    component_cmd = component_coverage_cmds[0]
+    assert component_cmd.command_expand_lists is True, "Coverage command should have command_expand_lists enabled for TARGET_OBJECTS expansion"
+
+
 def test_automock_enabled_by_default(execution_context: ExecutionContext, output_dir: Path) -> None:
     # Run IUT
     elements = GTestCMakeGenerator(execution_context, output_dir).generate()
