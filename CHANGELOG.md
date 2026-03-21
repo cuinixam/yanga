@@ -1,5 +1,11 @@
 # Changelog
 
+## v2.29.1 (2026-03-21)
+
+### Bug fixes
+
+- Coverage report component objects option is wrongly expanded ([`287c720`](https://github.com/cuinixam/yanga/commit/287c72025bf9e2c4148ea1b829c7c5fecf11df79))
+
 ## v2.29.0 (2026-03-11)
 
 ### Features
