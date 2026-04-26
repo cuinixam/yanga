@@ -1,5 +1,11 @@
 # Changelog
 
+## v2.30.0 (2026-04-26)
+
+### Features
+
+- Add info command ([`27bf86b`](https://github.com/cuinixam/yanga/commit/27bf86b0889999b924aca2e1edd592f1c3b5b650))
+
 ## v2.29.1 (2026-03-21)
 
 ### Bug fixes
