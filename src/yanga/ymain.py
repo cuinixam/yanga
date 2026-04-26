@@ -5,6 +5,7 @@ from typing import Optional
 import typer
 from py_app_dev.core.exceptions import UserNotificationException
 from py_app_dev.core.logging import logger, setup_logger, time_it
+from yanga_core.commands.info import InfoCommand, InfoCommandConfig
 from yanga_core.commands.run import RunCommand, RunCommandConfig
 
 from yanga import __version__
@@ -22,6 +23,7 @@ def make_absolute_path(path_value: str | Path) -> Path:
 
 
 project_dir_option = typer.Option(Path.cwd(), callback=make_absolute_path, help="The project directory")
+output_option = typer.Option(None, help="Write the JSON to this file instead of stdout.")
 
 
 @app.callback(invoke_without_command=True)
@@ -103,6 +105,15 @@ def run(
             not_interactive,
         )
     )
+
+
+@app.command(help="Emit the parsed project model as JSON for GUI / IDE clients.")
+@time_it("info")
+def info(
+    project_dir: Path = project_dir_option,
+    output: Optional[Path] = output_option,
+) -> None:
+    InfoCommand().do_run(InfoCommandConfig(project_dir, output))
 
 
 def _check_tkinter_available() -> None:
