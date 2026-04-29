@@ -7,7 +7,7 @@ from yanga_core.domain.execution_context import ExecutionContext, UserRequest, U
 from yanga_core.domain.reports import ReportRelevantFiles, ReportRelevantFileType
 
 from yanga.cmake.artifacts_locator import BuildArtifact, CMakeArtifactsLocator
-from yanga.cmake.cmake_backend import CMakeCommand, CMakeComment, CMakeCustomTarget, CMakeElement, CMakePath
+from yanga.cmake.cmake_backend import CMakeAddTargetCleanFiles, CMakeCommand, CMakeComment, CMakeCustomTarget, CMakeElement, CMakePath
 from yanga.cmake.generator import CMakeGenerator
 
 
@@ -63,12 +63,13 @@ class ReportCMakeGenerator(CMakeGenerator):
             depends=results_target_depends,
         )
         elements.append(results_target)
+        variant_report_target = UserRequest(
+            UserRequestScope.VARIANT,
+            target=UserRequestTarget.REPORT,
+        )
         elements.append(
             CMakeCustomTarget(
-                name=UserRequest(
-                    UserRequestScope.VARIANT,
-                    target=UserRequestTarget.REPORT,
-                ).target_name,
+                name=variant_report_target.target_name,
                 description=f"Run sphinx build for variant {self.execution_context.variant_name}",
                 commands=[
                     CMakeCommand(
@@ -107,6 +108,14 @@ class ReportCMakeGenerator(CMakeGenerator):
                     self.artifacts_locator.get_build_artifact(BuildArtifact.REPORT_CONFIG),
                     results_target.name,
                 ],
+            )
+        )
+        # sphinx-build populates the variant report dir with files unknown to ninja.
+        # Register the directory for recursive removal on `clean`.
+        elements.append(
+            CMakeAddTargetCleanFiles(
+                target=variant_report_target.target_name,
+                files=[variant_report_dir],
             )
         )
         return elements
@@ -267,6 +276,14 @@ class ReportCMakeGenerator(CMakeGenerator):
                     depends=[
                         component_results_target.target_name,
                     ],
+                )
+            )
+            # sphinx-build populates the component report dir with files unknown to ninja.
+            # Register the directory for recursive removal on `clean`.
+            elements.append(
+                CMakeAddTargetCleanFiles(
+                    target=component_report_target.target_name,
+                    files=[component_report_dir],
                 )
             )
 

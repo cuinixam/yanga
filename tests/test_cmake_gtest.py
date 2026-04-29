@@ -9,6 +9,7 @@ from tests.utils import assert_element_of_type, assert_elements_of_type, find_el
 from yanga.cmake.cmake_backend import (
     CMakeAddExecutable,
     CMakeAddLibrary,
+    CMakeAddTargetCleanFiles,
     CMakeCustomCommand,
     CMakeCustomTarget,
     CMakeInclude,
@@ -94,6 +95,22 @@ def test_gtest_cmake_generator_coverage(execution_context: ExecutionContext, out
     command_tools = [str(cmd.command) for cmd in component_cmd.commands]
     assert any("yanga_cmd" in tool for tool in command_tools), "Should use yanga_cmd for config"
     assert any("gcovr" in tool for tool in command_tools), "Should use gcovr for reports"
+
+
+def test_coverage_targets_register_clean_files(execution_context: ExecutionContext, output_dir: Path) -> None:
+    elements = GTestCMakeGenerator(execution_context, output_dir).generate()
+
+    clean_files = find_elements_of_type(elements, CMakeAddTargetCleanFiles)
+    by_target = {entry.target: entry for entry in clean_files}
+
+    assert "CompA_coverage" in by_target, "Component coverage target must register its html dir for clean"
+    component_paths = [str(file) for file in by_target["CompA_coverage"].files]
+    assert any("reports/coverage/CompA" in path for path in component_paths), f"Component coverage clean files should include reports/coverage/CompA, got {component_paths}"
+
+    assert "coverage" in by_target, "Variant coverage target must register its html dirs for clean"
+    variant_paths = [str(file) for file in by_target["coverage"].files]
+    assert any(path.endswith("reports/coverage") for path in variant_paths), f"Variant coverage clean files should include the variant reports/coverage dir, got {variant_paths}"
+    assert any("reports/coverage/CompA" in path for path in variant_paths), f"Variant coverage clean files should include the per-component variant subdir, got {variant_paths}"
 
 
 def test_coverage_command_has_expand_lists_enabled(execution_context: ExecutionContext, output_dir: Path) -> None:

@@ -285,6 +285,27 @@ class CMakeSetTargetProperties(CMakeElement):
         return f"set_target_properties({self.target} PROPERTIES {' '.join(props)})"
 
 
+@dataclass
+class CMakeAddTargetCleanFiles(CMakeElement):
+    """
+    Append paths to a target's ``ADDITIONAL_CLEAN_FILES`` property.
+
+    Required for custom targets whose outputs include directories populated by
+    external tools (e.g. ``gcovr --html-details``, ``sphinx-build``,
+    ``cmake -E copy_directory``). Without this, ``ninja -t clean`` calls plain
+    ``remove()`` on the directories and fails with "Directory not empty".
+    """
+
+    target: str
+    files: list[str | CMakePath]
+
+    def to_string(self) -> str:
+        if not self.files:
+            return ""
+        files_str = " ".join(str(file) for file in self.files)
+        return f"set_property(TARGET {self.target} APPEND PROPERTY ADDITIONAL_CLEAN_FILES {files_str})"
+
+
 class CMakeCommand(CMakeElement):
     def __init__(self, command: str | CMakePath, arguments: list[str | CMakePath]) -> None:
         super().__init__()

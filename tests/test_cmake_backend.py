@@ -5,6 +5,7 @@ from yanga.cmake.cmake_backend import (
     CMakeAddExecutable,
     CMakeAddLibrary,
     CMakeAddSubdirectory,
+    CMakeAddTargetCleanFiles,
     CMakeBuildEvent,
     CMakeCommand,
     CMakeCustomCommand,
@@ -265,6 +266,15 @@ def test_cmake_list_append():
 def test_cmake_enable_testing():
     cmake_enable_testing = CMakeEnableTesting()
     assert cmake_enable_testing.to_string() == "enable_testing()"
+
+
+def test_cmake_add_target_clean_files():
+    elem = CMakeAddTargetCleanFiles("my_target", [CMakePath(Path("dir/one")), "dir/two"])
+    assert elem.to_string() == "set_property(TARGET my_target APPEND PROPERTY ADDITIONAL_CLEAN_FILES dir/one dir/two)"
+
+
+def test_cmake_add_target_clean_files_empty():
+    assert CMakeAddTargetCleanFiles("my_target", []).to_string() == ""
 
 
 def test_cmake_target_include_directories():

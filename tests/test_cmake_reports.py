@@ -8,6 +8,7 @@ from yanga_core.domain.reports import ReportRelevantFiles, ReportRelevantFileTyp
 
 from tests.utils import assert_element_of_type, assert_elements_of_type, find_elements_of_type
 from yanga.cmake.cmake_backend import (
+    CMakeAddTargetCleanFiles,
     CMakeCustomTarget,
 )
 from yanga.cmake.reports import ReportCMakeGenerator
@@ -60,6 +61,18 @@ def test_create_components_cmake_elements(
     assert [cmd.command for cmd in comp_cmd.commands] == ["clanguru"]
     comp_cmd = assert_element_of_type(elements, CMakeCustomTarget, lambda target: target.name == "CompA_report")
     assert [cmd.command for cmd in comp_cmd.commands] == ["${CMAKE_COMMAND}", "yanga_cmd", "${CMAKE_COMMAND}", "yanga_cmd"]
+
+
+def test_report_targets_register_clean_files(create_executable_generator: ReportCMakeGenerator) -> None:
+    elements = create_executable_generator.generate()
+
+    clean_files = find_elements_of_type(elements, CMakeAddTargetCleanFiles)
+    by_target = {entry.target: entry for entry in clean_files}
+
+    for target_name in ("report", "CompA_report", "CompBNotTestable_report"):
+        assert target_name in by_target, f"{target_name} must register its report dir for clean"
+        paths = [str(file) for file in by_target[target_name].files]
+        assert paths, f"{target_name} clean files should not be empty"
 
 
 def test_exclude_productive_code(execution_context: ExecutionContext, output_dir: Path) -> None:

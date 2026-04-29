@@ -20,6 +20,7 @@ from .cmake_backend import (
     CMakeAddExecutable,
     CMakeAddLibrary,
     CMakeAddSubdirectory,
+    CMakeAddTargetCleanFiles,
     CMakeCommand,
     CMakeComment,
     CMakeCustomCommand,
@@ -281,11 +282,22 @@ class GTestComponentCMakeGenerator:
                 )
             )
 
+            coverage_artifacts_locator = CoverageArtifactsLocator.from_cmake_artifacts_locator(self.artifacts_locator)
+            # The gcovr --html-details run populates the component coverage html dir with files
+            # that ninja does not track. Register the directory for recursive removal on `clean`.
+            elements.append(
+                CMakeAddTargetCleanFiles(
+                    target=component_coverage_target.target_name,
+                    files=[coverage_artifacts_locator.get_component_coverage_reports_dir(component.name)],
+                )
+            )
+
             # Register the component coverage html report as relevant for the component report
-            artifacts_locator = CoverageArtifactsLocator.from_cmake_artifacts_locator(self.artifacts_locator)
             # When registering an html content, the path shall be relative to the reports directory
             index_html = (
-                artifacts_locator.get_component_coverage_html_file(component.name).to_path().relative_to(artifacts_locator.get_component_reports_dir(component.name).to_path())
+                coverage_artifacts_locator.get_component_coverage_html_file(component.name)
+                .to_path()
+                .relative_to(coverage_artifacts_locator.get_component_reports_dir(component.name).to_path())
             )
             self.execution_context.data_registry.insert(
                 ReportRelevantFiles(
@@ -558,6 +570,7 @@ class GTestCMakeGenerator(CMakeGenerator):
             if entry.file_type == ReportRelevantFileType.COVERAGE_RESULT and entry.target.scope == UserRequestScope.COMPONENT and entry.target.component_name is not None
         ]
         coverage_report_dependencies: list[CMakePath] = coverage_relevant_json_reports
+        component_variant_coverage_html_dirs: list[CMakePath] = []
         for target in targets_with_coverage_results:
             component_name = target.component_name
             if component_name is None:
@@ -566,6 +579,7 @@ class GTestCMakeGenerator(CMakeGenerator):
             # Get the directory where the component coverage html report was generated. This directory will be copied to the variant report directory
             component_coverage_html_dir = artifacts_locator.get_component_coverage_reports_dir(component_name)
             component_variant_coverage_html_dir = artifacts_locator.get_component_variant_coverage_reports_dir(component_name)
+            component_variant_coverage_html_dirs.append(component_variant_coverage_html_dir)
             # Create custom command to copy the component coverage html report to the variant report directory
             copy_coverage_html_cmd = CMakeCustomCommand(
                 description=f"Copy coverage html report for component {component_name} to variant report directory",
@@ -627,6 +641,14 @@ class GTestCMakeGenerator(CMakeGenerator):
                 description="Generate variant coverage report",
                 commands=[],
                 depends=coverage_cmd.outputs,
+            )
+        )
+        # gcovr --html-details and copy_directory populate these dirs with files unknown to ninja.
+        # Register them for recursive removal on `clean` to avoid "Directory not empty" failures.
+        elements.append(
+            CMakeAddTargetCleanFiles(
+                target=variant_coverage_target.target_name,
+                files=[gcovr_html_dir, *component_variant_coverage_html_dirs],
             )
         )
         # Register the variant coverage html report as relevant for the variant report
