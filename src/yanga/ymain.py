@@ -1,3 +1,4 @@
+import os
 import sys
 from pathlib import Path
 from typing import Optional
@@ -19,7 +20,7 @@ app = typer.Typer(name=package_name, help="YANGA command line interface.", no_ar
 
 
 def make_absolute_path(path_value: str | Path) -> Path:
-    return Path(path_value).absolute()
+    return Path(os.path.abspath(path_value))
 
 
 project_dir_option = typer.Option(Path.cwd(), callback=make_absolute_path, help="The project directory")

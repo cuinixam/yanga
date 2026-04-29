@@ -1,3 +1,4 @@
+import os
 from pathlib import Path
 
 from kspl.config_slurper import KConfigData, VariantData, VariantViewData
@@ -15,7 +16,7 @@ class YangaKConfigData(KConfigData):
     """Yanga implementation of KConfigData protocol for viewing feature configurations."""
 
     def __init__(self, project_dir: Path) -> None:
-        self.project_dir = project_dir.absolute()
+        self.project_dir = Path(os.path.abspath(project_dir))
         self.project_slurper = YangaProjectSlurper(project_dir)
         self.logger = logger.bind()
 

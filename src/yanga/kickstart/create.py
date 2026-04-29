@@ -1,3 +1,4 @@
+import os
 import shutil
 from pathlib import Path
 from typing import Optional, Union
@@ -48,7 +49,7 @@ class KickstartProject:
         self.with_sources = with_sources
 
     def run(self) -> None:
-        self.logger.info(f"Kickstart new project in '{self.project_dir.absolute().as_posix()}'")
+        self.logger.info(f"Kickstart new project in '{Path(os.path.abspath(self.project_dir)).as_posix()}'")
         project_builder = ProjectBuilder(self.project_dir)
         if self.force:
             project_builder.with_disable_target_directory_check()
