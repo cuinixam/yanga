@@ -14,7 +14,7 @@ def test_info_stdout(tmp_path: Path) -> None:
     result = runner.invoke(app, ["info", "--project-dir", tmp_path.as_posix()])
     assert result.exit_code == 0
     info = json.loads(result.output)
-    assert info["schema_version"] == 1
+    assert info["schema_version"] == "1.1"
     assert "variants" in info
     assert "platforms" in info
     assert "components" in info
@@ -27,4 +27,4 @@ def test_info_output_file(tmp_path: Path) -> None:
     assert result.exit_code == 0
     assert output_file.exists()
     info = json.loads(output_file.read_text())
-    assert info["schema_version"] == 1
+    assert info["schema_version"] == "1.1"

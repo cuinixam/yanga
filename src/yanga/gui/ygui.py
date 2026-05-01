@@ -1,3 +1,4 @@
+from collections.abc import Callable
 from enum import auto
 from pathlib import Path
 from typing import Optional
@@ -9,6 +10,7 @@ from py_app_dev.core.subprocess import SubprocessExecutor
 from py_app_dev.mvp.event_manager import EventID, EventManager
 from py_app_dev.mvp.presenter import Presenter
 from py_app_dev.mvp.view import View
+from yanga_core.commands.info_schema import InfoProject, build_info_project
 from yanga_core.commands.run import RunCommand
 from yanga_core.domain.execution_context import (
     UserRequest,
@@ -17,8 +19,99 @@ from yanga_core.domain.execution_context import (
     UserVariantRequest,
 )
 from yanga_core.domain.project_slurper import YangaProjectSlurper
+from yanga_core.ini import YangaIni
 
 from .icons import Icons
+
+OPTION_MENU_WIDTH = 200
+
+
+class _Tooltip:
+    """Minimal hover tooltip — shows full text when CTkOptionMenu truncates a long selection."""
+
+    def __init__(self, widget: customtkinter.CTkBaseClass) -> None:
+        self.widget = widget
+        self.text = ""
+        self._tip: Optional[customtkinter.CTkToplevel] = None
+        widget.bind("<Enter>", self._show)
+        widget.bind("<Leave>", self._hide)
+
+    def set_text(self, text: str) -> None:
+        self.text = text
+        if self._tip is not None:
+            self._hide()
+            self._show()
+
+    def _show(self, _event: object = None) -> None:
+        if self._tip is not None or not self.text:
+            return
+        x = self.widget.winfo_rootx() + 10
+        y = self.widget.winfo_rooty() + self.widget.winfo_height() + 4
+        tip = customtkinter.CTkToplevel(self.widget)
+        tip.wm_overrideredirect(True)
+        tip.wm_geometry(f"+{x}+{y}")
+        label = customtkinter.CTkLabel(tip, text=self.text, fg_color="gray20", text_color="white", corner_radius=4)
+        label.pack(padx=6, pady=2)
+        self._tip = tip
+
+    def _hide(self, _event: object = None) -> None:
+        if self._tip is not None:
+            self._tip.destroy()
+            self._tip = None
+
+
+class _LabeledOptionMenu:
+    """
+    Label + CTkOptionMenu pair with consistent fixed sizing and an optional hover tooltip.
+
+    Menus are placed two-per-row (label above, dropdown below). `grid(row)` returns the
+    next free row so callers can chain placements without tracking indices manually.
+    """
+
+    def __init__(
+        self,
+        parent: customtkinter.CTkBaseClass,
+        label_text: str,
+        command: Optional[Callable[[str], None]] = None,
+        with_tooltip: bool = False,
+    ) -> None:
+        self._label = customtkinter.CTkLabel(parent, text=label_text, anchor="w")
+        self._menu = customtkinter.CTkOptionMenu(
+            parent,
+            command=self._on_select,
+            width=OPTION_MENU_WIDTH,
+            dynamic_resizing=False,
+        )
+        self._user_command = command
+        self._tooltip: Optional[_Tooltip] = _Tooltip(self._menu) if with_tooltip else None
+
+    def grid(self, row: int) -> int:
+        self._label.grid(row=row, column=0, sticky="nsew", padx=10, pady=5)
+        self._menu.grid(row=row + 1, column=0, sticky="nsew", padx=10, pady=5)
+        return row + 2
+
+    def _on_select(self, value: str) -> None:
+        if self._tooltip is not None:
+            self._tooltip.set_text(value)
+        if self._user_command is not None:
+            self._user_command(value)
+
+    def set_values(self, values: list[str]) -> None:
+        self._menu.configure(values=values, state="normal")
+
+    def set_current(self, value: str) -> None:
+        self._menu.set(value)
+        if self._tooltip is not None:
+            self._tooltip.set_text(value)
+
+    def disable(self) -> None:
+        self._menu.configure(values=[], state="disabled")
+        self._menu.set("")
+        if self._tooltip is not None:
+            self._tooltip.set_text("")
+
+    def get(self) -> str:
+        return self._menu.get()
 
 
 class YangaEvent(EventID):
@@ -30,7 +123,8 @@ class YangaEvent(EventID):
     CLEAN_VARIANT_EVENT = auto()
     PLATFORM_SELECTED_EVENT = auto()
     BUILD_TYPE_SELECTED_EVENT = auto()
-    BUILD_TARGET_SELECTED_EVENT = auto()
+    VARIANT_BUILD_TARGET_SELECTED_EVENT = auto()
+    COMPONENT_BUILD_TARGET_SELECTED_EVENT = auto()
     OPEN_IN_VSCODE = auto()
 
 
@@ -38,49 +132,37 @@ class YangaView(View):
     def __init__(self, event_manager: EventManager) -> None:
         self.event_manager = event_manager
         self.root = customtkinter.CTk()
-        self.platforms: list[str] = []
-        self.build_types: list[str] = []
-        self.build_targets: list[str] = []
-        self.variants: list[str] = []
-        self.components: list[str] = []
 
     @property
     def selected_variant(self) -> str:
-        return self.variant_selection.get()
+        return self.variant_menu.get()
 
     @property
     def selected_component(self) -> str:
-        return self.component_selection.get()
+        return self.component_menu.get()
 
     @property
     def selected_build_type(self) -> Optional[str]:
-        return self.build_type_selection.get()
+        return self.build_type_menu.get()
 
     @property
-    def selected_build_target(self) -> Optional[str]:
-        return self.build_target_selection.get()
+    def selected_variant_build_target(self) -> Optional[str]:
+        return self.variant_build_target_menu.get()
+
+    @property
+    def selected_component_build_target(self) -> Optional[str]:
+        return self.component_build_target_menu.get()
 
     def init_gui(self) -> None:
         customtkinter.set_default_color_theme("green")
-
-        # Configure the main window
         self.root.title("YANGA")
-        self.root.geometry(f"{220}x{650}")
+        self.root.geometry(f"{220}x{750}")
+        # Hold a reference to the PhotoImage; otherwise it can be garbage-collected
+        # before Tk gets to draw it, leaving the default Tk/Python icon.
+        self._app_icon = Icons.YANGA_PNG.tk_photo
+        self.root.iconphoto(True, self._app_icon)
 
-        # update app icon
-        self.root.iconbitmap(Icons.YANGA_ICON.file)
-        position_in_grid = 0
-
-        self._create_platforms_frame(self.root, position_in_grid)
-        position_in_grid += 1
-        self._create_variants_frame(self.root, position_in_grid)
-        position_in_grid += 1
-        self._create_components_frame(self.root, position_in_grid)
-
-        # Bind F5 key to refresh functionality
-        self.root.bind("<F5>", self._refresh_button_pressed)
-
-        # Create events
+        # Event triggers must exist before menu commands reference them.
         self.build_trigger = self.event_manager.create_event_trigger(YangaEvent.BUILD_EVENT)
         self.clean_variant_trigger = self.event_manager.create_event_trigger(YangaEvent.CLEAN_VARIANT_EVENT)
         self.component_build_trigger = self.event_manager.create_event_trigger(YangaEvent.COMPONENT_BUILD_EVENT)
@@ -89,29 +171,24 @@ class YangaView(View):
         self.variant_selected_trigger = self.event_manager.create_event_trigger(YangaEvent.VARIANT_SELECTED_EVENT)
         self.platform_selected_trigger = self.event_manager.create_event_trigger(YangaEvent.PLATFORM_SELECTED_EVENT)
         self.build_type_selected_trigger = self.event_manager.create_event_trigger(YangaEvent.BUILD_TYPE_SELECTED_EVENT)
-        self.build_target_selected_trigger = self.event_manager.create_event_trigger(YangaEvent.BUILD_TARGET_SELECTED_EVENT)
+        self.variant_build_target_selected_trigger = self.event_manager.create_event_trigger(YangaEvent.VARIANT_BUILD_TARGET_SELECTED_EVENT)
+        self.component_build_target_selected_trigger = self.event_manager.create_event_trigger(YangaEvent.COMPONENT_BUILD_TARGET_SELECTED_EVENT)
         self.open_in_vscode_trigger = self.event_manager.create_event_trigger(YangaEvent.OPEN_IN_VSCODE)
 
-    def _build_button_pressed(self) -> None:
-        self.build_trigger(self.selected_variant, self.selected_build_type, self.selected_build_target)
+        self._create_platforms_frame(self.root, 0)
+        self._create_variants_frame(self.root, 1)
+        self._create_components_frame(self.root, 2)
+
+        self.root.bind("<F5>", self._refresh_button_pressed)
 
     def _refresh_button_pressed(self, event=None) -> None:  # type: ignore
         self.refresh_trigger()
 
-    def _variant_selected(self, variant_selected: str) -> None:
-        self.variant_selected_trigger(variant_selected)
-
-    def _platform_selected(self, platform_selected: str) -> None:
-        self.platform_selected_trigger(platform_selected)
-
-    def _build_type_selected(self, build_type_selected: str) -> None:
-        self.build_type_selected_trigger(build_type_selected)
-
-    def _build_target_selected(self, build_target_selected: str) -> None:
-        self.build_target_selected_trigger(build_target_selected)
+    def _build_button_pressed(self) -> None:
+        self.build_trigger(self.selected_variant, self.selected_build_type, self.selected_variant_build_target)
 
     def _component_build_button_pressed(self) -> None:
-        self.component_build_trigger(self.selected_variant, self.selected_component, self.selected_build_type, self.selected_build_target)
+        self.component_build_trigger(self.selected_variant, self.selected_component, self.selected_build_type, self.selected_component_build_target)
 
     def _component_clean_button_pressed(self) -> None:
         self.component_clean_trigger(self.selected_variant, self.selected_component)
@@ -125,160 +202,95 @@ class YangaView(View):
     def mainloop(self) -> None:
         self.root.mainloop()
 
-    def _create_platforms_frame(self, root: customtkinter.CTk, position_in_root_grid: int) -> customtkinter.CTkFrame:
-        # Create the frame for all elements related to platforms
-        platforms_frame = customtkinter.CTkFrame(root)
-        platforms_frame.grid(row=position_in_root_grid, column=0, sticky="nsew", padx=10, pady=10)
-        current_frame = platforms_frame
-        position_in_grid = 0
+    @staticmethod
+    def _make_frame(root: customtkinter.CTk, position: int) -> customtkinter.CTkFrame:
+        frame = customtkinter.CTkFrame(root)
+        frame.grid(row=position, column=0, sticky="nsew", padx=10, pady=10)
+        return frame
 
-        # Create platform label
-        variants_label = customtkinter.CTkLabel(current_frame, text="Platforms", anchor="w")
-        variants_label.grid(row=position_in_grid, column=0, sticky="nsew", padx=10, pady=5)
-        position_in_grid += 1
+    @staticmethod
+    def _grid_button(button: customtkinter.CTkButton, row: int) -> int:
+        button.grid(row=row, column=0, sticky="nsew", padx=10, pady=5)
+        return row + 1
 
-        # Create platform selection list
-        self.platform_selection = customtkinter.CTkOptionMenu(current_frame, command=self._platform_selected)
-        self.platform_selection.grid(row=position_in_grid, column=0, sticky="nsew", padx=10, pady=5)
-        self.update_platforms(self.platforms)
-        position_in_grid += 1
+    def _create_platforms_frame(self, root: customtkinter.CTk, position: int) -> customtkinter.CTkFrame:
+        frame = self._make_frame(root, position)
+        self.platform_menu = _LabeledOptionMenu(frame, "Platforms", command=self.platform_selected_trigger, with_tooltip=True)
+        self.build_type_menu = _LabeledOptionMenu(frame, "Build Type", command=self.build_type_selected_trigger, with_tooltip=True)
+        row = self.platform_menu.grid(row=0)
+        self.build_type_menu.grid(row=row)
+        return frame
 
-        # Create build type label
-        build_type_label = customtkinter.CTkLabel(current_frame, text="Build Type", anchor="w")
-        build_type_label.grid(row=position_in_grid, column=0, sticky="nsew", padx=10, pady=5)
-        position_in_grid += 1
+    def _create_variants_frame(self, root: customtkinter.CTk, position: int) -> customtkinter.CTkFrame:
+        frame = self._make_frame(root, position)
+        self.variant_menu = _LabeledOptionMenu(frame, "Variants", command=self.variant_selected_trigger, with_tooltip=True)
+        self.variant_build_target_menu = _LabeledOptionMenu(frame, "Build Target", command=self.variant_build_target_selected_trigger, with_tooltip=True)
+        row = self.variant_menu.grid(row=0)
+        row = self.variant_build_target_menu.grid(row=row)
+        self.build_button = customtkinter.CTkButton(frame, text="Build", command=self._build_button_pressed)
+        row = self._grid_button(self.build_button, row)
+        self.clean_button = customtkinter.CTkButton(frame, text="Clean", command=self._clean_variant_button_pressed)
+        row = self._grid_button(self.clean_button, row)
+        self.open_in_vscode_button = customtkinter.CTkButton(frame, text="Open in VSCode", command=self._open_in_vscode_button_pressed)
+        self._grid_button(self.open_in_vscode_button, row)
+        return frame
 
-        # Create build type selection list
-        self.build_type_selection = customtkinter.CTkOptionMenu(current_frame, command=self._build_type_selected)
-        self.build_type_selection.grid(row=position_in_grid, column=0, sticky="nsew", padx=10, pady=5)
-        if self.build_types:
-            self.update_build_types(self.build_types)
-        else:
-            self.disabled_build_types()
-        position_in_grid += 1
+    def _create_components_frame(self, root: customtkinter.CTk, position: int) -> customtkinter.CTkFrame:
+        frame = self._make_frame(root, position)
+        self.component_menu = _LabeledOptionMenu(frame, "Components", with_tooltip=True)
+        self.component_build_target_menu = _LabeledOptionMenu(frame, "Build Target", command=self.component_build_target_selected_trigger, with_tooltip=True)
+        row = self.component_menu.grid(row=0)
+        row = self.component_build_target_menu.grid(row=row)
+        self.component_build_button = customtkinter.CTkButton(frame, text="Build", command=self._component_build_button_pressed)
+        self._grid_button(self.component_build_button, row)
+        return frame
 
-        # Create build target label
-        build_target_label = customtkinter.CTkLabel(current_frame, text="Build Target", anchor="w")
-        build_target_label.grid(row=position_in_grid, column=0, sticky="nsew", padx=10, pady=5)
-        position_in_grid += 1
-
-        # Create build target selection list
-        self.build_target_selection = customtkinter.CTkOptionMenu(current_frame, command=self._build_target_selected)
-        self.build_target_selection.grid(row=position_in_grid, column=0, sticky="nsew", padx=10, pady=5)
-        if self.build_targets:
-            self.update_build_targets(self.build_targets)
-        else:
-            self.disabled_build_targets()
-        position_in_grid += 1
-
-        return platforms_frame
-
-    def _create_variants_frame(self, root: customtkinter.CTk, position_in_root_grid: int) -> customtkinter.CTkFrame:
-        # Create the frame for all elements related to variants
-        variants_frame = customtkinter.CTkFrame(root)
-        variants_frame.grid(row=position_in_root_grid, column=0, sticky="nsew", padx=10, pady=10)
-        current_frame = variants_frame
-        position_in_grid = 0
-
-        # Create variant label
-        variants_label = customtkinter.CTkLabel(current_frame, text="Variants", anchor="w")
-        variants_label.grid(row=position_in_grid, column=0, sticky="nsew", padx=10, pady=5)
-        position_in_grid += 1
-
-        # Create selection list
-        self.variant_selection = customtkinter.CTkOptionMenu(current_frame, command=self._variant_selected)
-        self.variant_selection.grid(row=position_in_grid, column=0, sticky="nsew", padx=10, pady=5)
-        self.update_variants(self.variants)
-        position_in_grid += 1
-
-        # Create the build button
-        self.build_button = customtkinter.CTkButton(current_frame, text="Build", command=self._build_button_pressed)
-        self.build_button.grid(row=position_in_grid, column=0, sticky="nsew", padx=10, pady=5)
-        position_in_grid += 1
-
-        # Create the clean button
-        self.clean_button = customtkinter.CTkButton(current_frame, text="Clean", command=self._clean_variant_button_pressed)
-        self.clean_button.grid(row=position_in_grid, column=0, sticky="nsew", padx=10, pady=5)
-        position_in_grid += 1
-
-        # Create the open in vscode button
-        self.open_in_vscode_button = customtkinter.CTkButton(
-            current_frame,
-            text="Open in VSCode",
-            command=self._open_in_vscode_button_pressed,
-        )
-        self.open_in_vscode_button.grid(row=position_in_grid, column=0, sticky="nsew", padx=10, pady=5)
-        position_in_grid += 1
-
-        return variants_frame
-
-    def _create_components_frame(self, root: customtkinter.CTk, position_in_root_grid: int) -> customtkinter.CTkFrame:
-        # Create the frame for all elements related to components
-        components_frame = customtkinter.CTkFrame(root)
-        components_frame.grid(row=position_in_root_grid, column=0, sticky="nsew", padx=10, pady=10)
-        current_frame = components_frame
-        position_in_grid = 0
-
-        # Create label aligned to left
-        components_label = customtkinter.CTkLabel(current_frame, text="Components", anchor="w")
-        components_label.grid(row=position_in_grid, column=0, sticky="nsew", padx=10, pady=5)
-        position_in_grid += 1
-
-        # Create selection list
-        self.component_selection = customtkinter.CTkOptionMenu(current_frame)
-        self.component_selection.grid(row=position_in_grid, column=0, sticky="nsew", padx=10, pady=5)
-
-        position_in_grid += 1
-
-        # Create component build button
-        self.component_build_button = customtkinter.CTkButton(current_frame, text="Build", command=self._component_build_button_pressed)
-        self.component_build_button.grid(row=position_in_grid, column=0, sticky="nsew", padx=10, pady=5)
-        position_in_grid += 1
-
-        # # TODO: Create component clean button when it is implemented
-        # self.component_clean_button = customtkinter.CTkButton(
-        #     current_frame, text="Clean", command=self._component_clean_button_pressed
-        # )
-        # self.component_clean_button.grid(row=position_in_grid, column=0, sticky="nsew", padx=10, pady=5)
-        # position_in_grid += 1
-
-        return components_frame
+    # --- Presenter-facing API: each method delegates to the matching menu helper. ---
 
     def update_platforms(self, platforms: list[str]) -> None:
-        self.platform_selection.configure(values=platforms)
+        self.platform_menu.set_values(platforms)
 
     def update_current_platform(self, platform: str) -> None:
-        self.platform_selection.set(platform)
+        self.platform_menu.set_current(platform)
 
     def update_build_types(self, build_types: list[str]) -> None:
-        self.build_type_selection.configure(values=build_types)
-        self.build_type_selection.configure(state="normal")
+        self.build_type_menu.set_values(build_types)
 
     def update_current_build_type(self, build_type: str) -> None:
-        self.build_type_selection.set(build_type)
+        self.build_type_menu.set_current(build_type)
 
     def disabled_build_types(self) -> None:
-        self.build_type_selection.configure(values=[])
-        self.build_type_selection.set("")
-        self.build_type_selection.configure(state="disabled")
-
-    def update_build_targets(self, build_targets: list[str]) -> None:
-        self.build_target_selection.configure(values=build_targets)
-        self.build_target_selection.configure(state="normal")
-
-    def update_current_build_target(self, build_target: str) -> None:
-        self.build_target_selection.set(build_target)
-
-    def disabled_build_targets(self) -> None:
-        self.build_target_selection.configure(values=[])
-        self.build_target_selection.set("")
-        self.build_target_selection.configure(state="disabled")
+        self.build_type_menu.disable()
 
     def update_variants(self, variants: list[str]) -> None:
-        self.variant_selection.configure(values=variants)
+        self.variant_menu.set_values(variants)
 
     def update_current_variant(self, variant: str) -> None:
-        self.variant_selection.set(variant)
+        self.variant_menu.set_current(variant)
+
+    def update_variant_build_targets(self, build_targets: list[str]) -> None:
+        self.variant_build_target_menu.set_values(build_targets)
+
+    def update_current_variant_build_target(self, build_target: str) -> None:
+        self.variant_build_target_menu.set_current(build_target)
+
+    def disabled_variant_build_targets(self) -> None:
+        self.variant_build_target_menu.disable()
+
+    def update_components(self, components: list[str]) -> None:
+        self.component_menu.set_values(components)
+
+    def update_current_component(self, component: str) -> None:
+        self.component_menu.set_current(component)
+
+    def update_component_build_targets(self, build_targets: list[str]) -> None:
+        self.component_build_target_menu.set_values(build_targets)
+
+    def update_current_component_build_target(self, build_target: str) -> None:
+        self.component_build_target_menu.set_current(build_target)
+
+    def disabled_component_build_targets(self) -> None:
+        self.component_build_target_menu.disable()
 
     def enable_variant_commands(self) -> None:
         self.build_button.configure(state="normal")
@@ -287,12 +299,6 @@ class YangaView(View):
     def disable_variant_commands(self) -> None:
         self.build_button.configure(state="disabled")
         self.clean_button.configure(state="disabled")
-
-    def update_components(self, components: list[str]) -> None:
-        self.component_selection.configure(values=components)
-
-    def update_current_component(self, component: str) -> None:
-        self.component_selection.set(component)
 
     def enable_component_commands(self) -> None:
         self.component_build_button.configure(state="normal")
@@ -307,7 +313,9 @@ class YangaPresenter(Presenter):
         self.view = view
         self.event_manager = event_manager
         self.project_dir = project_dir
-        self.project_slurper = self._create_project_slurper()
+        self.project_slurper: Optional[YangaProjectSlurper] = None
+        self.info: Optional[InfoProject] = None
+        self._load_project_state()
         self.event_manager.subscribe(YangaEvent.BUILD_EVENT, self._build_trigger)
         self.event_manager.subscribe(YangaEvent.COMPONENT_BUILD_EVENT, self._component_build_trigger)
         self.event_manager.subscribe(YangaEvent.COMPONENT_CLEAN_EVENT, self._component_clean_trigger)
@@ -315,7 +323,8 @@ class YangaPresenter(Presenter):
         self.event_manager.subscribe(YangaEvent.VARIANT_SELECTED_EVENT, self._variant_selected_trigger)
         self.event_manager.subscribe(YangaEvent.PLATFORM_SELECTED_EVENT, self._platform_selected_trigger)
         self.event_manager.subscribe(YangaEvent.BUILD_TYPE_SELECTED_EVENT, self._build_type_selected_trigger)
-        self.event_manager.subscribe(YangaEvent.BUILD_TARGET_SELECTED_EVENT, self._build_target_selected_trigger)
+        self.event_manager.subscribe(YangaEvent.VARIANT_BUILD_TARGET_SELECTED_EVENT, self._variant_build_target_selected_trigger)
+        self.event_manager.subscribe(YangaEvent.COMPONENT_BUILD_TARGET_SELECTED_EVENT, self._component_build_target_selected_trigger)
         self.event_manager.subscribe(YangaEvent.CLEAN_VARIANT_EVENT, self._clean_variant_trigger)
         self.event_manager.subscribe(YangaEvent.OPEN_IN_VSCODE, self._open_in_vscode_trigger)
         self.command_running_flag = False
@@ -323,7 +332,8 @@ class YangaPresenter(Presenter):
         self.selected_platform: Optional[str] = None
         self.selected_variant: Optional[str] = None
         self.selected_component: Optional[str] = None
-        self.selected_build_target: Optional[str] = None
+        self.selected_variant_build_target: Optional[str] = None
+        self.selected_component_build_target: Optional[str] = None
 
     def run(self) -> None:
         self.view.init_gui()
@@ -359,7 +369,7 @@ class YangaPresenter(Presenter):
         )
 
     def _refresh_trigger(self) -> None:
-        self.project_slurper = self._create_project_slurper()
+        self._load_project_state()
         self._update_view_data()
 
     def _variant_selected_trigger(self, variant_name: str) -> None:
@@ -371,11 +381,16 @@ class YangaPresenter(Presenter):
         self.logger.info(f"Platform selected: {platform_name}")
         self.selected_platform = platform_name
         self._update_build_types()
-        self._update_build_targets()
+        self._update_variant_build_targets()
+        self._update_component_build_targets()
 
-    def _build_target_selected_trigger(self, build_target_name: str) -> None:
-        self.logger.info(f"Build target selected: {build_target_name}")
-        self.selected_build_target = build_target_name
+    def _variant_build_target_selected_trigger(self, build_target_name: str) -> None:
+        self.logger.info(f"Variant build target selected: {build_target_name}")
+        self.selected_variant_build_target = build_target_name
+
+    def _component_build_target_selected_trigger(self, build_target_name: str) -> None:
+        self.logger.info(f"Component build target selected: {build_target_name}")
+        self.selected_component_build_target = build_target_name
 
     def _build_type_selected_trigger(self, build_type_name: str) -> None:
         self.logger.info(f"Build type selected: {build_type_name}")
@@ -396,14 +411,15 @@ class YangaPresenter(Presenter):
     def _update_view_data(self) -> None:
         self._update_platforms()
         self._update_build_types()
-        self._update_build_targets()
+        self._update_variant_build_targets()
+        self._update_component_build_targets()
         self._update_variants()
         self._update_components()
 
     def _update_platforms(self) -> None:
-        platforms = []
-        if self.project_slurper:
-            platforms = [platform.name for platform in self.project_slurper.platforms]
+        platforms: list[str] = []
+        if self.info:
+            platforms = [p.name for p in self.info.platforms]
         if platforms:
             platforms.sort()
             self.selected_platform = platforms[0]
@@ -414,11 +430,10 @@ class YangaPresenter(Presenter):
         self.view.update_current_platform(platforms[0])
 
     def _update_build_types(self) -> None:
-        build_types = []
-        if self.project_slurper:
-            platform = self.project_slurper.get_platform(self.selected_platform)
-            if platform:
-                build_types = platform.build_types
+        build_types: list[str] = []
+        platform = self.info.find_platform(self.selected_platform) if self.info else None
+        if platform:
+            build_types = list(platform.build_types)
         if build_types:
             build_types.sort()
             self.view.update_build_types(build_types)
@@ -426,25 +441,38 @@ class YangaPresenter(Presenter):
         else:
             self.view.disabled_build_types()
 
-    def _update_build_targets(self) -> None:
-        build_targets = []
-        if self.project_slurper:
-            platform = self.project_slurper.get_platform(self.selected_platform)
-            if platform and platform.build_targets:
-                build_targets = platform.build_targets
+    def _update_variant_build_targets(self) -> None:
+        build_targets: list[str] = []
+        platform = self.info.find_platform(self.selected_platform) if self.info else None
+        if platform:
+            build_targets = list(platform.build_targets.variant_targets)
         if build_targets:
             build_targets.sort()
-            self.view.update_build_targets(build_targets)
-            self.view.update_current_build_target(build_targets[0])
-            self.selected_build_target = build_targets[0]
+            self.view.update_variant_build_targets(build_targets)
+            self.view.update_current_variant_build_target(build_targets[0])
+            self.selected_variant_build_target = build_targets[0]
         else:
-            self.view.disabled_build_targets()
-            self.selected_build_target = None
+            self.view.disabled_variant_build_targets()
+            self.selected_variant_build_target = None
+
+    def _update_component_build_targets(self) -> None:
+        build_targets: list[str] = []
+        platform = self.info.find_platform(self.selected_platform) if self.info else None
+        if platform:
+            build_targets = list(platform.build_targets.component_targets)
+        if build_targets:
+            build_targets.sort()
+            self.view.update_component_build_targets(build_targets)
+            self.view.update_current_component_build_target(build_targets[0])
+            self.selected_component_build_target = build_targets[0]
+        else:
+            self.view.disabled_component_build_targets()
+            self.selected_component_build_target = None
 
     def _update_variants(self) -> None:
-        variants = []
-        if self.project_slurper:
-            variants = [variant.name for variant in self.project_slurper.variants]
+        variants: list[str] = []
+        if self.info:
+            variants = [v.name for v in self.info.variants]
         if variants:
             variants.sort()
             self.selected_variant = variants[0]
@@ -459,9 +487,9 @@ class YangaPresenter(Presenter):
             self.view.disable_variant_commands()
 
     def _update_components(self) -> None:
-        components = []
-        if self.project_slurper and self.selected_variant:
-            components = self._create_component_names(self.selected_variant)
+        components: list[str] = []
+        if self.info and self.selected_variant:
+            components = self.info.get_effective_variant_components(self.selected_variant, self.selected_platform)
         if components:
             components.sort()
             self.selected_component = components[0]
@@ -479,7 +507,7 @@ class YangaPresenter(Presenter):
     def run_command(self, user_request: UserRequest) -> None:
         # Make sure the project is loaded before running any command.
         # Otherwise, there might be configuration changes that are not reflected in the project.
-        self.project_slurper = self._create_project_slurper()
+        self._load_project_state()
         self.logger.debug(f"User request: {user_request}")
         if not self.project_slurper:
             self.logger.warning("Project is not loaded")
@@ -509,24 +537,18 @@ class YangaPresenter(Presenter):
             self.command_running_flag = False
             self.running_user_request = None
 
-    def _create_project_slurper(self) -> Optional[YangaProjectSlurper]:
+    def _load_project_state(self) -> None:
+        """Reload slurper (used by action paths) and InfoProject (used by display)."""
+        self.project_slurper = None
+        self.info = None
         try:
-            project_slurper = RunCommand.create_project_slurper(self.project_dir)
-            project_slurper.print_project_info()
-            return project_slurper
+            ini = YangaIni.from_toml_or_ini(self.project_dir / "yanga.ini", self.project_dir / "pyproject.toml")
+            slurper = RunCommand.create_project_slurper(self.project_dir)
+            slurper.print_project_info()
+            self.project_slurper = slurper
+            self.info = build_info_project(self.project_dir, slurper, ini)
         except UserNotificationException as e:
             self.logger.error(e)
-            return None
-
-    def _create_component_names(self, variant_name: str) -> list[str]:
-        if self.project_slurper:
-            try:
-                components = self.project_slurper.get_variant_components(variant_name, self.selected_platform)
-                return [component.name for component in components]
-            except UserNotificationException as e:
-                self.logger.error(e)
-                return []
-        return []
 
 
 class YangaGui:

@@ -40,7 +40,7 @@ dependencies = [
   "py-app-dev>=2.20,<3",
   "pypeline-runner>=1.28,<2",
   "typer>=0,<1",
-  "yanga-core>=0.2,<1",
+  "yanga-core>=0.3,<1",
 ]
 
 urls."Bug Tracker" = "https://github.com/cuinixam/yanga/issues"

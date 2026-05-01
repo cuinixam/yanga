@@ -32,8 +32,9 @@ class TargetsDataCMakeGenerator(CMakeGenerator):
         targets_data_file = self.artifacts_locator.get_build_artifact(BuildArtifact.TARGETS_DATA)
         platform_targets = ["all"]
         if self.execution_context.platform:
-            if self.execution_context.platform.build_targets:
-                platform_targets = self.execution_context.platform.build_targets
+            variant_targets = self.execution_context.platform.variant_build_targets
+            if variant_targets:
+                platform_targets = variant_targets
         targets_data_cmd = CMakeCustomCommand(
             description="Generate variant targets data documentation",
             depends=[targets_data_file],
