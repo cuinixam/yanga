@@ -117,7 +117,6 @@ class _LabeledOptionMenu:
 class YangaEvent(EventID):
     BUILD_EVENT = auto()
     COMPONENT_BUILD_EVENT = auto()
-    COMPONENT_CLEAN_EVENT = auto()
     REFRESH_EVENT = auto()
     VARIANT_SELECTED_EVENT = auto()
     CLEAN_VARIANT_EVENT = auto()
@@ -166,7 +165,6 @@ class YangaView(View):
         self.build_trigger = self.event_manager.create_event_trigger(YangaEvent.BUILD_EVENT)
         self.clean_variant_trigger = self.event_manager.create_event_trigger(YangaEvent.CLEAN_VARIANT_EVENT)
         self.component_build_trigger = self.event_manager.create_event_trigger(YangaEvent.COMPONENT_BUILD_EVENT)
-        self.component_clean_trigger = self.event_manager.create_event_trigger(YangaEvent.COMPONENT_CLEAN_EVENT)
         self.refresh_trigger = self.event_manager.create_event_trigger(YangaEvent.REFRESH_EVENT)
         self.variant_selected_trigger = self.event_manager.create_event_trigger(YangaEvent.VARIANT_SELECTED_EVENT)
         self.platform_selected_trigger = self.event_manager.create_event_trigger(YangaEvent.PLATFORM_SELECTED_EVENT)
@@ -189,9 +187,6 @@ class YangaView(View):
 
     def _component_build_button_pressed(self) -> None:
         self.component_build_trigger(self.selected_variant, self.selected_component, self.selected_build_type, self.selected_component_build_target)
-
-    def _component_clean_button_pressed(self) -> None:
-        self.component_clean_trigger(self.selected_variant, self.selected_component)
 
     def _clean_variant_button_pressed(self) -> None:
         self.clean_variant_trigger(self.selected_variant)
@@ -318,7 +313,6 @@ class YangaPresenter(Presenter):
         self._load_project_state()
         self.event_manager.subscribe(YangaEvent.BUILD_EVENT, self._build_trigger)
         self.event_manager.subscribe(YangaEvent.COMPONENT_BUILD_EVENT, self._component_build_trigger)
-        self.event_manager.subscribe(YangaEvent.COMPONENT_CLEAN_EVENT, self._component_clean_trigger)
         self.event_manager.subscribe(YangaEvent.REFRESH_EVENT, self._refresh_trigger)
         self.event_manager.subscribe(YangaEvent.VARIANT_SELECTED_EVENT, self._variant_selected_trigger)
         self.event_manager.subscribe(YangaEvent.PLATFORM_SELECTED_EVENT, self._platform_selected_trigger)
@@ -355,16 +349,6 @@ class YangaPresenter(Presenter):
                 component_name=component_name,
                 target=target,
                 build_type=build_type,
-            )
-        )
-
-    def _component_clean_trigger(self, variant_name: str, component_name: str) -> None:
-        self.run_command(
-            UserRequest(
-                UserRequestScope.COMPONENT,
-                variant_name,
-                component_name,
-                UserRequestTarget.CLEAN,
             )
         )
 
