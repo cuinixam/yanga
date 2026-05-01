@@ -1,5 +1,12 @@
 # Changelog
 
+## v2.30.1 (2026-05-01)
+
+### Bug fixes
+
+- Relative project paths are not normalized ([`252019c`](https://github.com/cuinixam/yanga/commit/252019cf8544d9cc8f02da9fdc5e69a60e5edcc7))
+- Clean target fails for the gtest because of the coverage extra files ([`87a2d4a`](https://github.com/cuinixam/yanga/commit/87a2d4aff1f6130f0ff8ba97641af0325b013121))
+
 ## v2.30.0 (2026-04-26)
 
 ### Features
