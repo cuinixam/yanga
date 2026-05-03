@@ -1,3 +1,6 @@
+import queue
+import threading
+import time
 from collections.abc import Callable
 from enum import auto
 from pathlib import Path
@@ -5,7 +8,7 @@ from typing import Optional
 
 import customtkinter
 from py_app_dev.core.exceptions import UserNotificationException
-from py_app_dev.core.logging import logger, time_it
+from py_app_dev.core.logging import logger
 from py_app_dev.core.subprocess import SubprocessExecutor
 from py_app_dev.mvp.event_manager import EventID, EventManager
 from py_app_dev.mvp.presenter import Presenter
@@ -328,11 +331,24 @@ class YangaPresenter(Presenter):
         self.selected_component: Optional[str] = None
         self.selected_variant_build_target: Optional[str] = None
         self.selected_component_build_target: Optional[str] = None
+        # Worker → UI handshake. Worker pushes a sentinel on completion; the UI thread polls and reacts.
+        # Avoids touching Tk from the worker thread (customtkinter on macOS is unreliable about that).
+        self._command_done_queue: queue.Queue[bool] = queue.Queue()
 
     def run(self) -> None:
         self.view.init_gui()
         self._update_view_data()
+        self.view.root.after(100, self._poll_command_done)
         self.view.mainloop()
+
+    def _poll_command_done(self) -> None:
+        try:
+            while True:
+                self._command_done_queue.get_nowait()
+                self._on_command_finished()
+        except queue.Empty:
+            pass
+        self.view.root.after(100, self._poll_command_done)
 
     def _build_trigger(self, variant_name: str, build_type: Optional[str] = None, build_target: Optional[str] = None) -> None:
         # Use build_target as target if provided, otherwise use BUILD
@@ -487,42 +503,58 @@ class YangaPresenter(Presenter):
         else:
             self.view.disable_component_commands()
 
-    @time_it("executing command")
     def run_command(self, user_request: UserRequest) -> None:
-        # Make sure the project is loaded before running any command.
-        # Otherwise, there might be configuration changes that are not reflected in the project.
-        self._load_project_state()
-        self.logger.debug(f"User request: {user_request}")
-        if not self.project_slurper:
-            self.logger.warning("Project is not loaded")
-            return
+        # Immediate, UI-thread feedback so the user sees their click landed before the slow project-reload starts.
+        self.logger.log("START", f"Received command: {user_request.target} (variant={user_request.variant_name}, component={user_request.component_name or '-'})")
         if self.command_running_flag:
             self.logger.warning(f"Command '{self.running_user_request}' still running. Skip starting new command.")
             return
         if not self.selected_variant:
-            UserNotificationException("No variant selected. This looks like a bug.")
-        self.logger.info(f"Selected variant: {user_request.variant_name}")
-        if user_request.component_name:
-            self.logger.info(f"Selected component: {user_request.component_name}")
-        self.logger.info(f"Selected command: {user_request.target}")
+            self.logger.warning("No variant selected.")
+            return
         self.command_running_flag = True
         self.running_user_request = user_request
-        try:
-            RunCommand.execute_pipeline_steps(
-                project_dir=self.project_dir,
-                project_slurper=self.project_slurper,
-                user_request=user_request,
-                variant_name=user_request.variant_name,
-                platform_name=self.selected_platform,
-            )
-        except UserNotificationException as e:
-            self.logger.error(e)
-        finally:
-            self.command_running_flag = False
-            self.running_user_request = None
+        self.view.disable_variant_commands()
+        self.view.disable_component_commands()
+
+        # Capture inputs as locals — the worker must not read mutable presenter state from another thread.
+        project_dir = self.project_dir
+        platform_name = self.selected_platform
+
+        def worker() -> None:
+            start = time.time()
+            try:
+                # Slurper reload runs in the worker too — for spledy-sized projects it walks every component / variant pair and is the actual freezer.
+                slurper = RunCommand.create_project_slurper(project_dir)
+                slurper.print_project_info()
+                RunCommand.execute_pipeline_steps(
+                    project_dir=project_dir,
+                    project_slurper=slurper,
+                    user_request=user_request,
+                    variant_name=user_request.variant_name,
+                    platform_name=platform_name,
+                )
+            except UserNotificationException as e:
+                self.logger.error(e)
+            except Exception as e:
+                self.logger.exception(e)
+            finally:
+                self.logger.log("STOP", f"Finished executing command in {time.time() - start:.2f}s")
+                self._command_done_queue.put(True)
+
+        threading.Thread(target=worker, name=f"yanga-command-{user_request.target}", daemon=True).start()
+
+    def _on_command_finished(self) -> None:
+        """Called on the UI thread after the worker pushes its completion sentinel."""
+        self.command_running_flag = False
+        self.running_user_request = None
+        if self.selected_variant:
+            self.view.enable_variant_commands()
+        if self.selected_component:
+            self.view.enable_component_commands()
 
     def _load_project_state(self) -> None:
-        """Reload slurper (used by action paths) and InfoProject (used by display)."""
+        """Reload slurper and InfoProject for the dropdowns. Used by __init__ and the F5 refresh path; UI-thread only."""
         self.project_slurper = None
         self.info = None
         try:
