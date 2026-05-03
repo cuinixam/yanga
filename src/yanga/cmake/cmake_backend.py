@@ -418,6 +418,43 @@ class CMakeCustomCommand(CMakeElement):
         return [self.tab_prefix + str(command) for command in self.commands]
 
 
+@dataclass(frozen=True)
+class CMakeDirectoryProvider:
+    """
+    A custom command whose only contract is "this directory exists".
+
+    Consumers that write into the directory should declare ``stamp`` as a DEPENDS.
+    That serializes the directory's creation through ninja's dependency graph,
+    so two parallel commands cannot race to ``mkdir`` the same path.
+    """
+
+    command: CMakeCustomCommand
+    stamp: CMakePath
+
+
+def cmake_directory_provider(directory: CMakePath, stamp_name: str = ".yanga.stamp") -> CMakeDirectoryProvider:
+    """
+    Build a custom command that ensures ``directory`` exists, gated by a stamp file.
+
+    The directory itself is never declared as an output: ``ninja -t clean`` calls
+    POSIX ``remove()`` on tracked outputs and fails on non-empty directories.
+    The owner of the directory must register it via :class:`CMakeAddTargetCleanFiles`
+    on its custom target so the contents are recursively removed at clean time.
+    """
+    stamp = directory.joinpath(stamp_name)
+    return CMakeDirectoryProvider(
+        command=CMakeCustomCommand(
+            description=f"Ensure directory exists: {directory}",
+            outputs=[stamp],
+            commands=[
+                CMakeCommand("${CMAKE_COMMAND}", ["-E", "make_directory", directory]),
+                CMakeCommand("${CMAKE_COMMAND}", ["-E", "touch", stamp]),
+            ],
+        ),
+        stamp=stamp,
+    )
+
+
 @dataclass
 class CMakeCustomTarget(CMakeElement):
     def __init__(

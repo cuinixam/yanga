@@ -113,6 +113,22 @@ def test_coverage_targets_register_clean_files(execution_context: ExecutionConte
     assert any("reports/coverage/CompA" in path for path in variant_paths), f"Variant coverage clean files should include the per-component variant subdir, got {variant_paths}"
 
 
+def test_no_path_is_both_tracked_output_and_clean_file(execution_context: ExecutionContext, output_dir: Path) -> None:
+    """
+    Regression: a path must not appear simultaneously as a tracked output and a clean file.
+
+    Ninja's clean calls POSIX remove() on tracked outputs, which fails on
+    non-empty directories. Such directories must be tracked only via stamp files.
+    """
+    elements = GTestCMakeGenerator(execution_context, output_dir).generate()
+
+    tracked_outputs = {str(output) for cmd in find_elements_of_type(elements, CMakeCustomCommand) for output in cmd.outputs or []}
+    clean_files = {str(file) for entry in find_elements_of_type(elements, CMakeAddTargetCleanFiles) for file in entry.files}
+
+    overlap = tracked_outputs & clean_files
+    assert not overlap, f"Paths must not be both tracked outputs and clean files: {overlap}"
+
+
 def test_coverage_command_has_expand_lists_enabled(execution_context: ExecutionContext, output_dir: Path) -> None:
     elements = GTestCMakeGenerator(execution_context, output_dir).generate()
 

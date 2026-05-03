@@ -20,6 +20,7 @@ from yanga.cmake.cmake_backend import (
     CMakeTargetIncludeDirectories,
     CMakeVariable,
     IncludeScope,
+    cmake_directory_provider,
 )
 from yanga.cmake.generator import CMakeFile
 
@@ -275,6 +276,19 @@ def test_cmake_add_target_clean_files():
 
 def test_cmake_add_target_clean_files_empty():
     assert CMakeAddTargetCleanFiles("my_target", []).to_string() == ""
+
+
+def test_cmake_directory_provider_emits_make_directory_and_touch_with_stamp_output():
+    provider = cmake_directory_provider(CMakePath(Path("dst")))
+
+    assert str(provider.stamp) == "dst/.yanga.stamp"
+    assert provider.command.outputs == [provider.stamp]
+    commands = provider.command.commands
+    assert len(commands) == 2
+    assert commands[0].arguments[:2] == ["-E", "make_directory"]
+    assert str(commands[0].arguments[-1]) == "dst"
+    assert commands[1].arguments[:2] == ["-E", "touch"]
+    assert str(commands[1].arguments[-1]) == "dst/.yanga.stamp"
 
 
 def test_cmake_target_include_directories():

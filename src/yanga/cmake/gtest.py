@@ -33,6 +33,7 @@ from .cmake_backend import (
     CMakeTargetIncludeDirectories,
     CMakeVariable,
     IncludeScope,
+    cmake_directory_provider,
 )
 from .generator import CMakeGenerator
 
@@ -543,24 +544,10 @@ class GTestCMakeGenerator(CMakeGenerator):
         gcovr_html_dir = artifacts_locator.get_variant_coverage_reports_dir()
         gcovr_html_file = artifacts_locator.get_variant_coverage_html_file()
 
-        # Create the directory for the variant coverage reports to insure it exists before generating the report and avoid concurrency issues.
-        elements.append(
-            CMakeCustomCommand(
-                description="Create coverage report directories",
-                outputs=[gcovr_html_dir],
-                depends=[],
-                commands=[
-                    CMakeCommand(
-                        "${CMAKE_COMMAND}",
-                        [
-                            "-E",
-                            "make_directory",
-                            gcovr_html_dir,
-                        ],
-                    ),
-                ],
-            )
-        )
+        # One canonical provider for the variant coverage reports directory. Consumers that write into this dir
+        # depend on its stamp; ninja then serializes the make_directory through the dep graph.
+        gcovr_html_dir_provider = cmake_directory_provider(gcovr_html_dir)
+        elements.append(gcovr_html_dir_provider.command)
 
         # The html coverage reports are generated in the component specific reports directories.
         # We need to create custom commands to copy them to the variant report directory.
@@ -580,12 +567,13 @@ class GTestCMakeGenerator(CMakeGenerator):
             component_coverage_html_dir = artifacts_locator.get_component_coverage_reports_dir(component_name)
             component_variant_coverage_html_dir = artifacts_locator.get_component_variant_coverage_reports_dir(component_name)
             component_variant_coverage_html_dirs.append(component_variant_coverage_html_dir)
-            # Create custom command to copy the component coverage html report to the variant report directory
+            # copy_directory has no canonical file output (it copies an arbitrary tree), so the tracked output is a stamp we touch ourselves.
+            # The destination dir is not given a directory provider: only this command writes into it, so there is no race to gate against.
+            copy_done_stamp = component_variant_coverage_html_dir.joinpath(".yanga.stamp")
             copy_coverage_html_cmd = CMakeCustomCommand(
                 description=f"Copy coverage html report for component {component_name} to variant report directory",
-                # Needs the component coverage target to be built before
-                depends=[target.target_name, gcovr_html_dir],
-                outputs=[component_variant_coverage_html_dir],
+                outputs=[copy_done_stamp],
+                depends=[target.target_name, gcovr_html_dir_provider.stamp],
                 commands=[
                     CMakeCommand(
                         "${CMAKE_COMMAND}",
@@ -596,16 +584,16 @@ class GTestCMakeGenerator(CMakeGenerator):
                             component_variant_coverage_html_dir,
                         ],
                     ),
+                    CMakeCommand("${CMAKE_COMMAND}", ["-E", "touch", copy_done_stamp]),
                 ],
             )
             elements.append(copy_coverage_html_cmd)
-            if copy_coverage_html_cmd.outputs:
-                coverage_report_dependencies.extend(copy_coverage_html_cmd.outputs)
+            coverage_report_dependencies.append(copy_done_stamp)
 
         coverage_cmd = CMakeCustomCommand(
             description="Generate coverage report for the variant",
             outputs=[gcovr_config_file, gcovr_html_file],
-            depends=[gcovr_html_dir, *coverage_report_dependencies],
+            depends=[gcovr_html_dir_provider.stamp, *coverage_report_dependencies],
             commands=[
                 CMakeCommand(
                     "yanga_cmd",
