@@ -10,6 +10,7 @@ from yanga_core.domain.execution_context import ExecutionContext
 
 from yanga.cmake.artifacts_locator import CMakeArtifactsLocator
 
+from .clean import ComponentCleanCMakeGenerator
 from .cmake_backend import (
     CMakeAddExecutable,
     CMakeAddLibrary,
@@ -23,6 +24,7 @@ from .cmake_backend import (
 )
 from .generator import CMakeFile, CMakeGenerator, GeneratedFile, GeneratedFileIf
 from .targets import Target, TargetsData, TargetType
+from .variant_config import ConfigCMakeGenerator
 
 
 def get_toolchain_config_file(platform: PlatformConfig) -> Optional[str]:
@@ -98,7 +100,6 @@ class CMakeBuildSystemGenerator:
         cmake_build_dir_var = self.artifacts_locator.cmake_build_dir.to_cmake_element()
         if cmake_build_dir_var:
             cmake_file.append(cmake_build_dir_var)
-        # Load all configured CMake generators
         platform = self.execution_context.platform
         if platform:
             try:
@@ -110,11 +111,10 @@ class CMakeBuildSystemGenerator:
                 raise UserNotificationException(e) from e
             except TypeError as e:
                 raise UserNotificationException(f"{e}. Please check {platform.file} for {step}.") from e
+        cmake_file.extend(ComponentCleanCMakeGenerator(self.execution_context, self.output_dir, existing_elements=cmake_file.content).generate())
         return cmake_file
 
     def create_config_cmake_file(self) -> CMakeFile:
-        from .variant_config import ConfigCMakeGenerator
-
         cmake_file = CMakeFile(self.config_cmake_file.to_path())
         config_generator = ConfigCMakeGenerator(self.execution_context, self.output_dir)
         cmake_file.extend(config_generator.generate())

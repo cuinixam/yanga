@@ -82,11 +82,13 @@ class CMakeAddLibrary(CMakeElement):
         files: list[Path] | None = None,
         type: LibraryType | None = None,
         compile_options: list[str] | None = None,
+        component_name: Optional[str] = None,
     ) -> None:
         self.name = name
         self.files = files or []
         self.type = type or (LibraryType.OBJECT if self.files else LibraryType.INTERFACE)
         self.compile_options = compile_options or []
+        self.component_name = component_name
 
     @property
     def target_name(self) -> str:
@@ -224,6 +226,7 @@ class CMakeAddExecutable(CMakeElement):
     compile_options: list[str] = field(default_factory=list)
     link_options: list[str] = field(default_factory=list)
     exclude_from_all: bool = False
+    component_name: Optional[str] = None
 
     def to_string(self) -> str:
         content = self._add_executable()

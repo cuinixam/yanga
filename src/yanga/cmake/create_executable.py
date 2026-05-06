@@ -110,7 +110,7 @@ class CreateExecutableCMakeGenerator(CMakeGenerator):
         for component in self.execution_context.components:
             component_analyzer = ComponentAnalyzer([component], self.execution_context.spl_paths)
             sources = component_analyzer.collect_sources()
-            component_library = CMakeAddLibrary(component.name, sources)
+            component_library = CMakeAddLibrary(component.name, sources, component_name=component.name)
             elements.append(component_library)
 
             # Add component-specific include directories when global includes are disabled

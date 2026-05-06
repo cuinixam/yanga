@@ -222,6 +222,7 @@ class GTestComponentCMakeGenerator:
                 "-ggdb",  # Include detailed debug information to be able to debug the executable.
                 "--coverage",  # Enable coverage tracking information to be generated.
             ],
+            component_name=component.name,
         )
         elements.append(component_sources_object_library)
         # Add include directories specific to this component plus the component build dir to find generated mockup sources
@@ -246,7 +247,7 @@ class GTestComponentCMakeGenerator:
             all_sources = component_analyzer.collect_test_sources()
             if mockup_generator:
                 all_sources += mockup_generator.get_mockup_sources()
-            test_executable = self.add_executable(gtest_cmake_component.executable_name, all_sources, component_sources_object_library.target_name)
+            test_executable = self.add_executable(gtest_cmake_component.executable_name, all_sources, component_sources_object_library.target_name, component.name)
             elements.append(test_executable)
 
             # Set the executable output directory to the component-specific directory
@@ -368,15 +369,16 @@ class GTestComponentCMakeGenerator:
                 result.mocking = merge_configs(result.mocking, component.testing.mocking)
         return result
 
-    def add_executable(self, component_name: str, sources: list[Path], component_object_library: str) -> CMakeAddExecutable:
+    def add_executable(self, executable_name: str, sources: list[Path], component_object_library: str, component_name: str) -> CMakeAddExecutable:
         return CMakeAddExecutable(
-            name=f"{component_name}",
+            name=executable_name,
             sources=[CMakePath(source) for source in sources],
             libraries=["GTest::gtest_main", "GTest::gmock_main", "pthread", component_object_library],
             compile_options=[
                 "-ggdb",  # Include detailed debug information to be able to debug the executable.
             ],
             link_options=["--coverage"],  # Enable coverage analysis.
+            component_name=component_name,
         )
 
     def run_executable(self, component_name: str, component_executable_name: str) -> CMakeCustomCommand:

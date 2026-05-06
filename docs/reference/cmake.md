@@ -91,3 +91,24 @@ platforms:
       - step: ReportCMakeGenerator
         module: yanga.cmake.reports
 ```
+
+## Auto-emitted targets
+
+Some targets are emitted by Yanga unconditionally — they do not need to be configured per platform in `yanga.yaml`.
+
+### `<component>_clean`
+
+For every component in the variant, Yanga emits a custom target that removes the component's outputs without touching the rest of the variant:
+
+```bash
+cmake --build <variant_build_dir> --target <component>_clean
+```
+
+The target carries no `DEPENDS`, so invoking it never triggers a build. It removes:
+
+1. **The per-component output namespace** — `${CMAKE_BUILD_DIR}/<component>/`. This is where generators (gtest, cppcheck, reports, ...) write artifacts produced by tools cmake/ninja does not track (gcovr, sphinx-build, `cmake -E copy_directory`, ...).
+2. **CMake-derived outputs of tagged targets** — for every `add_library` / `add_executable` whose generator passed `component_name=<component>`, the target removes the intermediate dir `${CMAKE_BUILD_DIR}/CMakeFiles/<target>.dir/` (object files, depfiles, link inputs) and, for executables, the runtime artifact `$<TARGET_FILE:<target>>`.
+
+If you write a custom CMake generator that emits per-component `add_library` or `add_executable`, pass `component_name=component.name` so its outputs are picked up. Anything written outside both the per-component dir and a tagged cmake target's own outputs is invisible to this target.
+
+Variant-level `add_library` / `add_executable` outputs (e.g. the variant executable `${PROJECT_NAME}`) are owned by the buildsystem's own `clean` target, not by `<component>_clean`.
