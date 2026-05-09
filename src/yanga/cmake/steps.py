@@ -11,6 +11,18 @@ from yanga.cmake.runner import CMakeRunner
 
 
 class GenerateBuildSystemFiles(PipelineStep[ExecutionContext]):
+    """
+    Always re-runs.
+
+    pypeline's runnable framework hashes input/output *files* — it cannot detect changes
+    in this step's *generator code*. After a yanga upgrade, an unchanged yaml + an unchanged
+    on-disk ``variant.cmake`` would be reported as MATCH, so a stale ``variant.cmake`` (written
+    by an older yanga) survives the upgrade and cmake reconfigures from it. Symptom: targets
+    added by the new yanga (e.g. ``<comp>_clean``) are missing → ``ninja: unknown target``.
+    Always-running the step is sub-second pure-Python work and matches ``ExecuteBuild``'s
+    "always run; build system handles its own deps" pattern.
+    """
+
     def __init__(self, execution_context: ExecutionContext, group_name: Optional[str] = None, config: Optional[dict[str, Any]] = None) -> None:
         super().__init__(execution_context, group_name, config)
         self.logger = logger.bind()
@@ -32,10 +44,10 @@ class GenerateBuildSystemFiles(PipelineStep[ExecutionContext]):
         return 0
 
     def get_inputs(self) -> list[Path]:
-        return self.execution_context.user_config_files
+        return []
 
     def get_outputs(self) -> list[Path]:
-        return self.generated_files
+        return []
 
     def update_execution_context(self) -> None:
         pass
