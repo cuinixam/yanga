@@ -1,5 +1,18 @@
 # Changelog
 
+## v2.31.0 (2026-05-09)
+
+### Features
+
+- Add run pristine option ([`a8e072d`](https://github.com/cuinixam/yanga/commit/a8e072dc67dbb1eb38b0acac024f4e1e0d270352))
+- Add component clean target ([`fb05938`](https://github.com/cuinixam/yanga/commit/fb059389ba03a61f8c5bb86aec035fdfc52c1fc4))
+- Make sure clean command handles unknown artifacts without failing ([`ad6a515`](https://github.com/cuinixam/yanga/commit/ad6a5158f64e36be867b47b0efebe4d3a89999c2))
+
+### Bug fixes
+
+- Tk gui freezes and no terminal output ([`59c136b`](https://github.com/cuinixam/yanga/commit/59c136b2813032e5bc3be1be7470b4985e93abde))
+- Component clean target is failing ([`7e9aa13`](https://github.com/cuinixam/yanga/commit/7e9aa130b9f7ed14c369ea9694aeaf69b4ea7649))
+
 ## v2.30.1 (2026-05-01)
 
 ### Bug fixes
