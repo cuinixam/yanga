@@ -112,3 +112,5 @@ The target carries no `DEPENDS`, so invoking it never triggers a build. It remov
 If you write a custom CMake generator that emits per-component `add_library` or `add_executable`, pass `component_name=component.name` so its outputs are picked up. Anything written outside both the per-component dir and a tagged cmake target's own outputs is invisible to this target.
 
 Variant-level `add_library` / `add_executable` outputs (e.g. the variant executable `${PROJECT_NAME}`) are owned by the buildsystem's own `clean` target, not by `<component>_clean`.
+
+For a full wipe of the variant build directory (e.g. configure is broken after a variant rename or schema change) use `yanga run --pristine`, which removes the build dir from outside cmake before re-invoking the pipeline.

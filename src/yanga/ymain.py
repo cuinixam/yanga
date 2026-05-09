@@ -90,6 +90,10 @@ def run(
         False,
         help="Run in non-interactive mode (no prompts).",
     ),
+    pristine: bool = typer.Option(
+        False,
+        help="Recursively delete the variant build directory before running. Works even if cmake configure is currently broken (e.g. variant rename, schema change).",
+    ),
 ) -> None:
     RunCommand().do_run(
         RunCommandConfig(
@@ -104,6 +108,7 @@ def run(
             print,
             force_run,
             not_interactive,
+            pristine,
         )
     )
 
