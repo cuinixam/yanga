@@ -32,7 +32,7 @@ def test_clean_target_with_no_tagged_targets_only_wipes_component_build_dir(exec
     assert [command.to_string() for command in comp_a_clean.commands] == ["COMMAND ${CMAKE_COMMAND} -E rm -rf ${CMAKE_BUILD_DIR}/CompA"]
 
 
-def test_clean_target_includes_tagged_lib_and_executable_outputs(execution_context: ExecutionContext, output_dir: Path) -> None:
+def test_clean_target_includes_tagged_lib_and_executable_intermediate_dirs(execution_context: ExecutionContext, output_dir: Path) -> None:
     existing_elements: list[CMakeElement] = [
         CMakeAddLibrary("CompA", files=[Path("a.cpp")], component_name="CompA"),
         CMakeAddExecutable(name="CompA", sources=[], component_name="CompA"),
@@ -46,8 +46,28 @@ def test_clean_target_includes_tagged_lib_and_executable_outputs(execution_conte
         "COMMAND ${CMAKE_COMMAND} -E rm -rf ${CMAKE_BUILD_DIR}/CompA",
         "COMMAND ${CMAKE_COMMAND} -E rm -rf ${CMAKE_BUILD_DIR}/CMakeFiles/CompA_lib.dir",
         "COMMAND ${CMAKE_COMMAND} -E rm -rf ${CMAKE_BUILD_DIR}/CMakeFiles/CompA.dir",
-        "COMMAND ${CMAKE_COMMAND} -E rm -f $<TARGET_FILE:CompA>",
     ]
+
+
+def test_clean_target_emits_no_target_genex_to_avoid_implicit_build_deps(execution_context: ExecutionContext, output_dir: Path) -> None:
+    """
+    Regression: target-based generator expressions in add_custom_target COMMANDs imply build-order dependencies.
+
+    A clean target that uses ``$<TARGET_FILE:tgt>`` (or any other ``$<TARGET_*:>`` form) makes
+    the clean target depend on the very thing it intends to delete, so the build runs to
+    completion before the rm executes — defeating the point of clean.
+    """
+    existing_elements: list[CMakeElement] = [
+        CMakeAddLibrary("CompA", files=[Path("a.cpp")], component_name="CompA"),
+        CMakeAddExecutable(name="CompA", sources=[], component_name="CompA"),
+    ]
+
+    elements = ComponentCleanCMakeGenerator(execution_context, output_dir, existing_elements=existing_elements).generate()
+
+    for clean_target in _clean_targets(elements):
+        for command in clean_target.commands:
+            rendered = command.to_string()
+            assert "$<TARGET_" not in rendered, f"Clean target {clean_target.name!r} uses target genex which implies a build dependency: {rendered}"
 
 
 def test_clean_target_ignores_untagged_targets_and_other_components(execution_context: ExecutionContext, output_dir: Path) -> None:

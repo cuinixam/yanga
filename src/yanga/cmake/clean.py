@@ -45,10 +45,8 @@ class ComponentCleanCMakeGenerator(CMakeGenerator):
                 )
 
             commands = [CMakeCommand("${CMAKE_COMMAND}", ["-E", "rm", "-rf", component_build_dir])]
-            for target_name, has_target_file in targets_by_component.get(component.name, []):
+            for target_name in targets_by_component.get(component.name, []):
                 commands.append(CMakeCommand("${CMAKE_COMMAND}", ["-E", "rm", "-rf", f"${{CMAKE_BUILD_DIR}}/CMakeFiles/{target_name}.dir"]))
-                if has_target_file:
-                    commands.append(CMakeCommand("${CMAKE_COMMAND}", ["-E", "rm", "-f", f"$<TARGET_FILE:{target_name}>"]))
 
             clean_target_name = UserRequest(
                 scope=UserRequestScope.COMPONENT,
@@ -64,19 +62,12 @@ class ComponentCleanCMakeGenerator(CMakeGenerator):
             )
         return elements
 
-    def _index_tagged_targets(self) -> dict[str, list[tuple[str, bool]]]:
-        """
-        Index tagged add_library / add_executable elements by component name.
-
-        Returns a mapping ``component_name -> [(cmake_target_name, has_target_file), ...]``
-        where ``has_target_file`` indicates whether ``$<TARGET_FILE:tgt>`` is meaningful
-        (true for executables, false for OBJECT/INTERFACE libraries which have no single
-        output file).
-        """
-        index: dict[str, list[tuple[str, bool]]] = {}
+    def _index_tagged_targets(self) -> dict[str, list[str]]:
+        """Index tagged add_library / add_executable elements by component name."""
+        index: dict[str, list[str]] = {}
         for element in self.existing_elements:
             if isinstance(element, CMakeAddLibrary) and element.component_name:
-                index.setdefault(element.component_name, []).append((element.target_name, False))
+                index.setdefault(element.component_name, []).append(element.target_name)
             elif isinstance(element, CMakeAddExecutable) and element.component_name:
-                index.setdefault(element.component_name, []).append((element.name, True))
+                index.setdefault(element.component_name, []).append(element.name)
         return index

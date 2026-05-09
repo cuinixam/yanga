@@ -1,6 +1,7 @@
 import queue
 import threading
 import time
+import tkinter
 from collections.abc import Callable
 from enum import auto
 from pathlib import Path
@@ -14,13 +15,8 @@ from py_app_dev.mvp.event_manager import EventID, EventManager
 from py_app_dev.mvp.presenter import Presenter
 from py_app_dev.mvp.view import View
 from yanga_core.commands.info_schema import InfoProject, build_info_project
-from yanga_core.commands.run import RunCommand
-from yanga_core.domain.execution_context import (
-    UserRequest,
-    UserRequestScope,
-    UserRequestTarget,
-    UserVariantRequest,
-)
+from yanga_core.commands.run import RunCommand, RunCommandConfig
+from yanga_core.domain.execution_context import UserRequestTarget
 from yanga_core.domain.project_slurper import YangaProjectSlurper
 from yanga_core.ini import YangaIni
 
@@ -120,6 +116,7 @@ class _LabeledOptionMenu:
 class YangaEvent(EventID):
     BUILD_EVENT = auto()
     COMPONENT_BUILD_EVENT = auto()
+    COMPONENT_CLEAN_EVENT = auto()
     REFRESH_EVENT = auto()
     VARIANT_SELECTED_EVENT = auto()
     CLEAN_VARIANT_EVENT = auto()
@@ -155,10 +152,14 @@ class YangaView(View):
     def selected_component_build_target(self) -> Optional[str]:
         return self.component_build_target_menu.get()
 
+    @property
+    def selected_pristine(self) -> bool:
+        return bool(self.pristine_var.get())
+
     def init_gui(self) -> None:
         customtkinter.set_default_color_theme("green")
         self.root.title("YANGA")
-        self.root.geometry(f"{220}x{750}")
+        self.root.geometry(f"{240}x{750}")
         # Hold a reference to the PhotoImage; otherwise it can be garbage-collected
         # before Tk gets to draw it, leaving the default Tk/Python icon.
         self._app_icon = Icons.YANGA_PNG.tk_photo
@@ -168,6 +169,7 @@ class YangaView(View):
         self.build_trigger = self.event_manager.create_event_trigger(YangaEvent.BUILD_EVENT)
         self.clean_variant_trigger = self.event_manager.create_event_trigger(YangaEvent.CLEAN_VARIANT_EVENT)
         self.component_build_trigger = self.event_manager.create_event_trigger(YangaEvent.COMPONENT_BUILD_EVENT)
+        self.component_clean_trigger = self.event_manager.create_event_trigger(YangaEvent.COMPONENT_CLEAN_EVENT)
         self.refresh_trigger = self.event_manager.create_event_trigger(YangaEvent.REFRESH_EVENT)
         self.variant_selected_trigger = self.event_manager.create_event_trigger(YangaEvent.VARIANT_SELECTED_EVENT)
         self.platform_selected_trigger = self.event_manager.create_event_trigger(YangaEvent.PLATFORM_SELECTED_EVENT)
@@ -186,10 +188,13 @@ class YangaView(View):
         self.refresh_trigger()
 
     def _build_button_pressed(self) -> None:
-        self.build_trigger(self.selected_variant, self.selected_build_type, self.selected_variant_build_target)
+        self.build_trigger(self.selected_variant, self.selected_build_type, self.selected_variant_build_target, self.selected_pristine)
 
     def _component_build_button_pressed(self) -> None:
-        self.component_build_trigger(self.selected_variant, self.selected_component, self.selected_build_type, self.selected_component_build_target)
+        self.component_build_trigger(self.selected_variant, self.selected_component, self.selected_build_type, self.selected_component_build_target, self.selected_pristine)
+
+    def _component_clean_button_pressed(self) -> None:
+        self.component_clean_trigger(self.selected_variant, self.selected_component, self.selected_build_type)
 
     def _clean_variant_button_pressed(self) -> None:
         self.clean_variant_trigger(self.selected_variant)
@@ -229,6 +234,10 @@ class YangaView(View):
         row = self._grid_button(self.build_button, row)
         self.clean_button = customtkinter.CTkButton(frame, text="Clean", command=self._clean_variant_button_pressed)
         row = self._grid_button(self.clean_button, row)
+        self.pristine_var = tkinter.BooleanVar(value=False)
+        self.pristine_checkbox = customtkinter.CTkCheckBox(frame, text="Pristine (wipe before Build)", variable=self.pristine_var)
+        self.pristine_checkbox.grid(row=row, column=0, sticky="nsew", padx=10, pady=5)
+        row += 1
         self.open_in_vscode_button = customtkinter.CTkButton(frame, text="Open in VSCode", command=self._open_in_vscode_button_pressed)
         self._grid_button(self.open_in_vscode_button, row)
         return frame
@@ -240,7 +249,9 @@ class YangaView(View):
         row = self.component_menu.grid(row=0)
         row = self.component_build_target_menu.grid(row=row)
         self.component_build_button = customtkinter.CTkButton(frame, text="Build", command=self._component_build_button_pressed)
-        self._grid_button(self.component_build_button, row)
+        row = self._grid_button(self.component_build_button, row)
+        self.component_clean_button = customtkinter.CTkButton(frame, text="Clean", command=self._component_clean_button_pressed)
+        self._grid_button(self.component_clean_button, row)
         return frame
 
     # --- Presenter-facing API: each method delegates to the matching menu helper. ---
@@ -300,9 +311,11 @@ class YangaView(View):
 
     def enable_component_commands(self) -> None:
         self.component_build_button.configure(state="normal")
+        self.component_clean_button.configure(state="normal")
 
     def disable_component_commands(self) -> None:
         self.component_build_button.configure(state="disabled")
+        self.component_clean_button.configure(state="disabled")
 
 
 class YangaPresenter(Presenter):
@@ -316,6 +329,7 @@ class YangaPresenter(Presenter):
         self._load_project_state()
         self.event_manager.subscribe(YangaEvent.BUILD_EVENT, self._build_trigger)
         self.event_manager.subscribe(YangaEvent.COMPONENT_BUILD_EVENT, self._component_build_trigger)
+        self.event_manager.subscribe(YangaEvent.COMPONENT_CLEAN_EVENT, self._component_clean_trigger)
         self.event_manager.subscribe(YangaEvent.REFRESH_EVENT, self._refresh_trigger)
         self.event_manager.subscribe(YangaEvent.VARIANT_SELECTED_EVENT, self._variant_selected_trigger)
         self.event_manager.subscribe(YangaEvent.PLATFORM_SELECTED_EVENT, self._platform_selected_trigger)
@@ -325,7 +339,7 @@ class YangaPresenter(Presenter):
         self.event_manager.subscribe(YangaEvent.CLEAN_VARIANT_EVENT, self._clean_variant_trigger)
         self.event_manager.subscribe(YangaEvent.OPEN_IN_VSCODE, self._open_in_vscode_trigger)
         self.command_running_flag = False
-        self.running_user_request: Optional[UserRequest] = None
+        self.running_command_config: Optional[RunCommandConfig] = None
         self.selected_platform: Optional[str] = None
         self.selected_variant: Optional[str] = None
         self.selected_component: Optional[str] = None
@@ -350,23 +364,18 @@ class YangaPresenter(Presenter):
             pass
         self.view.root.after(100, self._poll_command_done)
 
-    def _build_trigger(self, variant_name: str, build_type: Optional[str] = None, build_target: Optional[str] = None) -> None:
-        # Use build_target as target if provided, otherwise use BUILD
-        target = build_target if build_target else UserRequestTarget.BUILD
-        self.run_command(UserVariantRequest(variant_name=variant_name, target=target, build_type=build_type))
+    def _build_trigger(self, variant_name: str, build_type: Optional[str] = None, build_target: Optional[str] = None, pristine: bool = False) -> None:
+        target = build_target if build_target else str(UserRequestTarget.BUILD)
+        self.run_command(self._make_config(target=target, variant_name=variant_name, build_type=build_type, pristine=pristine))
 
-    def _component_build_trigger(self, variant_name: str, component_name: str, build_type: Optional[str] = None, build_target: Optional[str] = None) -> None:
-        # Use build_target as target if provided, otherwise use BUILD
-        target = build_target if build_target else UserRequestTarget.BUILD
-        self.run_command(
-            UserRequest(
-                scope=UserRequestScope.COMPONENT,
-                variant_name=variant_name,
-                component_name=component_name,
-                target=target,
-                build_type=build_type,
-            )
-        )
+    def _component_build_trigger(
+        self, variant_name: str, component_name: str, build_type: Optional[str] = None, build_target: Optional[str] = None, pristine: bool = False
+    ) -> None:
+        target = build_target if build_target else str(UserRequestTarget.BUILD)
+        self.run_command(self._make_config(target=target, variant_name=variant_name, component_name=component_name, build_type=build_type, pristine=pristine))
+
+    def _component_clean_trigger(self, variant_name: str, component_name: str, build_type: Optional[str] = None) -> None:
+        self.run_command(self._make_config(target=str(UserRequestTarget.CLEAN), variant_name=variant_name, component_name=component_name, build_type=build_type))
 
     def _refresh_trigger(self) -> None:
         self._load_project_state()
@@ -396,7 +405,7 @@ class YangaPresenter(Presenter):
         self.logger.info(f"Build type selected: {build_type_name}")
 
     def _clean_variant_trigger(self, variant_name: str) -> None:
-        self.run_command(UserVariantRequest(variant_name, UserRequestTarget.CLEAN))
+        self.run_command(self._make_config(target=str(UserRequestTarget.CLEAN), variant_name=variant_name))
 
     def _open_in_vscode_trigger(self) -> None:
         if not self.project_slurper:
@@ -503,37 +512,26 @@ class YangaPresenter(Presenter):
         else:
             self.view.disable_component_commands()
 
-    def run_command(self, user_request: UserRequest) -> None:
+    def run_command(self, config: RunCommandConfig) -> None:
         # Immediate, UI-thread feedback so the user sees their click landed before the slow project-reload starts.
-        self.logger.log("START", f"Received command: {user_request.target} (variant={user_request.variant_name}, component={user_request.component_name or '-'})")
+        scope_extras = f", component={config.component_name}" if config.component_name else ""
+        pristine_extra = ", pristine" if config.pristine else ""
+        self.logger.log("START", f"Received command: target={config.target} variant={config.variant_name}{scope_extras}{pristine_extra}")
         if self.command_running_flag:
-            self.logger.warning(f"Command '{self.running_user_request}' still running. Skip starting new command.")
+            self.logger.warning(f"Command '{self.running_command_config}' still running. Skip starting new command.")
             return
         if not self.selected_variant:
             self.logger.warning("No variant selected.")
             return
         self.command_running_flag = True
-        self.running_user_request = user_request
+        self.running_command_config = config
         self.view.disable_variant_commands()
         self.view.disable_component_commands()
-
-        # Capture inputs as locals — the worker must not read mutable presenter state from another thread.
-        project_dir = self.project_dir
-        platform_name = self.selected_platform
 
         def worker() -> None:
             start = time.time()
             try:
-                # Slurper reload runs in the worker too — for spledy-sized projects it walks every component / variant pair and is the actual freezer.
-                slurper = RunCommand.create_project_slurper(project_dir)
-                slurper.print_project_info()
-                RunCommand.execute_pipeline_steps(
-                    project_dir=project_dir,
-                    project_slurper=slurper,
-                    user_request=user_request,
-                    variant_name=user_request.variant_name,
-                    platform_name=platform_name,
-                )
+                RunCommand().do_run(config)
             except UserNotificationException as e:
                 self.logger.error(e)
             except Exception as e:
@@ -542,7 +540,21 @@ class YangaPresenter(Presenter):
                 self.logger.log("STOP", f"Finished executing command in {time.time() - start:.2f}s")
                 self._command_done_queue.put(True)
 
-        threading.Thread(target=worker, name=f"yanga-command-{user_request.target}", daemon=True).start()
+        threading.Thread(target=worker, name=f"yanga-command-{config.target}", daemon=True).start()
+
+    def _make_config(
+        self, *, target: str, variant_name: Optional[str], component_name: Optional[str] = None, build_type: Optional[str] = None, pristine: bool = False
+    ) -> RunCommandConfig:
+        return RunCommandConfig(
+            project_dir=self.project_dir,
+            platform=self.selected_platform,
+            variant_name=variant_name,
+            component_name=component_name,
+            target=target,
+            build_type=build_type,
+            not_interactive=True,
+            pristine=pristine,
+        )
 
     def _on_command_finished(self) -> None:
         """Called on the UI thread after the worker pushes its completion sentinel."""
