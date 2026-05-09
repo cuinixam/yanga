@@ -1,5 +1,15 @@
 # Changelog
 
+## v2.32.0 (2026-05-09)
+
+### Bug fixes
+
+- Build files are not regenerated when yanga generators are changed ([`03f02d1`](https://github.com/cuinixam/yanga/commit/03f02d1c1cfde2504a0452cf5b93f9010c0b8344))
+
+### Features
+
+- Add component clean target to gui ([`eb0705e`](https://github.com/cuinixam/yanga/commit/eb0705e5af6b26571f2b3db84c333803ffcf2f90))
+
 ## v2.31.0 (2026-05-09)
 
 ### Features
