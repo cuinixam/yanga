@@ -2285,7 +2285,7 @@ wheels = [
 
 [[package]]
 name = "pypeline-runner"
-version = "1.33.0"
+version = "1.34.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "poks" },
@@ -2294,9 +2294,9 @@ dependencies = [
     { name = "typer" },
     { name = "west" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/0e/62/8e8212b0ad32189724e0ae1e4390f4b001c0de2c0aad6d0b55fa175d6c28/pypeline_runner-1.33.0.tar.gz", hash = "sha256:fb0544c7af9beecab46fb4afa7c826c8c49c2d4aebff81a95dca89c602ab18b5", size = 36934, upload-time = "2026-06-13T18:56:53.324Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/7d/94/e64f24372b7773408b1c0e90e01bd5ae880b3f9ca22e989b58c4e14487c5/pypeline_runner-1.34.0.tar.gz", hash = "sha256:1776728e6371472079073ebd7f414e4b12a610781816ed144361aa6cf012b0d0", size = 37624, upload-time = "2026-06-17T18:13:33.84Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/0a/06/28223e203bf0e7eaeccb5069ba38cb01752df71958ed1924cd8554a88ec5/pypeline_runner-1.33.0-py3-none-any.whl", hash = "sha256:becab69f6fe2116be08d7c67f0379f8e414d715ef15927de6e69a9c7582cae29", size = 45002, upload-time = "2026-06-13T18:56:51.981Z" },
+    { url = "https://files.pythonhosted.org/packages/86/ac/b9cc69eb7ebc2d6ca4318607a5e6598f3a99640b7a6f3774c30402cf3e9d/pypeline_runner-1.34.0-py3-none-any.whl", hash = "sha256:2376bc7f61b789f3740cb52923c744eebfc6952a348f7c67b5bfb358ecea4def", size = 45961, upload-time = "2026-06-17T18:13:32.43Z" },
 ]
 
 [[package]]
@@ -3119,7 +3119,7 @@ requires-dist = [
     { name = "pillow", specifier = ">=10.1,<11" },
     { name = "poks", specifier = ">=0,<1" },
     { name = "py-app-dev", specifier = ">=2.20,<3" },
-    { name = "pypeline-runner", specifier = ">=1.28,<2" },
+    { name = "pypeline-runner", specifier = ">=1.34,<2" },
     { name = "typer", specifier = ">=0,<1" },
     { name = "yanga-core", specifier = ">=0.6,<1" },
 ]

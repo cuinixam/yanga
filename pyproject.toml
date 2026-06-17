@@ -38,7 +38,7 @@ dependencies = [
   "pillow>=10.1,<11",
   "poks>=0,<1",
   "py-app-dev>=2.20,<3",
-  "pypeline-runner>=1.28,<2",
+  "pypeline-runner>=1.34,<2",
   "typer>=0,<1",
   "yanga-core>=0.6,<1",
 ]

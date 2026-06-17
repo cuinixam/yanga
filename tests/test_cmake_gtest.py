@@ -1,6 +1,9 @@
 from pathlib import Path
 
 import pytest
+from py_app_dev.core.data_registry import DataRegistry
+from py_app_dev.core.exceptions import UserNotificationException
+from pypeline.domain.external_project import ExternalProject
 from yanga_core.domain.components import Component
 from yanga_core.domain.config import MockingConfiguration, TestingConfiguration
 from yanga_core.domain.execution_context import ExecutionContext
@@ -18,12 +21,30 @@ from yanga.cmake.cmake_backend import (
     CMakeVariable,
     IncludeScope,
 )
-from yanga.cmake.gtest import GTestCMakeGenerator, GTestCMakeGeneratorConfig, GTestComponentCMakeGenerator
+from yanga.cmake.gtest import GTestCMakeArtifactsLocator, GTestCMakeGenerator, GTestCMakeGeneratorConfig, GTestComponentCMakeGenerator
+
+
+@pytest.fixture
+def execution_context(execution_context: ExecutionContext) -> ExecutionContext:
+    """Extend the shared context with the googletest dependency the WestInstall step publishes at runtime; the GTest generator resolves it from the registry."""
+    execution_context.data_registry.insert(ExternalProject(name="googletest", revision="v1.17.0", path=Path("ext/gtest/v1.17.0")), provider="WestInstall")
+    return execution_context
 
 
 @pytest.fixture
 def gtest_cmake_generator(execution_context: ExecutionContext, output_dir: Path) -> GTestCMakeGenerator:
     return GTestCMakeGenerator(execution_context, output_dir)
+
+
+def test_gtest_dir_is_resolved_from_the_external_project_registry(execution_context: ExecutionContext, output_dir: Path) -> None:
+    locator = GTestCMakeArtifactsLocator(output_dir, execution_context)
+    assert locator.cmake_gtest_dir.to_path() == Path("ext/gtest/v1.17.0")
+
+
+def test_missing_googletest_dependency_raises(execution_context: ExecutionContext, output_dir: Path) -> None:
+    execution_context.data_registry = DataRegistry()  # nothing installed googletest
+    with pytest.raises(UserNotificationException, match="googletest"):
+        GTestCMakeArtifactsLocator(output_dir, execution_context)
 
 
 def test_generate(gtest_cmake_generator: GTestCMakeGenerator) -> None:

@@ -5,13 +5,14 @@ from typing import Any, Optional
 
 from mashumaro import DataClassDictMixin
 from py_app_dev.core.config import merge_configs
+from py_app_dev.core.exceptions import UserNotificationException
+from pypeline.domain.external_project import ExternalProject
 from yanga_core.domain.artifact import Artifact, collect_directories, filter_artifacts, for_consumer, with_label
 from yanga_core.domain.component_analyzer import ComponentAnalyzer
 from yanga_core.domain.components import Component
 from yanga_core.domain.config import MockingConfiguration
 from yanga_core.domain.execution_context import ExecutionContext, UserRequest, UserRequestScope, UserRequestTarget
 from yanga_core.domain.reports import ReportRelevantFiles, ReportRelevantFileType, ReportRelevantHtmlContent
-from yanga_core.domain.spl_paths import SPLPaths
 
 from yanga.cmake.artifacts_locator import BuildArtifact, CMakeArtifactsLocator
 from yanga.cmake.coverage import CoverageArtifactsLocator, CoverageRelevantFile
@@ -41,9 +42,20 @@ from .generator import CMakeGenerator
 class GTestCMakeArtifactsLocator(CMakeArtifactsLocator):
     """Defines the paths to the CMake artifacts for GTest."""
 
-    def __init__(self, output_dir: Path, spl_paths: SPLPaths) -> None:
-        super().__init__(output_dir, spl_paths)
-        self.cmake_gtest_dir = CMakePath(self.spl_paths.locate_artifact("gtest", [self.spl_paths.external_dependencies_dir]))
+    GTEST_PROJECT_NAME = "googletest"
+
+    def __init__(self, output_dir: Path, execution_context: ExecutionContext) -> None:
+        super().__init__(output_dir, execution_context.spl_paths)
+        self.cmake_gtest_dir = CMakePath(self._locate_gtest(execution_context))
+
+    def _locate_gtest(self, execution_context: ExecutionContext) -> Path:
+        """Resolve the GoogleTest source dir from the data registry, where WestInstall publishes it, so the install layout stays an internal detail."""
+        for project in execution_context.data_registry.find_data(ExternalProject):
+            if project.name == self.GTEST_PROJECT_NAME:
+                return project.path
+        raise UserNotificationException(
+            f"GoogleTest dependency '{self.GTEST_PROJECT_NAME}' was not installed by a WestInstall step (no matching ExternalProject in the data registry)."
+        )
 
 
 @dataclass
@@ -198,7 +210,7 @@ class CMakeMockupCreator:
 class GTestComponentCMakeGenerator:
     def __init__(self, execution_context: ExecutionContext, output_dir: Path, config: GTestCMakeGeneratorConfig) -> None:
         self.execution_context = execution_context
-        self.artifacts_locator = GTestCMakeArtifactsLocator(output_dir, execution_context.spl_paths)
+        self.artifacts_locator = GTestCMakeArtifactsLocator(output_dir, execution_context)
         self.config = config
 
     def generate(self, component: Component) -> list[CMakeElement]:
@@ -477,7 +489,7 @@ class GTestCMakeGenerator(CMakeGenerator):
 
     def __init__(self, execution_context: ExecutionContext, output_dir: Path, config: Optional[dict[str, Any]] = None) -> None:
         super().__init__(execution_context, output_dir, config)
-        self.artifacts_locator = GTestCMakeArtifactsLocator(output_dir, execution_context.spl_paths)
+        self.artifacts_locator = GTestCMakeArtifactsLocator(output_dir, execution_context)
 
     @property
     def variant_name(self) -> Optional[str]:
