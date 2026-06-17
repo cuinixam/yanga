@@ -1,5 +1,12 @@
 # Changelog
 
+## v2.33.0 (2026-06-17)
+
+### Features
+
+- Locate googletest dependency even when using custom versions ([`13f276d`](https://github.com/cuinixam/yanga/commit/13f276dd487ba280dc21c2c295fba44ecd82fd9b))
+- Easily debug config failures with tracking items file location ([`d76a203`](https://github.com/cuinixam/yanga/commit/d76a2033f36c4c3d8d3a526e33313c657b9253df))
+
 ## v2.32.0 (2026-05-09)
 
 ### Bug fixes
