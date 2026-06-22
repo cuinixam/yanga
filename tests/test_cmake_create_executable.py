@@ -53,7 +53,7 @@ def test_get_include_directories(
         Artifact(path=Path("/another/include/dir"), provider="test", labels=["include", "public"]),
         "test",
     )
-    assert len(create_executable_generator.get_include_directories().paths) == 2  # one from component sources, one from registry
+    assert len(create_executable_generator.get_include_directories().paths) == 3  # one per component source dir (compA, compB) plus one from the registry
 
 
 def test_create_components_cmake_elements(

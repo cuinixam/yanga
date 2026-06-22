@@ -5,8 +5,8 @@ from unittest.mock import Mock, patch
 
 import pytest
 from py_app_dev.core.data_registry import DataRegistry
-from yanga_core.domain.components import Component
-from yanga_core.domain.config import TestingConfiguration
+from yanga_core.domain.component_resolver import ComponentResolver
+from yanga_core.domain.config import ComponentConfig, TestingConfig
 from yanga_core.domain.execution_context import ExecutionContext
 from yanga_core.domain.spl_paths import SPLPaths
 
@@ -25,27 +25,33 @@ def locate_artifact():
 
 
 @pytest.fixture
-def execution_context(locate_artifact: Mock, tmp_path: Path) -> ExecutionContext:
-    assert locate_artifact, "Fixture locate_artifact is not explicitly used in this fixture, but is required by the fixture chain."
-    env = Mock(spec=ExecutionContext)
-    env.project_root_dir = tmp_path
-    env.variant_name = "mock_variant"
-    env.components = [
-        Component(
+def execution_context(tmp_path: Path) -> ExecutionContext:
+    # Declared component configs; the resolver turns them into resolved Components.
+    configs = [
+        ComponentConfig(
             name="CompA",
             path=Path("compA"),
             sources=["compA_source.cpp"],
-            testing=TestingConfiguration(sources=["test_compA_source.cpp"]),
+            testing=TestingConfig(sources=["test_compA_source.cpp"]),
         ),
-        Component(
+        ComponentConfig(
             name="CompBNotTestable",
             path=Path("compB"),
             sources=["compB_source.cpp"],
-            testing=TestingConfiguration(sources=[]),
+            testing=TestingConfig(sources=[]),
         ),
     ]
-    env.spl_paths = SPLPaths(tmp_path, "mock_variant", "mock_platform", "mock_build_type")
+    spl_paths = SPLPaths(tmp_path, "mock_variant", "mock_platform", "mock_build_type")
+    resolver = ComponentResolver(configs, [config.name for config in configs], spl_paths)
+    env = Mock(spec=ExecutionContext)
+    env.project_root_dir = tmp_path
+    env.variant_name = "mock_variant"
+    env.spl_paths = spl_paths
     env.data_registry = DataRegistry()
+    # The resolver is the single component authority; the context's components are the
+    # resolved components it builds (here the whole declared set is selected).
+    env.component_resolver = resolver
+    env.components = resolver.selected_components
     return env
 
 

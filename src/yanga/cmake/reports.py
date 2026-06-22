@@ -2,7 +2,6 @@ from pathlib import Path
 from typing import Any, Optional
 
 from yanga_core.docs.sphinx import SphinxConfig
-from yanga_core.domain.component_analyzer import ComponentAnalyzer
 from yanga_core.domain.execution_context import ExecutionContext, UserRequest, UserRequestScope, UserRequestTarget
 from yanga_core.domain.reports import ReportRelevantFiles, ReportRelevantFileType
 
@@ -123,12 +122,11 @@ class ReportCMakeGenerator(CMakeGenerator):
     def create_components_cmake_elements(self) -> list[CMakeElement]:
         elements: list[CMakeElement] = []
         for component in self.execution_context.components:
-            component_analyzer = ComponentAnalyzer([component], self.execution_context.spl_paths)
             component_build_dir = self.artifacts_locator.get_component_build_dir(component.name)
             report_config_output_file = self.artifacts_locator.get_component_build_artifact(component.name, BuildArtifact.REPORT_CONFIG)
             source_files: list[CMakePath] = []
             if not (component.docs and component.docs.exclude_productive_code):
-                source_files.extend([CMakePath(source) for source in component_analyzer.collect_sources()])
+                source_files.extend([CMakePath(source) for source in component.sources])
 
             # Check if there are any test results registered for the component
             test_results = any(
@@ -139,7 +137,7 @@ class ReportCMakeGenerator(CMakeGenerator):
                 if entry.file_type == ReportRelevantFileType.COVERAGE_RESULT and entry.target.component_name == component.name
             )
             if test_results:
-                source_files.extend([CMakePath(source) for source in component_analyzer.collect_test_sources()])
+                source_files.extend([CMakePath(source) for source in component.test_sources])
             source_files_output_md = [component_build_dir.joinpath(f"{source_file.to_path().name}.md") for source_file in source_files]
             component_docs_target = UserRequest(
                 UserRequestScope.COMPONENT,
@@ -183,7 +181,7 @@ class ReportCMakeGenerator(CMakeGenerator):
                     component_docs_target.target_name,
                 )
 
-            docs_source_files = [CMakePath(source) for source in component_analyzer.collect_docs_sources()]
+            docs_source_files = [CMakePath(source) for source in component.docs_sources]
             if docs_source_files:
                 # Register the component documentation files as relevant for the component report
                 self.execution_context.data_registry.insert(

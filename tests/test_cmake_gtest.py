@@ -5,7 +5,7 @@ from py_app_dev.core.data_registry import DataRegistry
 from py_app_dev.core.exceptions import UserNotificationException
 from pypeline.domain.external_project import ExternalProject
 from yanga_core.domain.components import Component
-from yanga_core.domain.config import MockingConfiguration, TestingConfiguration
+from yanga_core.domain.config import MockingConfig, TestingConfig
 from yanga_core.domain.execution_context import ExecutionContext
 
 from tests.utils import assert_element_of_type, assert_elements_of_type, find_elements_of_type
@@ -77,7 +77,7 @@ def test_cmake_build_components_file(
 
 
 def test_get_include_directories(gtest_cmake_generator: GTestCMakeGenerator) -> None:
-    assert len(gtest_cmake_generator.get_include_directories().paths) == 5
+    assert len(gtest_cmake_generator.get_include_directories().paths) == 6
 
 
 def test_gtest_cmake_generator_coverage(execution_context: ExecutionContext, output_dir: Path) -> None:
@@ -167,7 +167,8 @@ def test_automock_enabled_by_default(execution_context: ExecutionContext, output
 
     # Expect the partial link library required to find the symbols to be mocked
     executable = assert_element_of_type(elements, CMakeAddExecutable, lambda exec: exec.name == "CompA")
-    assert [str(source) for source in executable.sources] == ["test_compA_source.cpp", f"{output_dir.as_posix()}/CompA/mockup_CompA.cc"]
+    expected_test_source = f"{execution_context.project_root_dir.as_posix()}/compA/test_compA_source.cpp"
+    assert [str(source) for source in executable.sources] == [expected_test_source, f"{output_dir.as_posix()}/CompA/mockup_CompA.cc"]
     assert set(executable.libraries) == {"GTest::gtest_main", "GTest::gmock_main", "pthread", "CompA_PC_lib"}
     custom_command = assert_element_of_type(elements, CMakeCustomCommand, lambda cmd: cmd.description.startswith("Run the test executable"))
     assert len(custom_command.commands) == 1
@@ -194,7 +195,7 @@ def test_automock_disabled_generates_no_mock_targets(execution_context: Executio
     assert {lib.target_name for lib in object_libraries} == {"CompA_PC_lib", "CompBNotTestable_PC_lib"}
 
     executable = assert_element_of_type(elements, CMakeAddExecutable, lambda exec: exec.name == "CompA")
-    assert [str(source) for source in executable.sources] == ["test_compA_source.cpp"]
+    assert [str(source) for source in executable.sources] == [f"{execution_context.project_root_dir.as_posix()}/compA/test_compA_source.cpp"]
     assert set(executable.libraries) == {"GTest::gtest_main", "GTest::gmock_main", "pthread", "CompA_PC_lib"}
 
 
@@ -217,9 +218,9 @@ def test_use_global_includes_enabled_generates_global_include_directories(execut
 
 
 def test_use_global_includes_disabled_adds_component_specific_include_directories(execution_context: ExecutionContext, output_dir: Path) -> None:
-    # Set up component with include directories
-    component = find_elements_of_type(execution_context.components, Component)[0]  # Get the CompA component
-    component.include_dirs = [Path("/component/inc"), Path("/component/src")]
+    # The resolved component carries its include directories already resolved under its path.
+    component = find_elements_of_type(execution_context.components, Component)[0]  # CompA, path "compA"
+    component.include_directories = [component.path / "inc", component.path / "src"]
 
     # Generate elements with use_global_includes=False
     elements = GTestCMakeGenerator(execution_context, output_dir, {"use_global_includes": False}).generate()
@@ -233,19 +234,13 @@ def test_use_global_includes_disabled_adds_component_specific_include_directorie
     assert len(target_includes) > 0, "No CMakeTargetIncludeDirectories elements found"
 
     # Find the target include directories for our executable
-    target_name = "CompA"
-    component_target_includes = [ti for ti in target_includes if ti.target_name == target_name]
-    assert len(component_target_includes) > 0, f"No target include directories found for target {target_name}"
+    component_target_includes = [ti for ti in target_includes if ti.target_name == "CompA"]
+    assert len(component_target_includes) > 0, "No target include directories found for target CompA"
 
-    # Check that component include directories are included
-    all_paths = []
-    for ti in component_target_includes:
-        all_paths.extend([str(path.path) for path in ti.paths])
-
-    # Normalize paths for Windows compatibility
-    normalized_paths = [Path(p).as_posix() for p in all_paths]
-    assert "/component/inc" in normalized_paths, f"Component include directory not found in target includes: {normalized_paths}"
-    assert "/component/src" in normalized_paths, f"Component include directory not found in target includes: {normalized_paths}"
+    # The declared include directories are resolved under the component path.
+    all_paths = [Path(str(path.path)).as_posix() for ti in component_target_includes for path in ti.paths]
+    assert any(p.endswith("compA/inc") for p in all_paths), f"Component include directory not found in target includes: {all_paths}"
+    assert any(p.endswith("compA/src") for p in all_paths), f"Component include directory not found in target includes: {all_paths}"
 
     # Verify that the visibility is PRIVATE for executables with sources
     component_ti = component_target_includes[0]
@@ -311,7 +306,7 @@ def test_component_mocking_config_overrides_global(execution_context: ExecutionC
         name="CompA",
         path=Path("CompA"),
         sources=[],
-        testing=TestingConfiguration(sources=["test_compA_source.cpp"], mocking=MockingConfiguration(exclude_symbol_patterns=["CompAPattern1"], strict=True)),
+        testing=TestingConfig(sources=["test_compA_source.cpp"], mocking=MockingConfig(exclude_symbol_patterns=["CompAPattern1"], strict=True)),
     )
     generator = GTestComponentCMakeGenerator(execution_context, output_dir, global_mocking_config)
 

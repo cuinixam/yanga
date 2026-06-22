@@ -1,7 +1,6 @@
 from pathlib import Path
 from typing import Any, Optional
 
-from yanga_core.domain.component_analyzer import ComponentAnalyzer
 from yanga_core.domain.execution_context import ExecutionContext, UserRequest, UserRequestScope, UserRequestTarget
 from yanga_core.domain.reports import ReportRelevantFiles, ReportRelevantFileType
 
@@ -81,8 +80,7 @@ class CppCheckCMakeGenerator(CMakeGenerator):
     def create_components_cmake_elements(self) -> list[CMakeElement]:
         elements: list[CMakeElement] = []
         for component in self.execution_context.components:
-            component_analyzer = ComponentAnalyzer([component], self.execution_context.spl_paths)
-            sources = component_analyzer.collect_sources()
+            sources = component.sources
             component_compile_commands_file = self.artifacts_locator.get_component_build_artifact(component.name, BuildArtifact.COMPILE_COMMANDS)
             xml_report_file = self.artifacts_locator.get_component_build_dir(component.name).joinpath("cppcheck_report.xml")
             md_report_file = self.artifacts_locator.get_component_build_dir(component.name).joinpath("cppcheck_report.md")

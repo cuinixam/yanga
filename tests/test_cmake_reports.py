@@ -1,8 +1,8 @@
 from pathlib import Path
 
 import pytest
-from yanga_core.domain.components import Component
-from yanga_core.domain.config import DocsConfiguration
+from yanga_core.domain.component_resolver import ComponentResolver
+from yanga_core.domain.config import ComponentConfig, DocsConfig
 from yanga_core.domain.execution_context import ExecutionContext
 from yanga_core.domain.reports import ReportRelevantFiles, ReportRelevantFileType
 
@@ -76,20 +76,12 @@ def test_report_targets_register_clean_files(create_executable_generator: Report
 
 
 def test_exclude_productive_code(execution_context: ExecutionContext, output_dir: Path) -> None:
-    execution_context.components = [
-        Component(
-            name="CompA",
-            path=Path("compA"),
-            sources=["compA_source.cpp"],
-            docs=DocsConfiguration(sources=["index.md"], exclude_productive_code=True),
-        ),
-        Component(
-            name="CompB",
-            path=Path("compB"),
-            sources=["compB_source.cpp"],
-            docs=DocsConfiguration(sources=["index.md"], exclude_productive_code=False),
-        ),
+    configs = [
+        ComponentConfig(name="CompA", path=Path("compA"), sources=["compA_source.cpp"], docs=DocsConfig(sources=["index.md"], exclude_productive_code=True)),
+        ComponentConfig(name="CompB", path=Path("compB"), sources=["compB_source.cpp"], docs=DocsConfig(sources=["index.md"], exclude_productive_code=False)),
     ]
+    # Override the mock's read-only components with resolved components for this test.
+    execution_context.components = ComponentResolver(configs, [config.name for config in configs], execution_context.spl_paths).selected_components  # type: ignore[misc]
 
     gen = ReportCMakeGenerator(execution_context, output_dir)
     elements = gen.create_components_cmake_elements()

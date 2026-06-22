@@ -8,9 +8,9 @@ from py_app_dev.core.config import merge_configs
 from py_app_dev.core.exceptions import UserNotificationException
 from pypeline.domain.external_project import ExternalProject
 from yanga_core.domain.artifact import Artifact, collect_directories, filter_artifacts, for_consumer, with_label
-from yanga_core.domain.component_analyzer import ComponentAnalyzer
+from yanga_core.domain.component_resolver import resolve_include_directories
 from yanga_core.domain.components import Component
-from yanga_core.domain.config import MockingConfiguration
+from yanga_core.domain.config import MockingConfig
 from yanga_core.domain.execution_context import ExecutionContext, UserRequest, UserRequestScope, UserRequestTarget
 from yanga_core.domain.reports import ReportRelevantFiles, ReportRelevantFileType, ReportRelevantHtmlContent
 
@@ -63,7 +63,7 @@ class GTestCMakeGeneratorConfig(DataClassDictMixin):
     #: If this is enabled, all includes are defined globally and not component specific
     use_global_includes: bool = False
     #: Mocking configuration
-    mocking: Optional[MockingConfiguration] = None
+    mocking: Optional[MockingConfig] = None
 
     @property
     def automock(self) -> bool:
@@ -76,7 +76,6 @@ class GTestCMakeComponent:
     def __init__(self, component: Component, execution_context: ExecutionContext) -> None:
         self.component = component
         self.execution_context = execution_context
-        self.component_analyzer = ComponentAnalyzer([self.component], self.execution_context.spl_paths)
 
     @property
     def name(self) -> str:
@@ -97,15 +96,11 @@ class GTestCMakeComponent:
         return f"{self.component.name}_PC"
 
     def is_testable(self) -> bool:
-        return self.component_analyzer.is_testable()
+        return self.component.is_testable
 
     def get_include_directories(self) -> list[CMakePath]:
-        collector = ComponentAnalyzer(
-            self.execution_context.components,
-            self.execution_context.spl_paths,
-        )
         registry_dirs = collect_directories(filter_artifacts(self.execution_context.data_registry.find_data(Artifact), with_label("include"), for_consumer(self.component.name)))
-        include_dirs = collector.collect_include_directories() + registry_dirs
+        include_dirs = resolve_include_directories(self.execution_context.components) + registry_dirs
         return [CMakePath(path) for path in include_dirs]
 
 
@@ -115,7 +110,7 @@ class CMakeMockupCreator:
         gtest_cmake_component: GTestCMakeComponent,
         component_object_library_target: str,
         artifacts_locator: GTestCMakeArtifactsLocator,
-        mocking_config: Optional[MockingConfiguration],
+        mocking_config: Optional[MockingConfig],
     ):
         self.artifacts_locator = artifacts_locator
         self.gtest_cmake_component = gtest_cmake_component
@@ -125,7 +120,7 @@ class CMakeMockupCreator:
     def generate(self) -> list[CMakeElement]:
         elements: list[CMakeElement] = []
         # Create the partial link library containing only the productive sources to be able to find the required mocks
-        sources = [CMakePath(source) for source in self.gtest_cmake_component.component_analyzer.collect_sources()]
+        sources = [CMakePath(source) for source in self.gtest_cmake_component.component.sources]
         # Add the component-specific build directory for the component to find the generated mockup sources
         component_build_dir = self.artifacts_locator.get_component_build_dir(self.gtest_cmake_component.name)
         # Custom command to create the partial link library
@@ -218,13 +213,12 @@ class GTestComponentCMakeGenerator:
 
         component_build_dir = self.artifacts_locator.get_component_build_dir(component.name)
         gtest_cmake_component = GTestCMakeComponent(component, self.execution_context)
-        component_analyzer = gtest_cmake_component.component_analyzer
 
         elements: list[CMakeElement] = []
         elements.append(CMakeComment(f"Component {component.name}"))
 
         # Create the component executable
-        productive_sources = component_analyzer.collect_sources()
+        productive_sources = component.sources
 
         # Always create the component productive sources object library
         component_sources_object_library = CMakeAddLibrary(
@@ -255,8 +249,8 @@ class GTestComponentCMakeGenerator:
             )
 
         # Components without tests will just be compiled
-        if component_analyzer.is_testable():
-            all_sources = component_analyzer.collect_test_sources()
+        if component.is_testable:
+            all_sources = component.test_sources
             if mockup_generator:
                 all_sources += mockup_generator.get_mockup_sources()
             test_executable = self.add_executable(gtest_cmake_component.executable_name, all_sources, component_sources_object_library.target_name, component.name)
@@ -527,12 +521,8 @@ class GTestCMakeGenerator(CMakeGenerator):
         return elements
 
     def get_include_directories(self) -> CMakeIncludeDirectories:
-        collector = ComponentAnalyzer(
-            self.execution_context.components,
-            self.execution_context.spl_paths,
-        )
         registry_dirs = collect_directories(filter_artifacts(self.execution_context.data_registry.find_data(Artifact), with_label("include"), for_consumer()))
-        include_dirs = collector.collect_include_directories() + registry_dirs
+        include_dirs = resolve_include_directories(self.execution_context.components) + registry_dirs
         # Add the GTest and GMock include directory
         for name in ["googletest", "googlemock"]:
             include_dirs.append(self.artifacts_locator.cmake_gtest_dir.joinpath(f"{name}/include").to_path())
