@@ -1,5 +1,11 @@
 # Changelog
 
+## v2.34.0 (2026-06-22)
+
+### Features
+
+- Update component domain naming ([`255ccfd`](https://github.com/cuinixam/yanga/commit/255ccfd6fd0e2c2d1b8e11873ff64deb8283fd89))
+
 ## v2.33.0 (2026-06-17)
 
 ### Features
