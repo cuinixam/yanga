@@ -130,7 +130,7 @@ def _check_tkinter_available() -> None:
         raise UserNotificationException(
             "GUI functionality requires tkinter, which is not available in this environment.\n"
             "This is expected in headless environments like Docker containers or dev containers.\n"
-            "Please use CLI commands instead (e.g., 'yanga run', 'yanga view')."
+            "Please use CLI commands instead (e.g., 'yanga run', 'yanga features')."
         ) from e
 
 
@@ -145,15 +145,32 @@ def gui(
     YangaGui(project_dir).run()
 
 
-@app.command(help="View the variants feature configurations.")
-@time_it("view")
-def view(
+@app.command(help="View feature configurations across variants, or edit one variant's selection with --edit.")
+@time_it("features")
+def features(
     project_dir: Path = project_dir_option,
+    variant: Optional[str] = typer.Option(
+        None,
+        help="Variant to edit. If omitted with --edit, you are prompted to select one.",
+    ),
+    edit: bool = typer.Option(
+        False,
+        help="Open the KConfig editor for the selected variant instead of the cross-variant viewer.",
+    ),
+    gui: bool = typer.Option(
+        True,
+        help="Use the guiconfig GUI editor; pass --no-gui to use the terminal menuconfig. Only applies with --edit.",
+    ),
 ) -> None:
-    _check_tkinter_available()
-    from .yview import KConfigView
+    from .yview import KConfigView, edit_variant_features
 
-    KConfigView(project_dir).run()
+    if edit:
+        if gui:
+            _check_tkinter_available()
+        edit_variant_features(project_dir, variant, gui)
+    else:
+        _check_tkinter_available()
+        KConfigView(project_dir).run()
 
 
 @app.command(help="Generate the VS Code project files.")

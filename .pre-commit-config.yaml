@@ -51,4 +51,5 @@ repos:
       - id: mypy
         additional_dependencies: [
           "yanga-core>=0.8,<1",
+          "kspl>=1.10.1,<2",
         ]

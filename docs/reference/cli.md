@@ -60,19 +60,37 @@ The GUI provides a visual way to select variants and components, trigger builds,
 
 * `--project-dir <PATH>`: The project directory to open in the GUI.
 
-## `yanga view`
+## `yanga features`
 
-Displays the resolved feature configurations for all variants.
+Displays the resolved feature configurations for all variants, or edits a single variant's feature selection.
 
 ```bash
-yanga view [OPTIONS]
+yanga features [OPTIONS]
 ```
 
-This command is useful for inspecting the final feature set of each variant after processing the KConfig models and feature selection files.
+Without `--edit`, it opens the cross-variant viewer so you can inspect the final feature set of each variant after processing the KConfig models and feature selection files.
+
+With `--edit`, it opens a KConfig editor for one variant and writes your changes back to that variant's feature selection file:
+
+```bash
+# Edit a specific variant in the guiconfig GUI editor
+yanga features --edit --variant MyVariant
+
+# Pick the variant interactively (prompted when --variant is omitted)
+yanga features --edit
+
+# Use the terminal menuconfig editor instead (works headless, no tkinter needed)
+yanga features --edit --variant MyVariant --no-gui
+```
+
+The editor runs in the foreground and blocks until you close it; on close, `yanga` exits and the variant's selection file reflects your saved changes.
 
 **Arguments:**
 
 * `--project-dir <PATH>`: The project directory to analyze.
+* `--variant <NAME>`: The variant to edit. If omitted with `--edit`, you are prompted to select one.
+* `--edit`: Open the KConfig editor for the selected variant instead of the cross-variant viewer.
+* `--gui` / `--no-gui`: Use the `guiconfig` GUI editor (default) or the terminal `menuconfig`. Only applies with `--edit`.
 
 ## `yanga ide`
 

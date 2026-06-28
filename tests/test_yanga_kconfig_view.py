@@ -1,10 +1,39 @@
 import textwrap
 from pathlib import Path
+from unittest.mock import patch
 
 import pytest
 from py_app_dev.core.exceptions import UserNotificationException
 
-from yanga.yview import YangaKConfigData
+from yanga.yview import YangaKConfigData, edit_variant_features
+
+
+def _write_kconfig_project(tmp_path: Path) -> None:
+    """Create a minimal KConfig project with two variants for the edit tests."""
+    (tmp_path / "KConfig").write_text(
+        textwrap.dedent(
+            """\
+            config LANG_DE
+                bool "German language"
+                default n
+            """
+        )
+    )
+    (tmp_path / "config_de.txt").write_text("CONFIG_LANG_DE=y\n")
+    (tmp_path / "yanga.yaml").write_text(
+        textwrap.dedent(
+            """\
+            variants:
+              - name: EnglishVariant
+                components:
+                - main
+              - name: GermanVariant
+                components:
+                - main
+                features_selection_file: "config_de.txt"
+            """
+        )
+    )
 
 
 def test_yanga_kconfig_data_no_kconfig_file(tmp_path: Path) -> None:
@@ -123,3 +152,46 @@ def test_yanga_kconfig_data_no_variants(tmp_path: Path) -> None:
     elements = kconfig_data.get_elements()
     assert len(elements) == 1
     assert elements[0].name == "TEST_FEATURE"
+
+
+def test_edit_variant_features_opens_editor_for_named_variant(tmp_path: Path) -> None:
+    """A named variant opens its editor directly, defaulting to the GUI editor."""
+    _write_kconfig_project(tmp_path)
+    with patch("kspl.kconfig.KConfig.menu_config") as menu_config:
+        edit_variant_features(tmp_path, "GermanVariant", gui=True)
+    menu_config.assert_called_once_with(gui=True)
+
+
+def test_edit_variant_features_no_gui_uses_menuconfig(tmp_path: Path) -> None:
+    """--no-gui forwards gui=False to the editor (terminal menuconfig)."""
+    _write_kconfig_project(tmp_path)
+    with patch("kspl.kconfig.KConfig.menu_config") as menu_config:
+        edit_variant_features(tmp_path, "GermanVariant", gui=False)
+    menu_config.assert_called_once_with(gui=False)
+
+
+def test_edit_variant_features_prompts_when_no_variant(tmp_path: Path) -> None:
+    """When no variant is given, the user is prompted to select one."""
+    _write_kconfig_project(tmp_path)
+    with (
+        patch("yanga.yview.prompt_user_to_select_option", return_value="GermanVariant") as prompt,
+        patch("kspl.kconfig.KConfig.menu_config") as menu_config,
+    ):
+        edit_variant_features(tmp_path, None, gui=True)
+    prompt.assert_called_once()
+    menu_config.assert_called_once_with(gui=True)
+
+
+def test_edit_variant_features_unknown_variant_raises(tmp_path: Path) -> None:
+    """An explicit variant name that does not exist raises a clear error."""
+    _write_kconfig_project(tmp_path)
+    with pytest.raises(UserNotificationException, match="not found"):
+        edit_variant_features(tmp_path, "DoesNotExist", gui=True)
+
+
+def test_edit_variant_features_no_selection_raises(tmp_path: Path) -> None:
+    """Aborting the prompt (no selection) raises rather than opening an editor."""
+    _write_kconfig_project(tmp_path)
+    with patch("yanga.yview.prompt_user_to_select_option", return_value=None):
+        with pytest.raises(UserNotificationException, match="No variant selected"):
+            edit_variant_features(tmp_path, None, gui=True)

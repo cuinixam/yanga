@@ -1249,7 +1249,7 @@ wheels = [
 
 [[package]]
 name = "kspl"
-version = "1.9.0"
+version = "1.10.1"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "ctktooltip" },
@@ -1257,9 +1257,9 @@ dependencies = [
     { name = "kconfiglib" },
     { name = "py-app-dev" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/b3/ad/9a0a0da3901e7be9231fb52597dcf1280f5ab86340e28c7f143a877b62e0/kspl-1.9.0.tar.gz", hash = "sha256:8c9cc10e336d72b6f213fe8c38a8ba51e27a2b49d0ac1528c65b01c8973e44d6", size = 20073, upload-time = "2026-01-18T15:29:58.015Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/fb/39/0dee40058ce4be6042cf10ac17fc62fff95ea617082de8c7469d13c8c012/kspl-1.10.1.tar.gz", hash = "sha256:b2bf39295646b0c0203c43f92d2ee9d4a02fd35ce6796166e1805aa23d81ce4e", size = 20764, upload-time = "2026-06-28T07:43:00.709Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/18/3c/ca5f22c0dc2346a6d92ddc15dde3a07966311436fea15d88c050b4c7a078/kspl-1.9.0-py3-none-any.whl", hash = "sha256:e8058fb869fc2b7c9a979c46f72f8558c7f6876347999a764ae8671e13f2cd3e", size = 21498, upload-time = "2026-01-18T15:29:56.418Z" },
+    { url = "https://files.pythonhosted.org/packages/84/9d/c462b57153c16585898e0a3f5dab1d213b1ab4992d30e84f56e438e64a81/kspl-1.10.1-py3-none-any.whl", hash = "sha256:a28697434f07eaa60d9d5eb4d4da2439f9d4180916a70e0565cd71b501429315", size = 22116, upload-time = "2026-06-28T07:42:59.583Z" },
 ]
 
 [[package]]
@@ -3112,7 +3112,7 @@ requires-dist = [
     { name = "cookiecutter", specifier = ">=2.1,<3" },
     { name = "customtkinter", specifier = ">=5.2,<6" },
     { name = "gcovr", specifier = ">=8.3,<9" },
-    { name = "kspl", specifier = ">=1,<2" },
+    { name = "kspl", specifier = ">=1.10.1,<2" },
     { name = "loguru", specifier = ">=0,<1" },
     { name = "mashumaro", specifier = ">=3.5,<4" },
     { name = "pick", specifier = ">=2.2,<3" },

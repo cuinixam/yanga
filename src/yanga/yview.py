@@ -7,6 +7,7 @@ from kspl.kconfig import EditableConfigElement, KConfig
 from py_app_dev.core.exceptions import UserNotificationException
 from py_app_dev.core.logging import logger
 from py_app_dev.mvp.event_manager import EventManager
+from yanga_core.commands.base import prompt_user_to_select_option
 from yanga_core.domain.project_slurper import YangaProjectSlurper
 
 from yanga.gui.icons import Icons
@@ -87,6 +88,19 @@ class YangaKConfigData(KConfigData):
         self._load_variant_configs()
 
         self.logger.info(f"Refreshed data: found {len(self.variant_kconfigs)} variants")
+
+
+def edit_variant_features(project_dir: Path, variant: str | None, gui: bool = True) -> None:
+    """Open the KConfig editor for a single variant, prompting for the variant when not given."""
+    data = YangaKConfigData(project_dir)
+    variant_names = [v.name for v in data.get_variants()]
+    selected = variant or prompt_user_to_select_option(variant_names, "Select a variant:")
+    if selected is None:
+        raise UserNotificationException("No variant selected.")
+    variant_data = data.find_variant_config(selected)
+    if variant_data is None:
+        raise UserNotificationException(f"Variant '{selected}' not found. Available: {', '.join(variant_names)}")
+    variant_data.config.menu_config(gui=gui)
 
 
 class KConfigView:
