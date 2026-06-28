@@ -1,5 +1,11 @@
 # Changelog
 
+## v2.35.0 (2026-06-28)
+
+### Features
+
+- Add cli command to view and edit the features ([`2cfe085`](https://github.com/cuinixam/yanga/commit/2cfe085c936cbb935df0218c1a5f1ef4d2d8c013))
+
 ## v2.34.0 (2026-06-22)
 
 ### Features
