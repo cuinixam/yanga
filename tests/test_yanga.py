@@ -1,27 +1,14 @@
-import os
 import sys
 from pathlib import Path
 
-import pytest
-from py_app_dev.core.subprocess import SubprocessExecutor
 from yanga_core.commands.run import RunCommand, RunCommandConfig
 
+EXE_SUFFIX = ".exe" if sys.platform == "win32" else ""
 
-@pytest.mark.skipif(sys.platform != "win32", reason="It requires scoop to be installed on windows")
+
 def test_yanga_mini(mini_project: Path) -> None:
     project_dir = mini_project
-    build_script_path = project_dir / "build.ps1"
-    assert build_script_path.exists()
-    # Bootstrap the project
-    env = os.environ.copy()
-    env.pop("VIRTUAL_ENV", None)
-    completed_process = SubprocessExecutor(["powershell", "-File", build_script_path.as_posix(), "-install"], env=env).execute(handle_errors=False)
-
-    assert completed_process is not None
-    assert completed_process.returncode == 0, "Bootstrapping the project failed."
-    # "Refresh" the PATH to make sure the Scoop shims are available
-    os.environ["PATH"] += os.pathsep + str(Path.home() / "scoop" / "shims")
-    # Build the project
+    # Build the project. The pipeline installs everything required (venv, build tools, west deps).
     run_cmd_config = RunCommandConfig(
         project_dir,
         "host_exe",
@@ -32,7 +19,7 @@ def test_yanga_mini(mini_project: Path) -> None:
 
     assert 0 == RunCommand().do_run(run_cmd_config)
     # Check for the build artifacts
-    binary_exe = project_dir.joinpath(".yanga/build/variants/GermanVariant/host_exe/Debug/GermanVariant.exe")
+    binary_exe = project_dir.joinpath(f".yanga/build/variants/GermanVariant/host_exe/Debug/GermanVariant{EXE_SUFFIX}")
     assert binary_exe.exists()
     # Incremental build shall not rebuild the project
     write_time = binary_exe.stat().st_mtime

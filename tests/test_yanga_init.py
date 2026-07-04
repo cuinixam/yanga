@@ -9,7 +9,7 @@ from yanga.kickstart.create import KickstartProject
 def test_create_project_from_template(tmp_path):
     out_dir = tmp_path / "out"
     KickstartProject(project_dir=out_dir).run()
-    files = ["build.ps1", "yanga.yaml", "src/main.c", "src/greeter/greeter.c"]
+    files = ["README.md", "AGENTS.md", "poks.json", "yanga.yaml", "src/main.c", "src/greeter/greeter.c"]
     for file in files:
         assert (out_dir / file).exists()
 
@@ -19,4 +19,4 @@ def test_create_project_fails_if_out_is_not_empty(tmp_path: Path) -> None:
     with pytest.raises(UserNotificationException):
         KickstartProject(tmp_path).run()
     KickstartProject(tmp_path, force=True).run()
-    assert tmp_path.joinpath("build.ps1").exists()
+    assert tmp_path.joinpath("yanga.yaml").exists()

@@ -1,3 +1,4 @@
+import sys
 import tempfile
 from collections.abc import Generator
 from pathlib import Path
@@ -72,7 +73,12 @@ def get_test_data_path():
 
 
 @pytest.fixture
-def mini_project(request: pytest.FixtureRequest) -> Generator[Path, None, None]:
+def mini_project(request: pytest.FixtureRequest, monkeypatch: pytest.MonkeyPatch) -> Generator[Path, None, None]:
+    # The project pipeline spawns python subprocesses (e.g. pypeline's bootstrap) with this
+    # venv's python. They must not inherit pytest-cov's instrumentation: they would write
+    # statement-mode .coverage.* files that cannot be combined with the branch coverage data.
+    for env_var in ("COVERAGE_PROCESS_START", "COV_CORE_SOURCE", "COV_CORE_CONFIG", "COV_CORE_DATAFILE"):
+        monkeypatch.delenv(env_var, raising=False)
     # Create temp directory in the repository to ensure same drive as yanga source
     # This avoids cross-drive path issues on Windows with Poetry
     test_name = request.node.name
@@ -92,6 +98,13 @@ def mini_project(request: pytest.FixtureRequest) -> Generator[Path, None, None]:
         pyproject_toml.write_text(pyproject_toml.read_text().replace("yanga>=2,<3", new_dependency))
 
         assert '"yanga @ file:///' in pyproject_toml.read_text(), "Failed to set the local yanga dependency in the mini project."
+
+        # Use the python version running the tests; the CI runners only have the matrix python installed
+        yanga_yaml = project_dir.joinpath("yanga.yaml")
+        python_version = f"{sys.version_info.major}.{sys.version_info.minor}"
+        yanga_yaml.write_text(yanga_yaml.read_text().replace('python_version: "3.11"', f'python_version: "{python_version}"'))
+
+        assert f'python_version: "{python_version}"' in yanga_yaml.read_text(), "Failed to set the python version in the mini project."
 
         yield project_dir
     finally:

@@ -1,30 +1,18 @@
-import os
 import sys
 from pathlib import Path
 
 import pytest
-from py_app_dev.core.subprocess import SubprocessExecutor
 from typer.testing import CliRunner
 
 from yanga.ymain import app
 
 runner = CliRunner()
 
+EXE_SUFFIX = ".exe" if sys.platform == "win32" else ""
 
-@pytest.mark.skipif(sys.platform != "win32", reason="It requires scoop to be installed on windows")
+
 def test_run(mini_project: Path) -> None:
-    build_script_path = mini_project / "build.ps1"
-    assert build_script_path.exists()
-    # Bootstrap the project
-    env = os.environ.copy()
-    env.pop("VIRTUAL_ENV", None)
-    completed_process = SubprocessExecutor(["powershell", "-File", build_script_path.as_posix(), "-install"], env=env).execute(handle_errors=False)
-
-    assert completed_process is not None
-    assert completed_process.returncode == 0, "Bootstrapping the project failed."
-    # "Refresh" the PATH to make sure the Scoop shims are available
-    os.environ["PATH"] += os.pathsep + str(Path.home() / "scoop" / "shims")
-    # Build the project
+    # Build the project. The pipeline installs everything required (venv, build tools, west deps).
     result = runner.invoke(
         app,
         [
@@ -50,15 +38,13 @@ def test_run(mini_project: Path) -> None:
         "report_config.json",
         "targets_data.json",
         # Component build artifacts
-        # Greeter has tests, so coverage report + cppcheck + docs sources
+        # Greeter has tests, so coverage report + docs sources
         "greeter/reports/coverage/greeter/index.html",
-        "greeter/greeter.exe",
-        "greeter/cppcheck_report.md",
+        f"greeter/greeter{EXE_SUFFIX}",
         "greeter/greeter.c.md",
         "greeter/greeter_test.cc.md",
-        # Main has no tests, so no coverage report but only cppcheck and docs sources
+        # Main has no tests, so no coverage report but only docs sources
         "main/main.c.md",
-        "main/cppcheck_report.md",
     ]
     for artifact in artifacts:
         artifact_path = variant_build_dir.joinpath(artifact)

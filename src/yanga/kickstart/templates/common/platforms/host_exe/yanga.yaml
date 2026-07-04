@@ -1,6 +1,6 @@
 platforms:
   - name: host_exe
-    description: Build Windows executable with clang
+    description: Build a host executable with clang
     build_types:
       - Debug
       - Release
@@ -12,8 +12,9 @@ platforms:
     generators:
       - step: CreateExecutableCMakeGenerator
         module: yanga.cmake.create_executable
-      - step: CppCheckCMakeGenerator
-        module: yanga.cmake.cppcheck
+      # cppcheck is not yet available via poks
+      #- step: CppCheckCMakeGenerator
+      #  module: yanga.cmake.cppcheck
       - step: ReportCMakeGenerator
         module: yanga.cmake.reports
     configs:
@@ -36,8 +37,9 @@ platforms:
               strict: true
               exclude_symbol_patterns:
                 - "_*"
-      - step: CppCheckCMakeGenerator
-        module: yanga.cmake.cppcheck
+      # cppcheck is not yet available via poks
+      #- step: CppCheckCMakeGenerator
+      #  module: yanga.cmake.cppcheck
       - step: ReportCMakeGenerator
         module: yanga.cmake.reports
     configs:

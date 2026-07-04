@@ -12,5 +12,6 @@
                 "mhutchie.git-graph"
             ]
         }
-    }
+    },
+    "postCreateCommand": "pipx upgrade yanga --pip-args='--upgrade-strategy eager'"
 }

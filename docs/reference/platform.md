@@ -47,7 +47,7 @@ See the [CMake Generators](#cmake-generators) documentation for more details on 
 
 ## Platform-Specific Dependencies
 
-Platforms can define their own dependencies, which are essential for setting up the build environment. Yanga uses `west` to manage Git repository dependencies and `scoop` to manage tools and packages on Windows.
+Platforms can define their own dependencies, which are essential for setting up the build environment. Yanga uses `west` to manage Git repository dependencies and `poks` to manage tools and packages on all platforms. On Windows, `scoop` is also supported.
 
 ### West Manifest
 

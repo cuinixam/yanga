@@ -1,3 +1,33 @@
 set(CMAKE_C_COMPILER gcc CACHE STRING "C Compiler")
 set(CMAKE_CXX_COMPILER g++ CACHE STRING "CXX Compiler")
 set(CMAKE_ASM_COMPILER ${CMAKE_C_COMPILER} CACHE STRING "ASM Compiler")
+
+if(APPLE)
+    # The newest macOS SDK headers use macros (e.g. xnu_static_assert_struct_size)
+    # that GCC cannot parse. Fall back to an older compatible SDK if available.
+    if(NOT DEFINED CMAKE_OSX_SYSROOT OR CMAKE_OSX_SYSROOT STREQUAL "")
+        foreach(_sdk_ver 15.4 15)
+            set(_candidate "/Library/Developer/CommandLineTools/SDKs/MacOSX${_sdk_ver}.sdk")
+            if(EXISTS "${_candidate}")
+                set(CMAKE_OSX_SYSROOT "${_candidate}" CACHE PATH "" FORCE)
+                message(STATUS "Using compatible macOS SDK: ${_candidate}")
+                break()
+            endif()
+        endforeach()
+    endif()
+
+    find_program(ACTUAL_CXX_COMPILER NAMES ${CMAKE_CXX_COMPILER} g++)
+    if(ACTUAL_CXX_COMPILER)
+        get_filename_component(COMPILER_BIN_DIR ${ACTUAL_CXX_COMPILER} DIRECTORY)
+        get_filename_component(COMPILER_ROOT_DIR ${COMPILER_BIN_DIR} DIRECTORY)
+        set(CUSTOM_LIBCXX_DIR "${COMPILER_ROOT_DIR}/lib")
+        if(EXISTS "${CUSTOM_LIBCXX_DIR}/libc++.1.dylib")
+            # Ensure the linker picks up the correct libc++ (not the system one) and
+            # that the @rpath/libc++.1.dylib install name resolves at runtime.
+            add_link_options("-L${CUSTOM_LIBCXX_DIR}" "-Wl,-rpath,${CUSTOM_LIBCXX_DIR}")
+            message(STATUS "Using libc++: ${CUSTOM_LIBCXX_DIR}")
+        else()
+            message(WARNING "libc++.1.dylib not found at ${CUSTOM_LIBCXX_DIR}")
+        endif()
+    endif()
+endif()
