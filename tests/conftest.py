@@ -41,7 +41,7 @@ def execution_context(tmp_path: Path) -> ExecutionContext:
             testing=TestingConfig(sources=[]),
         ),
     ]
-    spl_paths = SPLPaths(tmp_path, "mock_variant", "mock_platform", "mock_build_type")
+    spl_paths = SPLPaths(tmp_path, "mock_variant", "mock_platform", "mock_build_type", create_yanga_build_dir=True)
     resolver = ComponentResolver(configs, [config.name for config in configs], spl_paths)
     env = Mock(spec=ExecutionContext)
     env.project_root_dir = tmp_path

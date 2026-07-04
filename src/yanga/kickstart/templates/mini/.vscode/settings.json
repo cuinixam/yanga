@@ -7,7 +7,7 @@
     "editor.defaultFormatter": "charliermarsh.ruff"
   },
   "cmake.configureOnOpen": false,
-  "cmake.buildDirectory": "${workspaceFolder}/.yanga/build/${variant:variant}/${buildKit}/${env:MY_BUILD_TYPE}",
+  "cmake.buildDirectory": "${workspaceFolder}/.yanga/build/variants/${variant:variant}/${buildKit}/${env:MY_BUILD_TYPE}",
   "cmake.configureSettings": {
     "PLATFORM": "${buildKit}",
     "CMAKE_MESSAGE_LOG_LEVEL": "STATUS"

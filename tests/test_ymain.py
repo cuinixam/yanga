@@ -42,7 +42,7 @@ def test_run(mini_project: Path) -> None:
     )
     assert result.exit_code == 0
 
-    variant_build_dir = mini_project.joinpath(".yanga/build/EnglishVariant/gtest")
+    variant_build_dir = mini_project.joinpath(".yanga/build/variants/EnglishVariant/gtest")
     artifacts = [
         # Variant build artifacts
         "reports/coverage/index.html",

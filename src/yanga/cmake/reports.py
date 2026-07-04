@@ -252,7 +252,7 @@ class ReportCMakeGenerator(CMakeGenerator):
                             [
                                 "-E",
                                 "env",
-                                f"REPORT_CONFIGURATION_FILE={report_config_output_file}",
+                                f"{SphinxConfig.REPORT_CONFIGURATION_FILE_ENV_NAME}={report_config_output_file}",
                                 "--",
                                 "sphinx-build",
                                 "-E",

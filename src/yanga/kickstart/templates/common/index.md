@@ -9,6 +9,22 @@
 
 {{ report_data.create_component_myst_toc(report_data.component_name) }}
 
+{% elif report_data.has_spl_scope %}
+
+# {{ report_data.project_name }} - Product Line Report
+
+**Timestamp:** {{ env.timestamp }}
+
+```{toctree}
+:maxdepth: 1
+:caption: Contents
+
+{% for file in report_data.get_variant_files_list() %}
+{{ file }}
+{% endfor %}
+
+```
+
 {% else %}
 
 # Variant Report

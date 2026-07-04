@@ -120,7 +120,11 @@ class CreateVariantGcovrConfigCommand(Command):
         report_config = ReportData.from_json_file(config.variant_report_config)
 
         # Only include components which have coverage results
-        coverage_json_files = [component.build_dir.joinpath(BuildArtifact.COVERAGE_JSON.path) for component in report_config.components if component.coverage_results]
+        coverage_json_files = [
+            component.build_dir.joinpath(BuildArtifact.COVERAGE_JSON.path)
+            for component in report_config.components
+            if component.coverage_results and component.build_dir is not None
+        ]
 
         # Create a gcovr config file
         gcovr_cfg_lines = [
