@@ -1,5 +1,12 @@
 # Changelog
 
+## v2.36.0 (2026-07-04)
+
+### Features
+
+- Yanga kickstart uses poks and builds on all supported oss ([`26a5b3b`](https://github.com/cuinixam/yanga/commit/26a5b3b35f0aef8a8d86029e694acba6b7810fbe))
+- Adopt yanga-core report path constants ([`24b4ec4`](https://github.com/cuinixam/yanga/commit/24b4ec496acf4c6e6745cefafb793dab5a29ea6c))
+
 ## v2.35.0 (2026-06-28)
 
 ### Features
