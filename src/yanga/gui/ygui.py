@@ -392,6 +392,7 @@ class YangaPresenter(Presenter):
         self._update_build_types()
         self._update_variant_build_targets()
         self._update_component_build_targets()
+        self._update_components()
 
     def _variant_build_target_selected_trigger(self, build_target_name: str) -> None:
         self.logger.info(f"Variant build target selected: {build_target_name}")
