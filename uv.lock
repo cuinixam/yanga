@@ -2285,7 +2285,7 @@ wheels = [
 
 [[package]]
 name = "pypeline-runner"
-version = "1.34.0"
+version = "1.38.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "poks" },
@@ -2294,9 +2294,9 @@ dependencies = [
     { name = "typer" },
     { name = "west" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/7d/94/e64f24372b7773408b1c0e90e01bd5ae880b3f9ca22e989b58c4e14487c5/pypeline_runner-1.34.0.tar.gz", hash = "sha256:1776728e6371472079073ebd7f414e4b12a610781816ed144361aa6cf012b0d0", size = 37624, upload-time = "2026-06-17T18:13:33.84Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/36/36/fc472b7b63be96eebd3b6ca6265d8868cf92a8214876747f5fb23be2e80d/pypeline_runner-1.38.0.tar.gz", hash = "sha256:267901fe82fb525ddeaca0dc6a1ed8a4d888f93f84cb75af87522de135301083", size = 40448, upload-time = "2026-09-02T18:04:39.22Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/86/ac/b9cc69eb7ebc2d6ca4318607a5e6598f3a99640b7a6f3774c30402cf3e9d/pypeline_runner-1.34.0-py3-none-any.whl", hash = "sha256:2376bc7f61b789f3740cb52923c744eebfc6952a348f7c67b5bfb358ecea4def", size = 45961, upload-time = "2026-06-17T18:13:32.43Z" },
+    { url = "https://files.pythonhosted.org/packages/d9/7d/0573aba9b2d0b89b4ba2757606fe5115eb11360c46fb71dbd577936f155d/pypeline_runner-1.38.0-py3-none-any.whl", hash = "sha256:68dadf75af5f82f6c21c2bd6de0311a5b4a5b4a21ea07a86282b883ad3994de6", size = 48801, upload-time = "2026-09-02T18:04:37.691Z" },
 ]
 
 [[package]]
@@ -3119,9 +3119,9 @@ requires-dist = [
     { name = "pillow", specifier = ">=10.1,<11" },
     { name = "poks", specifier = ">=0,<1" },
     { name = "py-app-dev", specifier = ">=2.20,<3" },
-    { name = "pypeline-runner", specifier = ">=1.34,<2" },
+    { name = "pypeline-runner", specifier = ">=1.38,<2" },
     { name = "typer", specifier = ">=0,<1" },
-    { name = "yanga-core", specifier = ">=0.9,<1" },
+    { name = "yanga-core", specifier = ">=0.10,<1" },
 ]
 
 [package.metadata.requires-dev]
@@ -3144,7 +3144,7 @@ dev = [
 
 [[package]]
 name = "yanga-core"
-version = "0.9.0"
+version = "0.10.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "clanguru" },
@@ -3155,9 +3155,9 @@ dependencies = [
     { name = "pypeline-runner" },
     { name = "typer" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/04/f0/16c49d4a23e731edb9e27190014a268397780f45967846129c4f06f8c63d/yanga_core-0.9.0.tar.gz", hash = "sha256:ace1be4e767ceb331f550fbef21adf0146f932ad784bf76835de7b86cfbf6372", size = 38993, upload-time = "2026-07-04T12:01:46.768Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/e7/42/f312f47332f41f97c4b3c620e7ea07d5ff4504503e29c5b8b159b8142889/yanga_core-0.10.0.tar.gz", hash = "sha256:c62072ef5d00c871600d53b09af28ba7108873b79957b86d7de1c566ea6f4fb9", size = 39619, upload-time = "2026-09-03T19:18:28.645Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/74/5e/35e088900af9aab8a6f7520705dc25a48389eb7bc857158ca032a179e60c/yanga_core-0.9.0-py3-none-any.whl", hash = "sha256:be56b180fd7031b96d9add7b4fcbc1d7df4c35bcd11d30fba712fdf6ec4a23dc", size = 54403, upload-time = "2026-07-04T12:01:45.554Z" },
+    { url = "https://files.pythonhosted.org/packages/15/54/98cbc2005988910faa3293ee5530cc89ad2e030495d9f1a3d18105da5b2f/yanga_core-0.10.0-py3-none-any.whl", hash = "sha256:ce40ec60ad24900f1c676947259ab9f3fcb1274d684dbf5c742e2ec023e00676", size = 55083, upload-time = "2026-09-03T19:18:27.501Z" },
 ]
 
 [[package]]

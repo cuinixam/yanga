@@ -5,16 +5,9 @@ inputs:
     default:
 
 pipeline:
-  - step: CreateVEnv
-    module: pypeline.steps.create_venv
-    config:
-      package_manager: uv>=0
-      python_version: 3.11
-  - step: GenerateEnvSetupScript
-    module: pypeline.steps.env_setup_script
-  - step: PreCommit
-    run: pre-commit run --all-files
-  - step: PyTest
-    run: pytest
+  - include: pipeline/lint.yaml
+  - include:
+      file: pipeline/test.yaml
+      steps: [PyTest]
   - step: Docs
     run: sphinx-build -E -a docs docs/_build

@@ -1,0 +1,4 @@
+pipeline:
+  - include: bootstrap.yaml
+  - step: PreCommit
+    run: pre-commit run --all-files

@@ -1,0 +1,10 @@
+inputs:
+  python_version:
+    type: string
+    description: Specify python version for bootstrap
+    default:
+
+pipeline:
+  - include: bootstrap.yaml
+  - step: PyTest
+    run: pytest
