@@ -1,5 +1,11 @@
 # Changelog
 
+## v2.36.1 (2026-09-04)
+
+### Bug fixes
+
+- Components list are not updated when selecting the platform ([`0d8fab9`](https://github.com/cuinixam/yanga/commit/0d8fab98b6b99bfe9f021e3d17ffbfafd3a042c4))
+
 ## v2.36.0 (2026-07-04)
 
 ### Features
