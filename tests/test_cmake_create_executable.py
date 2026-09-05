@@ -2,6 +2,7 @@ from pathlib import Path
 
 import pytest
 from yanga_core.domain.artifact import Artifact
+from yanga_core.domain.components import Component
 from yanga_core.domain.execution_context import ExecutionContext
 
 from tests.utils import assert_element_of_type, assert_elements_of_type, find_elements_of_type
@@ -98,3 +99,9 @@ def test_hooks_let_a_platform_link_into_its_own_executable(execution_context: Ex
     assert "target_link_libraries(CompA_lib PUBLIC flags)" in link_lines
     build_target = next(target for target in find_elements_of_type(elements, CMakeCustomTarget) if target.name == "build")
     assert build_target.depends == ["app"]
+
+
+def test_component_link_libraries_skip_header_only_components(execution_context: ExecutionContext, output_dir: Path) -> None:
+    header_only = Component(name="types", path=output_dir, sources=[])
+    elements = ExternalExecutableGenerator(execution_context, output_dir).create_component_elements(header_only)
+    assert not find_elements_of_type(elements, CMakeTargetLinkLibraries)

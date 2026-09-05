@@ -26,6 +26,7 @@ from .cmake_backend import (
     CMakeTargetIncludeDirectories,
     CMakeTargetLinkLibraries,
     IncludeScope,
+    LibraryType,
     LinkLibrary,
 )
 from .generator import CMakeGenerator
@@ -124,8 +125,10 @@ class CreateExecutableCMakeGenerator(CMakeGenerator):
         sources = component.sources
         component_library = CMakeAddLibrary(component.name, sources, component_name=component.name)
         elements.append(component_library)
-        for link_library in self.component_link_libraries:
-            elements.append(CMakeTargetLinkLibraries(component_library.target_name, [link_library.target], scope=link_library.scope))
+        # A header-only component is an INTERFACE library: nothing to compile, so nothing to link for.
+        if component_library.type is not LibraryType.INTERFACE:
+            for link_library in self.component_link_libraries:
+                elements.append(CMakeTargetLinkLibraries(component_library.target_name, [link_library.target], scope=link_library.scope))
 
         # Add component-specific include directories when global includes are disabled
         if not self.config_obj.use_global_includes:
