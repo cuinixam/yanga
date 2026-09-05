@@ -1,5 +1,11 @@
 # Changelog
 
+## v2.37.0 (2026-09-05)
+
+### Features
+
+- Include custom user cmake files ([`3338896`](https://github.com/cuinixam/yanga/commit/3338896b471a33fd3c488ffd88aa16ed7c84f861))
+
 ## v2.36.1 (2026-09-04)
 
 ### Bug fixes
