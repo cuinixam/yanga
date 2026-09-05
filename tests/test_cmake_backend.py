@@ -1,6 +1,8 @@
 import textwrap
 from pathlib import Path
 
+import pytest
+
 from yanga.cmake.cmake_backend import (
     CMakeAddExecutable,
     CMakeAddLibrary,
@@ -18,8 +20,10 @@ from yanga.cmake.cmake_backend import (
     CMakePath,
     CMakeProject,
     CMakeTargetIncludeDirectories,
+    CMakeTargetLinkLibraries,
     CMakeVariable,
     IncludeScope,
+    LinkScope,
     cmake_directory_provider,
 )
 from yanga.cmake.generator import CMakeFile
@@ -303,3 +307,14 @@ def test_cmake_target_include_directories():
     # Test with empty paths
     empty_include_dirs = CMakeTargetIncludeDirectories("my_target", [], IncludeScope.PRIVATE)
     assert empty_include_dirs.to_string() == ""
+
+
+@pytest.mark.parametrize(
+    ("scope", "expected"),
+    [
+        (None, "target_link_libraries(app rte spled)"),
+        (LinkScope.PRIVATE, "target_link_libraries(app PRIVATE rte spled)"),
+    ],
+)
+def test_target_link_libraries(scope: LinkScope | None, expected: str) -> None:
+    assert CMakeTargetLinkLibraries("app", ["rte", "spled"], scope=scope).to_string() == expected

@@ -23,6 +23,20 @@ class IncludeScope(Enum):
     PRIVATE = auto()
 
 
+class LinkScope(Enum):
+    PUBLIC = auto()
+    PRIVATE = auto()
+    INTERFACE = auto()
+
+
+@dataclass(frozen=True)
+class LinkLibrary:
+    """A target linked into every component library, such as the interface target another build system keeps its compiler flags on."""
+
+    target: str
+    scope: LinkScope = LinkScope.PUBLIC
+
+
 class CMakeElement(ABC):
     tab_prefix = " " * 4
 
@@ -270,6 +284,19 @@ class CMakeAddExecutable(CMakeElement):
 
     def _add_link_options(self) -> str:
         return f"target_link_options({self.name} PRIVATE " + " ".join(self.link_options) + ")"
+
+
+@dataclass
+class CMakeTargetLinkLibraries(CMakeElement):
+    """Links libraries into an existing target. `scope` is required for targets the plain signature was never used on (CMake forbids mixing the two)."""
+
+    target: str
+    libraries: list[str]
+    scope: Optional[LinkScope] = None
+
+    def to_string(self) -> str:
+        arguments = [self.target, *([self.scope.name] if self.scope else []), *self.libraries]
+        return "target_link_libraries(" + " ".join(arguments) + ")"
 
 
 @dataclass

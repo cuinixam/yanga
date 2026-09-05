@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from functools import cached_property
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any, ClassVar, Optional
 
 from mashumaro import DataClassDictMixin
 from yanga_core.domain.artifact import Artifact, collect_directories, filter_artifacts, for_consumer, with_label
@@ -24,7 +24,9 @@ from .cmake_backend import (
     CMakeIncludeDirectories,
     CMakePath,
     CMakeTargetIncludeDirectories,
+    CMakeTargetLinkLibraries,
     IncludeScope,
+    LinkLibrary,
 )
 from .generator import CMakeGenerator
 
@@ -37,6 +39,9 @@ class CreateExecutableConfig(DataClassDictMixin):
 
 class CreateExecutableCMakeGenerator(CMakeGenerator):
     """Generates CMake elements to build an executable for a variant."""
+
+    #: Linked into every component library. Empty here; a platform whose build system keeps its compiler flags on an interface target names it.
+    component_link_libraries: ClassVar[tuple[LinkLibrary, ...]] = ()
 
     def __init__(self, execution_context: ExecutionContext, output_dir: Path, config: Optional[dict[str, Any]] = None) -> None:
         super().__init__(execution_context, output_dir, config)
@@ -57,27 +62,32 @@ class CreateExecutableCMakeGenerator(CMakeGenerator):
         elements.extend(self.create_components_cmake_elements())
         return elements
 
+    @property
+    def executable_target_name(self) -> str:
+        """The target the variant's component libraries are linked into. Platforms whose build system owns the executable override it."""
+        return "${PROJECT_NAME}"
+
+    def component_library_target(self, component: Component) -> str:
+        return CMakeAddLibrary(component.name).target_name
+
+    def create_executable_elements(self, component_library_targets: list[str]) -> list[CMakeElement]:
+        """Creates the executable and links the component libraries. Override to link into an executable another build system created."""
+        return [CMakeAddExecutable(self.executable_target_name, sources=[], libraries=component_library_targets)]
+
     def create_variant_cmake_elements(self) -> list[CMakeElement]:
         elements: list[CMakeElement] = []
         if self.config_obj.use_global_includes:
             elements.append(self.get_include_directories())
         else:
             elements.append(CMakeComment("Use global includes for all components disabled."))
-        # TODO: I do not like that I have to know here that the components are object libraries
-        component_library_targets = [CMakeAddLibrary(component.name).target_name for component in self.execution_context.components]
-        variant_executable = CMakeAddExecutable(
-            "${PROJECT_NAME}",
-            sources=[],
-            libraries=component_library_targets,
-        )
-
-        elements.append(variant_executable)
+        component_library_targets = [self.component_library_target(component) for component in self.execution_context.components]
+        elements.extend(self.create_executable_elements(component_library_targets))
         elements.append(
             CMakeCustomTarget(
                 name=UserVariantRequest(self.variant_name, UserRequestTarget.BUILD).target_name,
                 description=f"Build variant {self.variant_name}",
                 commands=[],
-                depends=[variant_executable.name],
+                depends=[self.executable_target_name],
             )
         )
         elements.append(
@@ -105,43 +115,51 @@ class CreateExecutableCMakeGenerator(CMakeGenerator):
     def create_components_cmake_elements(self) -> list[CMakeElement]:
         elements: list[CMakeElement] = []
         for component in self.execution_context.components:
-            sources = component.sources
-            component_library = CMakeAddLibrary(component.name, sources, component_name=component.name)
-            elements.append(component_library)
+            elements.extend(self.create_component_elements(component))
+        return elements
 
-            # Add component-specific include directories when global includes are disabled
-            if not self.config_obj.use_global_includes:
-                include_dirs: list[CMakePath] = self.get_component_include_directories(component)
-                if include_dirs:
-                    # Determine include scope: use PRIVATE for libraries with sources, INTERFACE for header-only
-                    scope = IncludeScope.INTERFACE if not sources else IncludeScope.PRIVATE
-                    target_includes = CMakeTargetIncludeDirectories(component_library.target_name, include_dirs, scope)
-                    elements.append(target_includes)
+    def create_component_elements(self, component: Component) -> list[CMakeElement]:
+        """The library and targets of one component. Override to add what the platform's build system needs on every library."""
+        elements: list[CMakeElement] = []
+        sources = component.sources
+        component_library = CMakeAddLibrary(component.name, sources, component_name=component.name)
+        elements.append(component_library)
+        for link_library in self.component_link_libraries:
+            elements.append(CMakeTargetLinkLibraries(component_library.target_name, [link_library.target], scope=link_library.scope))
 
-            elements.append(
-                CMakeCustomTarget(
-                    UserRequest(
-                        UserRequestScope.COMPONENT,
-                        self.variant_name,
-                        component.name,
-                        UserRequestTarget.COMPILE,
-                    ).target_name,
-                    f"Compile component {component.name}",
-                    [],
-                    [component_library.target_name],
-                )
+        # Add component-specific include directories when global includes are disabled
+        if not self.config_obj.use_global_includes:
+            include_dirs: list[CMakePath] = self.get_component_include_directories(component)
+            if include_dirs:
+                # Determine include scope: use PRIVATE for libraries with sources, INTERFACE for header-only
+                scope = IncludeScope.INTERFACE if not sources else IncludeScope.PRIVATE
+                target_includes = CMakeTargetIncludeDirectories(component_library.target_name, include_dirs, scope)
+                elements.append(target_includes)
+
+        elements.append(
+            CMakeCustomTarget(
+                UserRequest(
+                    UserRequestScope.COMPONENT,
+                    self.variant_name,
+                    component.name,
+                    UserRequestTarget.COMPILE,
+                ).target_name,
+                f"Compile component {component.name}",
+                [],
+                [component_library.target_name],
             )
-            elements.append(
-                CMakeCustomTarget(
-                    UserRequest(
-                        UserRequestScope.COMPONENT,
-                        self.variant_name,
-                        component.name,
-                        UserRequestTarget.BUILD,
-                    ).target_name,
-                    f"Compile component {component.name}",
-                    [],
-                    [component_library.target_name],
-                )
+        )
+        elements.append(
+            CMakeCustomTarget(
+                UserRequest(
+                    UserRequestScope.COMPONENT,
+                    self.variant_name,
+                    component.name,
+                    UserRequestTarget.BUILD,
+                ).target_name,
+                f"Compile component {component.name}",
+                [],
+                [component_library.target_name],
             )
+        )
         return elements

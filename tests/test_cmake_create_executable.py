@@ -9,6 +9,10 @@ from yanga.cmake.cmake_backend import (
     CMakeAddExecutable,
     CMakeAddLibrary,
     CMakeCustomTarget,
+    CMakeElement,
+    CMakeTargetLinkLibraries,
+    LinkLibrary,
+    LinkScope,
 )
 from yanga.cmake.create_executable import CreateExecutableCMakeGenerator
 
@@ -70,3 +74,27 @@ def test_create_components_cmake_elements(
         "CompBNotTestable_compile",
         "CompBNotTestable_build",
     ]
+
+
+class ExternalExecutableGenerator(CreateExecutableCMakeGenerator):
+    """A platform whose build system owns the executable adapts the generator through its hooks."""
+
+    component_link_libraries = (LinkLibrary("flags"),)
+
+    @property
+    def executable_target_name(self) -> str:
+        return "app"
+
+    def create_executable_elements(self, component_library_targets: list[str]) -> list[CMakeElement]:
+        return [CMakeTargetLinkLibraries("app", component_library_targets, scope=LinkScope.PRIVATE)]
+
+
+def test_hooks_let_a_platform_link_into_its_own_executable(execution_context: ExecutionContext, output_dir: Path) -> None:
+    elements = ExternalExecutableGenerator(execution_context, output_dir).generate()
+
+    assert not find_elements_of_type(elements, CMakeAddExecutable)
+    link_lines = [element.to_string() for element in find_elements_of_type(elements, CMakeTargetLinkLibraries)]
+    assert link_lines[0] == "target_link_libraries(app PRIVATE CompA_lib CompBNotTestable_lib)"
+    assert "target_link_libraries(CompA_lib PUBLIC flags)" in link_lines
+    build_target = next(target for target in find_elements_of_type(elements, CMakeCustomTarget) if target.name == "build")
+    assert build_target.depends == ["app"]
