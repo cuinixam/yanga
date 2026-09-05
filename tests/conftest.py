@@ -53,6 +53,8 @@ def execution_context(tmp_path: Path) -> ExecutionContext:
     # resolved components it builds (here the whole declared set is selected).
     env.component_resolver = resolver
     env.components = resolver.selected_components
+    env.project_configs = []
+    env.variant = None
     return env
 
 

@@ -6,6 +6,7 @@ from py_app_dev.core.find import find_elements_of_type
 from py_app_dev.core.logging import logger
 from py_app_dev.core.pipeline import PipelineLoader
 from yanga_core.domain.config import PlatformConfig
+from yanga_core.domain.config_utils import collect_configs_by_id
 from yanga_core.domain.execution_context import ExecutionContext
 
 from yanga.cmake.artifacts_locator import CMakeArtifactsLocator
@@ -17,6 +18,8 @@ from .cmake_backend import (
     CMakeComment,
     CMakeCustomCommand,
     CMakeCustomTarget,
+    CMakeElement,
+    CMakeInclude,
     CMakeMinimumVersion,
     CMakePath,
     CMakeProject,
@@ -112,7 +115,18 @@ class CMakeBuildSystemGenerator:
             except TypeError as e:
                 raise UserNotificationException(f"{e}. Please check {platform.file} for {step}.") from e
         cmake_file.extend(ComponentCleanCMakeGenerator(self.execution_context, self.output_dir, existing_elements=cmake_file.content).generate())
+        cmake_file.extend(self.create_cmake_config_includes())
         return cmake_file
+
+    def create_cmake_config_includes(self) -> list[CMakeElement]:
+        """User CMake files (configs with id 'cmake'), included last so they see every generated target."""
+        includes: list[CMakeElement] = []
+        for config in collect_configs_by_id(self.execution_context, "cmake"):
+            if not config.file:
+                raise UserNotificationException("A 'cmake' config must reference a file; inline 'content' is not a CMake file.")
+            located = self.execution_context.spl_paths.locate_artifact(str(config.file), [config.location.file if config.location else None])
+            includes.append(CMakeInclude(CMakePath(located).to_string()))
+        return includes
 
     def create_config_cmake_file(self) -> CMakeFile:
         cmake_file = CMakeFile(self.config_cmake_file.to_path())

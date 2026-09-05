@@ -15,6 +15,18 @@ platforms:
         file: "toolchains/native.cmake"
 ```
 
+## Extra CMake Files
+
+A `configs` entry with `id: cmake` names a CMake file that is included at the end of the generated `variant.cmake`, after every component library and generated target exists. Use it for build logic that belongs to the platform rather than to yanga's generators, such as sources selected by the target framework's own configuration. The file is looked up like the toolchain file: next to the declaring `yanga.yaml`, then in the project root, then under `platforms/`. Several entries are included in the order yanga collects configs (project, variant, platform, variant-platform).
+
+```yaml
+platforms:
+  - name: zephyr_esp32h2
+    configs:
+      - id: cmake
+        file: "platforms/zephyr/app.cmake"   # target_sources_ifdef(CONFIG_LED_STRIP app ...)
+```
+
 ## Build Types
 
 You can restrict the build types (e.g., `Debug`, `Release`) that are valid for a specific platform. This is useful if a platform only supports a subset of build configurations.
