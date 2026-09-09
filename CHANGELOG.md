@@ -1,5 +1,11 @@
 # Changelog
 
+## v2.37.1 (2026-09-09)
+
+### Bug fixes
+
+- Header only libraries can not have target link deps ([`93fafbd`](https://github.com/cuinixam/yanga/commit/93fafbd028d9c6938cafefa3538240bc46f34c09))
+
 ## v2.37.0 (2026-09-05)
 
 ### Features
