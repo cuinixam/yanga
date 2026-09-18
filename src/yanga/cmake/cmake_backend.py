@@ -15,6 +15,7 @@ def make_list_unique(seq: list[Any]) -> list[Any]:
 class LibraryType(Enum):
     OBJECT = auto()
     INTERFACE = auto()
+    SHARED = auto()
 
 
 class IncludeScope(Enum):

@@ -28,6 +28,26 @@ platforms:
 
 **Extending:** when another build system owns the executable (Zephyr, for example), subclass this generator and list the subclass under `generators:`. Three methods are meant to be overridden. `executable_target_name` returns the target the component libraries are linked into and the variant `build` target depends on. `create_executable_elements(component_library_targets)` returns the CMake elements that create that target, by default an `add_executable`; an override can instead link the libraries into a target the other build system created. `component_link_libraries` is a tuple of `LinkLibrary` entries linked into every component library that has sources, which is how a subclass hands the libraries the other build system's interface target and its compiler flags; `create_component_elements(component)` returns one component's library and targets for anything beyond that. Object libraries linked into a static library are archived into it, so no further link edges are needed. A target not created by `add_executable` is not listed as an executable by `yanga info`.
 
+## `CreateSharedLibraryCMakeGenerator`
+
+Links the variant's component libraries into a shared library instead of an executable, for a host that loads the variant at runtime, a Python GUI through `ctypes` for example. The file is named like the executable would be, `Disco.so`, `Disco.dylib` or `Disco.dll` for variant `Disco`, without the `lib` prefix, so a loader finds it by variant name on every OS; on Windows all symbols are exported. Everything else, component libraries, include handling and the `build`/`compile` targets, is inherited from `CreateExecutableCMakeGenerator`, and so is its configuration.
+
+**Use Case:** Driving a variant from another program instead of running it.
+
+**Configuration:**
+
+```yaml
+platforms:
+  - name: my_shared_library_platform
+    generators:
+      - step: CreateSharedLibraryCMakeGenerator
+        module: yanga.cmake.create_shared_library
+        config:
+          use_global_includes: false
+```
+
+The objects linked into a shared library must be position independent; set `CMAKE_POSITION_INDEPENDENT_CODE ON` in the platform's toolchain file.
+
 ## `GTestCMakeGenerator`
 
 This generator facilitates unit testing using the Google Test framework. For each testable component, it builds a separate test executable. It also includes a powerful auto-mocking feature that uses [clanguru](https://github.com/cuinixam/clanguru) to generate mocks for dependencies, isolating the component under test.
