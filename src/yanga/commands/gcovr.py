@@ -20,7 +20,7 @@ from py_app_dev.core.config import BaseConfigJSONMixin
 from py_app_dev.core.logging import logger
 from yanga_core.commands.base import create_config
 from yanga_core.domain.config import StringableEnum
-from yanga_core.domain.reports import ReportData
+from yanga_core.domain.reports import ReportData, ReportRelevantFileType
 
 from yanga.cmake.artifacts_locator import BuildArtifact
 from yanga.cmake.generator import GeneratedFile
@@ -119,11 +119,13 @@ class CreateVariantGcovrConfigCommand(Command):
 
         report_config = ReportData.from_json_file(config.variant_report_config)
 
-        # Only include components which have coverage results
+        # Only components with a coverage target. Its entry registers html content and no files, so the
+        # presence of the entry is the test, not the (always empty) file list. Without these tracefiles
+        # gcovr falls back to running gcov over every .gcda under root, other variants' builds included.
         coverage_json_files = [
             component.build_dir.joinpath(BuildArtifact.COVERAGE_JSON.path)
             for component in report_config.components
-            if component.coverage_results and component.build_dir is not None
+            if any(entry.file_type == ReportRelevantFileType.COVERAGE_RESULT for entry in component.files) and component.build_dir is not None
         ]
 
         # Create a gcovr config file
