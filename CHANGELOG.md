@@ -1,5 +1,15 @@
 # Changelog
 
+## v2.39.0 (2026-09-18)
+
+### Features
+
+- Add create shared library generator ([`0c3184a`](https://github.com/cuinixam/yanga/commit/0c3184aaea4be457941eb93ad504687f9412d8c9))
+
+### Bug fixes
+
+- Merge component tracefiles in the variant report ([`08c5584`](https://github.com/cuinixam/yanga/commit/08c5584fc08bab52c6c1ca70a74f811fe24e4529))
+
 ## v2.38.0 (2026-09-18)
 
 ### Bug fixes
