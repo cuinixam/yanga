@@ -27,7 +27,8 @@ For SPLs with feature models (e.g., KConfig), you can specify a feature selectio
 variants:
   - name: FeatureVariant
     components: [main, configurable_feature]
-    features_selection_file: "config.txt"
+    feature_selection:
+      file: "config.txt"
 ```
 
 ### Generic Configuration

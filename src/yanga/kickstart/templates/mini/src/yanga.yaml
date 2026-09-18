@@ -1,3 +1,10 @@
+feature_model:
+  description: Greeting features
+  file: KConfig
+  pipeline:
+    - step: KConfigEdit
+      module: yanga_core.steps.kconfig_edit
+
 components:
   - name: main
     path: src
@@ -26,4 +33,5 @@ variants:
     components:
       - main
       - greeter
-    features_selection_file: "config_de.txt"
+    feature_selection:
+      file: "config_de.txt"

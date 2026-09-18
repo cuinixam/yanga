@@ -200,7 +200,9 @@ class ReportCMakeGenerator(CMakeGenerator):
             )
 
             # Collect all component targets that registered files relevant for the report
-            result_targets = [entry.target for entry in self.execution_context.data_registry.find_data(ReportRelevantFiles) if entry.target.component_name == component.name]
+            result_targets = [
+                entry.target.target_name for entry in self.execution_context.data_registry.find_data(ReportRelevantFiles) if entry.target.component_name == component.name
+            ]
             # Make list unique and keep order
             result_targets = list(dict.fromkeys(result_targets))
 
@@ -211,7 +213,7 @@ class ReportCMakeGenerator(CMakeGenerator):
                     commands=[],
                     depends=[
                         self.artifacts_locator.get_build_artifact(BuildArtifact.REPORT_CONFIG),
-                        *[target.target_name for target in result_targets],
+                        *result_targets,
                     ],
                 )
             )

@@ -46,7 +46,8 @@ For projects using KConfig feature models:
 variants:
   - name: MyProduct
     components: [main, configurable_feature]
-    features_selection_file: "config.txt"
+    feature_selection:
+      file: "config.txt"
 ```
 
 :::{note}

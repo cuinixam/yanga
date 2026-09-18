@@ -143,9 +143,9 @@ class CreateExecutableCMakeGenerator(CMakeGenerator):
             CMakeCustomTarget(
                 UserRequest(
                     UserRequestScope.COMPONENT,
-                    self.variant_name,
-                    component.name,
-                    UserRequestTarget.COMPILE,
+                    variant_name=self.variant_name,
+                    component_name=component.name,
+                    target=UserRequestTarget.COMPILE,
                 ).target_name,
                 f"Compile component {component.name}",
                 [],
@@ -156,9 +156,9 @@ class CreateExecutableCMakeGenerator(CMakeGenerator):
             CMakeCustomTarget(
                 UserRequest(
                     UserRequestScope.COMPONENT,
-                    self.variant_name,
-                    component.name,
-                    UserRequestTarget.BUILD,
+                    variant_name=self.variant_name,
+                    component_name=component.name,
+                    target=UserRequestTarget.BUILD,
                 ).target_name,
                 f"Compile component {component.name}",
                 [],

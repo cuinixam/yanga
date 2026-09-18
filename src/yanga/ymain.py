@@ -6,6 +6,7 @@ from typing import Optional
 import typer
 from py_app_dev.core.exceptions import UserNotificationException
 from py_app_dev.core.logging import logger, setup_logger, time_it
+from yanga_core.commands.features import FeaturesCommand, FeaturesCommandConfig
 from yanga_core.commands.info import InfoCommand, InfoCommandConfig
 from yanga_core.commands.run import RunCommand, RunCommandConfig
 
@@ -145,32 +146,26 @@ def gui(
     YangaGui(project_dir).run()
 
 
-@app.command(help="View feature configurations across variants, or edit one variant's selection with --edit.")
+@app.command(help="View the product features of all variants, or edit the selection of a variant and/or a platform.")
 @time_it("features")
 def features(
     project_dir: Path = project_dir_option,
     variant: Optional[str] = typer.Option(
         None,
-        help="Variant to edit. If omitted with --edit, you are prompted to select one.",
+        help="Variant whose selection to edit. Alone it edits the product selection; with --platform, the variant's selection for that platform.",
     ),
-    edit: bool = typer.Option(
-        False,
-        help="Open the KConfig editor for the selected variant instead of the cross-variant viewer.",
+    platform: Optional[str] = typer.Option(
+        None,
+        help="Platform whose feature model to open. Without --variant and --platform, all variants' product selections are shown.",
     ),
     gui: bool = typer.Option(
         True,
-        help="Use the guiconfig GUI editor; pass --no-gui to use the terminal menuconfig. Only applies with --edit.",
+        help="Use the GUI editor; pass --no-gui for the terminal editor. The view of all variants is GUI only.",
     ),
 ) -> None:
-    from .yview import KConfigView, edit_variant_features
-
-    if edit:
-        if gui:
-            _check_tkinter_available()
-        edit_variant_features(project_dir, variant, gui)
-    else:
+    if gui:
         _check_tkinter_available()
-        KConfigView(project_dir).run()
+    FeaturesCommand().do_run(FeaturesCommandConfig(project_dir, variant_name=variant, platform=platform, gui=gui))
 
 
 @app.command(help="Generate the VS Code project files.")

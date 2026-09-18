@@ -1,8 +1,10 @@
 import sys
 from pathlib import Path
+from unittest.mock import patch
 
 import pytest
 from typer.testing import CliRunner
+from yanga_core.commands.features import FeaturesCommand, FeaturesCommandConfig
 
 from yanga.ymain import app
 
@@ -72,3 +74,20 @@ def test_spled(platform: str) -> None:
         ],
     )
     assert result.exit_code == 0
+
+
+@pytest.mark.parametrize(
+    ("args", "variant_name", "platform", "gui"),
+    [
+        ([], None, None, True),
+        (["--variant", "GermanVariant", "--no-gui"], "GermanVariant", None, False),
+        (["--variant", "GermanVariant", "--platform", "gtest"], "GermanVariant", "gtest", True),
+    ],
+    ids=["all-variants", "variant-terminal", "variant-and-platform"],
+)
+def test_features_runs_the_features_command(tmp_path: Path, args: list[str], variant_name: str | None, platform: str | None, gui: bool) -> None:
+    with patch("yanga.ymain._check_tkinter_available"), patch.object(FeaturesCommand, "do_run", return_value=0) as do_run:
+        result = runner.invoke(app, ["features", "--project-dir", tmp_path.as_posix(), *args])
+
+    assert result.exit_code == 0
+    do_run.assert_called_once_with(FeaturesCommandConfig(tmp_path, variant_name=variant_name, platform=platform, gui=gui))
