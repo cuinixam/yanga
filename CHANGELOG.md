@@ -1,5 +1,15 @@
 # Changelog
 
+## v2.38.0 (2026-09-18)
+
+### Bug fixes
+
+- Link with apple's ld on macos ([`3781480`](https://github.com/cuinixam/yanga/commit/3781480f47b7ce6624e0f775ea81a085273ef5b5))
+
+### Features
+
+- Adopt the dual feature model and update features cli ([`0ceb74f`](https://github.com/cuinixam/yanga/commit/0ceb74fbbcb2854b2ded3ca0d0f2f3930d58cb6a))
+
 ## v2.37.1 (2026-09-09)
 
 ### Bug fixes
