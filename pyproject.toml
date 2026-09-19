@@ -43,6 +43,15 @@ dependencies = [
   "yanga-core>=0.12,<1",
 ]
 
+optional-dependencies.zephyr = [
+  "jsonschema>=4",
+  "packaging>=23",
+  "pyelftools>=0.29",
+  "pykwalify>=1.8",
+  "pyyaml>=6",
+  "requests>=2.32.4",
+]
+
 urls."Bug Tracker" = "https://github.com/cuinixam/yanga/issues"
 urls.Changelog = "https://github.com/cuinixam/yanga/blob/main/CHANGELOG.md"
 urls.documentation = "https://yanga.readthedocs.io"

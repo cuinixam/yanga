@@ -9,4 +9,5 @@ Task-oriented guides that help you accomplish specific goals with Yanga.
 
 create-variant
 add-component-tests
+add-zephyr-platform
 ```
