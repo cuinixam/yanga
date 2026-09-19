@@ -1,5 +1,11 @@
 # Changelog
 
+## v2.40.0 (2026-09-19)
+
+### Features
+
+- Add support for zephyr builds ([`19f9c41`](https://github.com/cuinixam/yanga/commit/19f9c41d4d11ba566cdd62ce04d839444a4f51f2))
+
 ## v2.39.0 (2026-09-18)
 
 ### Features
