@@ -197,28 +197,56 @@ platforms:
 
 ````
 
-### Container Components (🚧to be implemented🚧)
+### Container Components
 
-For better organization, you can create "container" components that group other components together. This simplifies variant definitions by allowing you to include a single container instead of a long list of individual components.
+A container component groups other components, its `subcomponents`, so a variant selects the container instead of listing each part. A container has no `sources`, `include_directories` or `testing` of its own; it may have `docs` and `required_components`.
 
 ```yaml
 components:
-  - name: all_features
-    # This component has no sources, it only groups others
-    components:
-      - feature_a
-      - feature_b
+  - name: networking
+    subcomponents:
+      - tcp
+      - udp
+      - pins # an alias works too
 ```
-
-A variant can then be defined more concisely:
 
 ```yaml
 variants:
   - name: FullFeatureVariant
     components:
       - main
-      - all_features
+      - networking
 ```
+
+- Selecting a container selects it and all its subcomponents, recursively. A component selected both directly and through a container, or through two containers, is an error.
+- A subcomponent listed by alias uses the component the platform selected for that alias. If no component with that alias is selected, the one declared component carrying it is used.
+- Each subcomponent builds exactly as if it were selected directly. The container itself has no library; its `compile` and `build` targets build its subcomponents, and on the GTest platform its `test` target runs their tests.
+
+### Integration Components
+
+An integration component compiles the sources of other components again, next to its own test, without selecting them. It lists them with `integrates`, by name, alias or container (a container stands for all its subcomponents), so renaming a file in one of them needs no change here.
+
+```yaml
+components:
+  - name: test_integrations_networking
+    integrates:
+      - networking
+    testing:
+      sources:
+        - "test/test_networking_integration.cc"
+```
+
+```yaml
+variants:
+  - name: FullFeatureVariant
+    platforms:
+      gtest:
+        components: [test_integrations_networking]
+```
+
+Its sources are its own plus those of every integrated component, and all of them compile with the include directories of every integrated component. On the GTest platform it is a component like any other: its own test executable, its own mocks for the calls that leave the group, and its own coverage, separate from the integrated components' unit tests.
+
+The design decision is recorded in yanga-core's [design decisions](https://github.com/yanga-project/yanga-core/blob/main/docs/explanation/design-decisions.md#container-and-integration-components).
 
 ## Reports
 

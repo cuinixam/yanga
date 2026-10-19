@@ -1,5 +1,5 @@
 version = 1
-revision = 3
+revision = 5
 requires-python = ">=3.10, <4.0"
 resolution-markers = [
     "python_full_version >= '3.13'",
@@ -3450,7 +3450,7 @@ requires-dist = [
     { name = "pyyaml", marker = "extra == 'zephyr'", specifier = ">=6" },
     { name = "requests", marker = "extra == 'zephyr'", specifier = ">=2.32.4" },
     { name = "typer", specifier = ">=0,<1" },
-    { name = "yanga-core", specifier = ">=0.12,<1" },
+    { name = "yanga-core", specifier = ">=0.13,<1" },
 ]
 provides-extras = ["zephyr"]
 
@@ -3474,7 +3474,7 @@ dev = [
 
 [[package]]
 name = "yanga-core"
-version = "0.12.0"
+version = "0.13.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "clanguru" },
@@ -3486,9 +3486,9 @@ dependencies = [
     { name = "pypeline-runner" },
     { name = "typer" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/ef/c0/e875305314bb1043d88c6c79086b0832c04bb8eac627a3af75dbfe6ba55f/yanga_core-0.12.0.tar.gz", hash = "sha256:4677bf669346d74f02ba1ebc1b2a8521979b1e07702c0cb2f6e70004790e0839", size = 43787, upload-time = "2026-09-18T14:15:23.733Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/26/81/dbbae315a28436249c498adb51cbdb6cd20331e4ef2bd146c3941a6b9ce9/yanga_core-0.13.0.tar.gz", hash = "sha256:2839b5d2fd90b36ab279f898a0aef1a1913de9e8564474e92d503fd4dd0b8958", size = 44981, upload-time = "2026-10-19T17:21:24.394Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/9e/11/21f4f4141e585a81121cdd6ba312d30e365406e3539a45c75e28dc495730/yanga_core-0.12.0-py3-none-any.whl", hash = "sha256:a2ca5c3e248557909569534ead755107e4878eaeaca2f4c578757e327ad4ee2f", size = 61771, upload-time = "2026-09-18T14:15:22.36Z" },
+    { url = "https://files.pythonhosted.org/packages/13/68/10fd205b6f1a119c1c02ca13c532d9b440dddfc0bbff064adeb06bc71986/yanga_core-0.13.0-py3-none-any.whl", hash = "sha256:74bba9a5bfc57a1a2a7713fef834c3eed0786f9dc29a0527a604c76bd2aa7dfe", size = 62947, upload-time = "2026-10-19T17:21:22.861Z" },
 ]
 
 [[package]]

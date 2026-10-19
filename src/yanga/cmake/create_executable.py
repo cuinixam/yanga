@@ -81,7 +81,7 @@ class CreateExecutableCMakeGenerator(CMakeGenerator):
             elements.append(self.get_include_directories())
         else:
             elements.append(CMakeComment("Use global includes for all components disabled."))
-        component_library_targets = [self.component_library_target(component) for component in self.execution_context.components]
+        component_library_targets = [self.component_library_target(component) for component in self.execution_context.components if not component.is_container]
         elements.extend(self.create_executable_elements(component_library_targets))
         elements.append(
             CMakeCustomTarget(
@@ -116,8 +116,23 @@ class CreateExecutableCMakeGenerator(CMakeGenerator):
     def create_components_cmake_elements(self) -> list[CMakeElement]:
         elements: list[CMakeElement] = []
         for component in self.execution_context.components:
-            elements.extend(self.create_component_elements(component))
+            elements.extend(self.create_container_elements(component) if component.is_container else self.create_component_elements(component))
         return elements
+
+    def create_container_elements(self, container: Component) -> list[CMakeElement]:
+        """A container has no library: its targets only build its subcomponents."""
+        return [
+            CMakeCustomTarget(
+                self._component_target_name(container, target),
+                f"{target.name.capitalize()} container {container.name}",
+                [],
+                [self._component_target_name(subcomponent, target) for subcomponent in container.subcomponents],
+            )
+            for target in (UserRequestTarget.COMPILE, UserRequestTarget.BUILD)
+        ]
+
+    def _component_target_name(self, component: Component, target: UserRequestTarget) -> str:
+        return UserRequest(UserRequestScope.COMPONENT, variant_name=self.variant_name, component_name=component.name, target=target).target_name
 
     def create_component_elements(self, component: Component) -> list[CMakeElement]:
         """The library and targets of one component. Override to add what the platform's build system needs on every library."""

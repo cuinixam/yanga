@@ -71,6 +71,21 @@ Or run all tests:
 yanga run --platform gtest
 ```
 
+### 5. Test several components together (optional)
+
+To test how components work together, create an integration component that lists them with `integrates` and select it on the test platform:
+
+```yaml
+components:
+  - name: test_integrations_networking
+    integrates: [tcp, udp]
+    testing:
+      sources:
+        - "test/test_networking_integration.cpp"
+```
+
+The integration component compiles the sources of `tcp` and `udp` again into its own test executable without selecting them. Automock then mocks only the calls that leave the group, and the coverage stays separate from the components' unit tests. Run it with `yanga run --platform gtest --target test_integrations_networking_test`.
+
 ## See also
 
 - [Software Product Line Reference](../reference/product.md) for component configuration

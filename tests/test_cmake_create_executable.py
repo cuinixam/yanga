@@ -105,3 +105,14 @@ def test_component_link_libraries_skip_header_only_components(execution_context:
     header_only = Component(name="types", path=output_dir, sources=[])
     elements = ExternalExecutableGenerator(execution_context, output_dir).create_component_elements(header_only)
     assert not find_elements_of_type(elements, CMakeTargetLinkLibraries)
+
+
+def test_container_builds_only_its_subcomponents(container_execution_context: ExecutionContext, output_dir: Path) -> None:
+    elements = CreateExecutableCMakeGenerator(container_execution_context, output_dir).generate()
+
+    assert [library.name for library in find_elements_of_type(elements, CMakeAddLibrary)] == ["tcp", "udp"]
+    assert assert_element_of_type(elements, CMakeAddExecutable).libraries == ["tcp_lib", "udp_lib"]
+    targets = {target.name: target.depends for target in find_elements_of_type(elements, CMakeCustomTarget)}
+    assert targets["group_compile"] == ["net_compile"]
+    assert targets["group_build"] == ["net_build"]
+    assert targets["net_compile"] == ["tcp_compile", "udp_compile"]

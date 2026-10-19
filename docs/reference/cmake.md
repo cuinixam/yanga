@@ -26,7 +26,7 @@ platforms:
           use_global_includes: true
 ```
 
-**Extending:** when another build system owns the executable (Zephyr, for example), subclass this generator and list the subclass under `generators:`. Three methods are meant to be overridden. `executable_target_name` returns the target the component libraries are linked into and the variant `build` target depends on. `create_executable_elements(component_library_targets)` returns the CMake elements that create that target, by default an `add_executable`; an override can instead link the libraries into a target the other build system created. `component_link_libraries` is a tuple of `LinkLibrary` entries linked into every component library that has sources, which is how a subclass hands the libraries the other build system's interface target and its compiler flags; `create_component_elements(component)` returns one component's library and targets for anything beyond that. Object libraries linked into a static library are archived into it, so no further link edges are needed. A target not created by `add_executable` is not listed as an executable by `yanga info`.
+**Extending:** when another build system owns the executable (Zephyr, for example), subclass this generator and list the subclass under `generators:`. Three methods are meant to be overridden. `executable_target_name` returns the target the component libraries are linked into and the variant `build` target depends on. `create_executable_elements(component_library_targets)` returns the CMake elements that create that target, by default an `add_executable`; an override can instead link the libraries into a target the other build system created. `component_link_libraries` is a tuple of `LinkLibrary` entries linked into every component library that has sources, which is how a subclass hands the libraries the other build system's interface target and its compiler flags; `create_component_elements(component)` returns one component's library and targets for anything beyond that. A container component gets no library and is not linked; `create_container_elements(container)` returns its `compile` and `build` targets, which depend on its subcomponents' targets. Object libraries linked into a static library are archived into it, so no further link edges are needed. A target not created by `add_executable` is not listed as an executable by `yanga info`.
 
 ## `CreateSharedLibraryCMakeGenerator`
 
@@ -53,6 +53,8 @@ The objects linked into a shared library must be position independent; set `CMAK
 This generator facilitates unit testing using the Google Test framework. For each testable component, it builds a separate test executable. It also includes a powerful auto-mocking feature that uses [clanguru](https://github.com/cuinixam/clanguru) to generate mocks for dependencies, isolating the component under test.
 
 **Use Case:** Running unit tests and generating coverage reports for individual components.
+
+A container component compiles nothing itself; its `test` and `build` targets run the tests of its subcomponents. An integration component needs no special handling: it is a component whose sources include those of the components it integrates.
 
 **Configuration:**
 

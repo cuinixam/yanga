@@ -28,29 +28,47 @@ def locate_artifact():
 @pytest.fixture
 def execution_context(tmp_path: Path) -> ExecutionContext:
     # Declared component configs; the resolver turns them into resolved Components.
+    return make_execution_context(
+        tmp_path,
+        [
+            ComponentConfig(
+                name="CompA",
+                path=Path("compA"),
+                sources=["compA_source.cpp"],
+                testing=TestingConfig(sources=["test_compA_source.cpp"]),
+            ),
+            ComponentConfig(
+                name="CompBNotTestable",
+                path=Path("compB"),
+                sources=["compB_source.cpp"],
+                testing=TestingConfig(sources=[]),
+            ),
+        ],
+    )
+
+
+@pytest.fixture
+def container_execution_context(tmp_path: Path) -> ExecutionContext:
+    """A variant selecting container ``group``, which holds container ``net``, which holds ``tcp`` (tested) and ``udp``."""
     configs = [
-        ComponentConfig(
-            name="CompA",
-            path=Path("compA"),
-            sources=["compA_source.cpp"],
-            testing=TestingConfig(sources=["test_compA_source.cpp"]),
-        ),
-        ComponentConfig(
-            name="CompBNotTestable",
-            path=Path("compB"),
-            sources=["compB_source.cpp"],
-            testing=TestingConfig(sources=[]),
-        ),
+        ComponentConfig(name="group", subcomponents=["net"]),
+        ComponentConfig(name="net", subcomponents=["tcp", "udp"]),
+        ComponentConfig(name="tcp", path=Path("tcp"), sources=["tcp.cpp"], testing=TestingConfig(sources=["test_tcp.cpp"])),
+        ComponentConfig(name="udp", path=Path("udp"), sources=["udp.cpp"]),
     ]
+    return make_execution_context(tmp_path, configs, ["group"])
+
+
+def make_execution_context(tmp_path: Path, configs: list[ComponentConfig], selected_names: list[str] | None = None) -> ExecutionContext:
     spl_paths = SPLPaths(tmp_path, "mock_variant", "mock_platform", "mock_build_type", create_yanga_build_dir=True)
-    resolver = ComponentResolver(configs, [config.name for config in configs], spl_paths)
+    resolver = ComponentResolver(configs, selected_names or [config.name for config in configs], spl_paths)
     env = Mock(spec=ExecutionContext)
     env.project_root_dir = tmp_path
     env.variant_name = "mock_variant"
     env.spl_paths = spl_paths
     env.data_registry = DataRegistry()
     # The resolver is the single component authority; the context's components are the
-    # resolved components it builds (here the whole declared set is selected).
+    # resolved components it builds (the whole declared set unless names are given).
     env.component_resolver = resolver
     env.components = resolver.selected_components
     env.project_configs = []

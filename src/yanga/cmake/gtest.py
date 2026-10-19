@@ -1,3 +1,4 @@
+from collections.abc import Sequence
 from dataclasses import dataclass
 from functools import cached_property
 from pathlib import Path
@@ -216,6 +217,11 @@ class GTestComponentCMakeGenerator:
 
         elements: list[CMakeElement] = []
         elements.append(CMakeComment(f"Component {component.name}"))
+        # A container compiles nothing itself; it only runs its subcomponents' tests.
+        if component.is_container:
+            elements.extend(self._test_targets(component, self._subcomponent_test_targets(component)))
+            elements.append(CMakeEmptyLine())
+            return elements
 
         # Create the component executable
         productive_sources = component.sources
@@ -333,37 +339,33 @@ class GTestComponentCMakeGenerator:
                 elements.extend(mockup_generator.generate())
 
             # Create the component custom targets
-            elements.extend(
-                [
-                    CMakeCustomTarget(
-                        UserRequest(
-                            UserRequestScope.COMPONENT,
-                            component_name=component.name,
-                            target=UserRequestTarget.TEST,
-                        ).target_name,
-                        f"Execute tests for {component.name}",
-                        [],
-                        execute_tests_command.outputs,
-                        True,
-                    ),
-                    CMakeCustomTarget(
-                        UserRequest(
-                            UserRequestScope.COMPONENT,
-                            component_name=component.name,
-                            target=UserRequestTarget.BUILD,
-                        ).target_name,
-                        f"Execute tests for {component.name}",
-                        [],
-                        execute_tests_command.outputs,
-                        True,
-                    ),
-                ]
-            )
+            elements.extend(self._test_targets(component, execute_tests_command.outputs or []))
         else:
             elements.append(CMakeComment(f"Component {component.name} is not testable, only compiling sources."))
         elements.append(CMakeEmptyLine())
 
         return elements
+
+    def _test_targets(self, component: Component, depends: Sequence[str | CMakePath]) -> list[CMakeElement]:
+        return [
+            CMakeCustomTarget(
+                UserRequest(UserRequestScope.COMPONENT, component_name=component.name, target=target).target_name,
+                f"Execute tests for {component.name}",
+                [],
+                depends,
+                True,
+            )
+            for target in (UserRequestTarget.TEST, UserRequestTarget.BUILD)
+        ]
+
+    def _subcomponent_test_targets(self, component: Component) -> list[str]:
+        """Test targets of the testable subcomponents, recursively, so running a container's tests runs theirs too."""
+        targets: list[str] = []
+        for subcomponent in component.subcomponents:
+            if subcomponent.is_testable:
+                targets.append(UserRequest(UserRequestScope.COMPONENT, component_name=subcomponent.name, target=UserRequestTarget.TEST).target_name)
+            targets.extend(self._subcomponent_test_targets(subcomponent))
+        return targets
 
     def _determine_component_generator_config(self, component: Component) -> GTestCMakeGeneratorConfig:
         """Take over the component mocking configuration over the global generator configuration."""

@@ -15,6 +15,7 @@ from yanga.cmake.cmake_backend import (
     CMakeAddTargetCleanFiles,
     CMakeCustomCommand,
     CMakeCustomTarget,
+    CMakeElement,
     CMakeInclude,
     CMakeIncludeDirectories,
     CMakeTargetIncludeDirectories,
@@ -316,3 +317,21 @@ def test_component_mocking_config_overrides_global(execution_context: ExecutionC
     assert config.mocking.enabled is True, "Inherited global mocking enabled"
     assert config.mocking.exclude_symbol_patterns == ["CompAPattern1"], "Overridden exclude patterns"
     assert config.mocking.strict is True, "Overridden strict setting"
+
+
+@pytest.fixture
+def container_elements(container_execution_context: ExecutionContext, output_dir: Path) -> list[CMakeElement]:
+    container_execution_context.data_registry.insert(ExternalProject(name="googletest", revision="v1.17.0", path=Path("ext/gtest/v1.17.0")), provider="WestInstall")
+    return GTestCMakeGenerator(container_execution_context, output_dir).generate()
+
+
+def test_container_test_target_runs_subcomponent_tests(container_elements: list[CMakeElement]) -> None:
+    targets = {target.name: list(target.depends or []) for target in find_elements_of_type(container_elements, CMakeCustomTarget)}
+
+    assert targets["net_test"] == targets["net_build"] == ["tcp_test"]
+    assert targets["group_test"] == ["tcp_test"]
+
+
+def test_container_compiles_nothing(container_elements: list[CMakeElement]) -> None:
+    assert [library.name for library in find_elements_of_type(container_elements, CMakeAddLibrary)] == ["tcp_PC", "udp_PC"]
+    assert [executable.name for executable in find_elements_of_type(container_elements, CMakeAddExecutable)] == ["tcp"]
