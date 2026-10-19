@@ -11,7 +11,12 @@ from yanga.zephyr.steps import KCONFIG_FRONTEND, ZephyrBuild
 
 
 @pytest.fixture
-def env(tmp_path: Path) -> ExecutionContext:
+def install_dirs() -> list[Path]:
+    return []
+
+
+@pytest.fixture
+def env(tmp_path: Path, install_dirs: list[Path]) -> ExecutionContext:
     env = Mock(spec=ExecutionContext)
     env.project_root_dir = tmp_path
     env.variant_name = "Disco"
@@ -22,7 +27,7 @@ def env(tmp_path: Path) -> ExecutionContext:
     env.user_request = Mock()
     env.user_request.target = None
     env.variant_platform_feature_selection_file = None
-    env.install_dirs = []
+    env.install_dirs = install_dirs
     env.data_registry = DataRegistry()
     env.data_registry.insert(ExternalProject(name="zephyr", path=tmp_path / "zephyr", revision="v4.4.0"), "test")
     return env
@@ -67,14 +72,14 @@ def test_build_target_is_passed_to_west(env: ExecutionContext, target: str, expe
     assert "--" in command
 
 
-def test_cross_compile_needs_installed_toolchain(env: ExecutionContext) -> None:
+def test_cross_compile_needs_installed_toolchain(env: ExecutionContext, install_dirs: list[Path]) -> None:
     config = {**CONFIG, "toolchain": "cross-compile", "toolchain_app": "riscv64-zephyr-elf", "sysroot": "picolibc/riscv64-zephyr-elf"}
     step = ZephyrBuild(env, "build", config)
     with pytest.raises(UserNotificationException, match="riscv64-zephyr-elf"):
         step.get_cmake_args()
 
     root = env.project_root_dir / "poks" / "riscv64-zephyr-elf" / "1.0"
-    env.install_dirs = [root / "bin"]
+    install_dirs.append(root / "bin")
     args = step.get_cmake_args()
 
     assert f"-DCROSS_COMPILE={(root / 'bin' / 'riscv64-zephyr-elf').as_posix()}-" in args
