@@ -1,5 +1,15 @@
 # Changelog
 
+## v2.41.0 (2026-10-19)
+
+### Features
+
+- Generate targets for container and integration components ([`d9d13da`](https://github.com/cuinixam/yanga/commit/d9d13da4f5d037d9557eeb1881816fbd95a7bcf4))
+
+### Bug fixes
+
+- Set zephyr install dirs through the fixture list ([`df5cc35`](https://github.com/cuinixam/yanga/commit/df5cc3566f22d94c62631989b6378e616a670408))
+
 ## v2.40.0 (2026-09-19)
 
 ### Features
