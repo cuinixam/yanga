@@ -145,7 +145,9 @@ class ReportCMakeGenerator(CMakeGenerator):
                 component_name=component.name,
             )
 
-            if source_files_output_md:
+            docs_source_files = [CMakePath(source) for source in component.docs_sources]
+            # Docs files need no generation, but they register against the docs target, so it must exist.
+            if source_files_output_md or docs_source_files:
                 elements.append(
                     CMakeCustomTarget(
                         name=component_docs_target.target_name,
@@ -171,6 +173,7 @@ class ReportCMakeGenerator(CMakeGenerator):
                         byproducts=source_files_output_md,
                     )
                 )
+            if source_files_output_md:
                 # Register the component sources md files as relevant for the component report
                 self.execution_context.data_registry.insert(
                     ReportRelevantFiles(
@@ -181,7 +184,6 @@ class ReportCMakeGenerator(CMakeGenerator):
                     component_docs_target.target_name,
                 )
 
-            docs_source_files = [CMakePath(source) for source in component.docs_sources]
             if docs_source_files:
                 # Register the component documentation files as relevant for the component report
                 self.execution_context.data_registry.insert(

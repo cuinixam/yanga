@@ -86,7 +86,8 @@ def test_exclude_productive_code(execution_context: ExecutionContext, output_dir
     gen = ReportCMakeGenerator(execution_context, output_dir)
     elements = gen.create_components_cmake_elements()
 
-    assert {t.name for t in find_elements_of_type(elements, CMakeCustomTarget)} == {"CompA_results", "CompA_report", "CompB_results", "CompB_report", "CompB_docs"}
+    assert {t.name for t in find_elements_of_type(elements, CMakeCustomTarget)} == {"CompA_docs", "CompA_results", "CompA_report", "CompB_results", "CompB_report", "CompB_docs"}
+    assert assert_element_of_type(elements, CMakeCustomTarget, lambda target: target.name == "CompA_docs").commands == []
     # Only component B SOURCES shall be reported as relevant for the report
     report_relevant_files = execution_context.data_registry.find_data(ReportRelevantFiles)
     assert_elements_of_type(
