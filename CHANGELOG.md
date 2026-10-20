@@ -1,5 +1,11 @@
 # Changelog
 
+## v2.41.1 (2026-10-20)
+
+### Bug fixes
+
+- Create docs target for components with only docs files ([`1d9a451`](https://github.com/cuinixam/yanga/commit/1d9a45121cc5155eaea8d232608b092f58b150b9))
+
 ## v2.41.0 (2026-10-19)
 
 ### Features
