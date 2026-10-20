@@ -1,14 +1,14 @@
 # README
 
 <p align="center">
-  <a href="https://github.com/cuinixam/yanga/actions/workflows/ci.yml?query=branch%3Amain">
-    <img src="https://img.shields.io/github/actions/workflow/status/cuinixam/yanga/ci.yml?branch=main&label=CI&logo=github&style=flat-square" alt="CI Status" >
+  <a href="https://github.com/yanga-project/yanga/actions/workflows/ci.yml?query=branch%3Amain">
+    <img src="https://img.shields.io/github/actions/workflow/status/yanga-project/yanga/ci.yml?branch=main&label=CI&logo=github&style=flat-square" alt="CI Status" >
   </a>
   <a href="https://yanga.readthedocs.io">
     <img src="https://img.shields.io/readthedocs/yanga.svg?logo=read-the-docs&logoColor=fff&style=flat-square" alt="Documentation Status">
   </a>
-  <a href="https://codecov.io/gh/cuinixam/yanga">
-    <img src="https://img.shields.io/codecov/c/github/cuinixam/yanga.svg?logo=codecov&logoColor=fff&style=flat-square" alt="Test coverage percentage">
+  <a href="https://codecov.io/gh/yanga-project/yanga">
+    <img src="https://img.shields.io/codecov/c/github/yanga-project/yanga.svg?logo=codecov&logoColor=fff&style=flat-square" alt="Test coverage percentage">
   </a>
 </p>
 <p align="center">

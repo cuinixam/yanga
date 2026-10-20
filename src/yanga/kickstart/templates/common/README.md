@@ -1,6 +1,6 @@
 # Hello Yanga
 
-A C project built with [Yanga](https://github.com/cuinixam/yanga). It supports multiple product variants and target platforms.
+A C project built with [Yanga](https://github.com/yanga-project/yanga). It supports multiple product variants and target platforms.
 
 ## Prerequisites
 

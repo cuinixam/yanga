@@ -63,7 +63,7 @@ jobs:
         uses: codecov/codecov-action@v5
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
-          slug: cuinixam/yanga
+          slug: yanga-project/yanga
 
   release:
     needs:

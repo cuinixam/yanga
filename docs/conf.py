@@ -83,8 +83,8 @@ html_theme = "sphinx_book_theme"
 html_logo = "_static/yanga.png"
 html_theme_options = {
     "home_page_in_toc": True,
-    "github_url": "https://github.com/cuinixam/yanga",
-    "repository_url": "https://github.com/cuinixam/yanga",
+    "github_url": "https://github.com/yanga-project/yanga",
+    "repository_url": "https://github.com/yanga-project/yanga",
     "repository_branch": "main",
     "path_to_docs": "docs",
     "use_repository_button": True,

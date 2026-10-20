@@ -2,7 +2,7 @@
 
 ## Project Overview
 
-A C project built with the [Yanga](https://github.com/cuinixam/yanga) build system. It manages multiple product **variants** (compositions of components with a feature selection) built for multiple **platforms** (host executable, GoogleTest).
+A C project built with the [Yanga](https://github.com/yanga-project/yanga) build system. It manages multiple product **variants** (compositions of components with a feature selection) built for multiple **platforms** (host executable, GoogleTest).
 
 ## Architecture
 
